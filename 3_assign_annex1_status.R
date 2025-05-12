@@ -1,5 +1,16 @@
-# work in progress
-# do as a function taking a taxa and returning TRUE/FALSE 
+#### Install packages ####
+# tidyverse already include tidyr , dplyr, readr, magrittr, stringr, readxl
+install.packages("tidyverse")
+library(tidyverse)
+library(readxl)
+
+#function taking a dataframe including a column taxa names and returning TRUE/FALSE 
+assign_annex1status = function(df, standardize_taxa = 'Standardized_taxa') {
+df <- df %>%
+   mutate(GENUS   = word(!!sym(standardize_taxa), 1),  # Extract the first word (genus)
+           SPECIES = word(!!sym(standardize_taxa), 2))  # Extract the second word (species)
+
+df$GENUS_SPECIES <- trimws(paste(df$GENUS, df$SPECIES))
 
 # ASSIGN ANNEX 1 DO THIS STEPS ONLY AFTER TAXA STANDARIXATION
 Genus_annex1_food = c('Hordeum', 'Ipomoea', 'Lathyrus', 'Lens', 'Malus', 'Musa', 'Oryza', 'Pennisetum', 'Phaseolus', 'Pisum', 
@@ -24,15 +35,38 @@ species_annex1_forages = c('Astragalus chinensis', 'Astragaslus cicer' , 'Astrag
                             'Trifolium resupinatum', 'Trifolium rueppellianum', 'Trifolium semipilosum', 'Trifolium subterraneum', 'Trifolium vesiculosum')
 
 #Aegilops was included as assuming Triticum et al. includes it
-exclude = c('Lepidium meyenii' , 'Musa textilis' , 'Phaseolus polyanthus', 'Zea perennis' , 'Zea diploperennis' , 'Zea luxurians')
-# potato Section tuberosa included, except Solanum phureja., eggplant Section melongena included species list in file Section_Melongena_GRIN-Global.xlsx
+exclude = c('Lepidium meyenii' , 'Musa textilis' , 'Phaseolus polyanthus', 'Zea perennis' , 'Zea diploperennis' , 'Zea luxurians', 'Solanum phureja')
+# potato Section tuberosa included, except Solanum phureja., 
+section_Petota <- read_excel("../data_6/processing/Solanum_section_Petota_Species_GRIN-Global.xlsx")
+# Split the "Name" column into "genus" and "species" 
+section_Petota <- section_Petota %>%
+  mutate(GENUS   = word(Name, 1),  # Extract the first word (genus)
+         SPECIES = word(Name, 2))  # Extract the second word (species)
+
+Petota_species = as.list(trimws(section_Petota$SPECIES))
+
+#eggplant Section melongena included species list in file Section_Melongena_GRIN-Global.xlsx
+section_Melongena <- read_excel("../data_6/processing/Section_Melongena_Species_GRIN-Global.xlsx")
+# Split the "fullSciName" column into "genus" and "species" without removing "fullSciName"
+section_Melongena <- section_Melongena %>%
+  mutate(GENUS   = word(Name, 1),  # Extract the first word (genus)
+         SPECIES = word(Name, 2))  # Extract the second word (species)
+
+section_Melongena = as.list(trimws(section_Melongena$SPECIES))
+
 #species annex 1 here make list
 # assign based on the list above
 
-# start with all NA
-combined_df2$Annex1 = NA
-combined_df2$Annex1 <- ifelse(combined_df2$GENUS %in% Genus_annex1_food, TRUE, combined_df2$Annex1) # if genus is in list genus annex 1 = True
-combined_df2$Annex1 <- ifelse(combined_df2$GENUS_SPECIES %in% species_annex1_forages, TRUE, combined_df2$Annex1) 
-# if species is in included list = True
-# if species is in excluded list = False
-# add potato and eggplant separately
+# start with all FALSE
+df$Annex1 = FALSE
+df$Annex1 <- ifelse(df$GENUS %in% Genus_annex1_food, TRUE, df$Annex1) # if genus is in list genus annex 1 = True
+df$Annex1 <- ifelse(df$GENUS_SPECIES %in% species_annex1_forages, TRUE, df$Annex1) 
+# check if species is Potato or its CWRs
+df$Annex1 <- ifelse( (df$GENUS == 'Solanum') & (df$SPECIES %in% Petota_species), TRUE, df$Annex1) 
+# check if species is Eggplants or its CWRs
+df$Annex1 <- ifelse( (df$GENUS == 'Solanum') & (df$SPECIES %in% section_Melongena), TRUE, df$Annex1) 
+# exclude some species
+df$Annex1 <- ifelse(df$GENUS_SPECIES %in% exclude , FALSE, df$Annex1) 
+
+return(df)
+} # end of function
