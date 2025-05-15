@@ -1,7 +1,7 @@
 ### Project: Global Crop Conservation Strategies Metrics ###
 ### Data sources cleaning individually and Join 
 #### Set working directory ####
-setwd("/Users/pgiovannini/Documents/Strategies/Mainstreaming\ Crop\ Strategies/GCCS\ metrics/R_code/")
+setwd("path")
 
 #### Install packages ####
 # tidyverse already include tidyr , dplyr, readr, magrittr, stringr, readxl
@@ -13,7 +13,6 @@ library(readxl)
 ########### Read in all database data for all crops ################################################
 BGCI_allcrops <- read_excel("../data_6/data_sources/BGCIPlantSearch_data/BGCI_allcrops_unformatted.xlsx")
 WIEWS_allcrops <- read_csv("../data_6/data_sources/FAOWIEWS_data/SDGBrequestExp.csv")
-SGSV_allcrops <- read_excel("../data_6/data_sources/SGSV_data/SGSV_allcrops_unformatted.xlsx")
 Genesys_allcrops <- read_csv("../data_6/data_sources/GenesysPGR_data/Genesys_allcrops_unformatted.csv") # Read in as a csv, not excel, helped eliminate data loss
 GBIF_allcrops <- read_csv("../data_6/data_sources/GBIF_data/GBIF_allcrops_unformatted.csv")
 
@@ -30,7 +29,6 @@ institute_names_no_syn <- read_excel("../data_6/processing/FAO_WIEWS_organizatio
 names(institute_names_no_syn)[names(institute_names_no_syn) == 'WIEWS instcode'] <- 'INSTCODE'
 names(institute_names_no_syn)[names(institute_names_no_syn) == 'Organization authority status'] <- 'ORGANIZATIONTYPE'
 institute_names_no_syn <- subset(institute_names_no_syn, select = c(`INSTCODE`, `ORGANIZATIONTYPE`))  %>% drop_na()
-#### load table to translate WIEWS insitute IDs into INSTCODES, note check if use of ID or VALID_ID field 
 WIEWS_institute_IDs <- read_excel("../data_6/processing/WIEWS_instIDs.xlsx")
 WIEWS_institute_IDs = subset(WIEWS_institute_IDs, select = c('ID' , 'WIEWS_INSTCODE'))
 ####################################################################################################
@@ -81,8 +79,7 @@ BGCI_allcrops <- subset(BGCI_allcrops, select = c(data_source, fullTaxa, GENUS, 
 
 ############### WIEWS: Data Read in and Cleaning ####################
 WIEWS_allcrops <- read_csv("../data_6/data_sources/FAOWIEWS_data/SDGBrequestExp.csv")
-#rename all columns according to MCPD naming style:
-# and select collumns that are needed
+#rename all columns according to MCPD naming style, and select columns that are needed
 WIEWS_allcrops <- WIEWS_allcrops %>%
   rename_with(~ c("holdingCty", "INSTCODE", "ACCENUMB", "fullTaxa", "GENUS", 
                   "SPECIES", "acceptedGenus", "acceptedSpecies", "CROPNAME", 
@@ -95,25 +92,21 @@ WIEWS_allcrops <- WIEWS_allcrops %>%
          STORAGE, MLSSTAT, 
          ACQDATE, COLLSRC)
 
-
 # Add field: data source
 WIEWS_allcrops <- cbind(WIEWS_allcrops, data_source = "WIEWS")
 
-## Standardize acceNumb field: remove blank/space between institute abbreviation and number
+## Standardize ACCENUMB field: remove blank/space between institute abbreviation and number
 WIEWS_allcrops  <- WIEWS_allcrops  %>%
   mutate(ACCENUMB = str_replace_all(ACCENUMB, " ", ""))
-################ code to convert ids in DUPLSITE into INSTCODEs ###############
-# Split the duplSite column into separate rows, and trim spaces
+
+# Split the DUPLSITE column into separate rows, trim spaces, join with WIEWS_institute_IDs conversion table
 WIEWS_allcrops <- WIEWS_allcrops %>%
   separate_rows(DUPLSITE, sep = ";") %>%
   mutate(DUPLSITE = str_trim(DUPLSITE)) %>%
-  mutate(DUPLSITE = as.integer(DUPLSITE))
-
-# Join with institute_names to add duplInstName
-WIEWS_allcrops <- WIEWS_allcrops %>%
+  mutate(DUPLSITE = as.integer(DUPLSITE)) %>%
   left_join(WIEWS_institute_IDs, by = c("DUPLSITE" = "ID"), relationship = "many-to-one") 
 
-# Combine rows back into a single row per original entry, with duplSite and duplInstName values separated by ";"
+# Combine rows back into a single row per original entry, with DUPLSITE and WIEWS_INSTCODE values separated by ";"
 WIEWS_allcrops <- WIEWS_allcrops %>%
   group_by(across(-c(DUPLSITE, WIEWS_INSTCODE))) %>%
   summarize(
@@ -123,9 +116,9 @@ WIEWS_allcrops <- WIEWS_allcrops %>%
   )
 
 WIEWS_allcrops <- WIEWS_allcrops %>%
-  select(-DUPLSITE) %>%                 #drop duplsite column with wiews IDs
-  rename(DUPLSITE = WIEWS_INSTCODE) %>% # Rename WIEWS_INSTCODE to DUPLSITE
-################################################################################
+  select(-DUPLSITE) %>%                 #drop DUPLSITE column with wiews IDs
+  rename(DUPLSITE = WIEWS_INSTCODE)  # Rename WIEWS_INSTCODE to DUPLSITE
+
 ## Clean country field according to notes from CountryCodes_toClean file
 WIEWS_allcrops['ORIGCTY'][WIEWS_allcrops['ORIGCTY'] == "ANT"] <- "ATG"
 WIEWS_allcrops['ORIGCTY'][WIEWS_allcrops['ORIGCTY'] == "BYS"] <- "BLR"
@@ -140,9 +133,7 @@ WIEWS_allcrops$MLSSTAT[WIEWS_allcrops$MLSSTAT == "N"] <-  FALSE
 WIEWS_allcrops <- WIEWS_allcrops %>% mutate(MLSSTAT = as.logical(MLSSTAT))
 
 ############### Genesys PGR: Data Read in and Cleaning ####################
-#rename all columns according to MCPD naming style:
-#Genesys_allcrops <- read_csv("../data_6/data_sources/GenesysPGR_data/Genesys_allcrops_unformatted.csv")
-## fields to keep: 
+# select columns to keep
 Genesys_allcrops <- subset(Genesys_allcrops, select = c(INSTCODE, ACCENUMB, 
                                                         GENUS, SPECIES, SPAUTHOR, SUBTAXA, SUBTAUTHOR, 
                                                         GRIN_NAME, CROPNAME, ACQDATE, ACCENAME, SAMPSTAT, 
@@ -155,7 +146,7 @@ Genesys_allcrops <- subset(Genesys_allcrops, select = c(INSTCODE, ACCENUMB,
 # Add field: data source 
 Genesys_allcrops <- cbind(Genesys_allcrops, data_source = "Genesys")
 
-##### correcting manually these species names as it occurs in a lot of accessions
+##### correcting manually these species names as they occur in a lot of accessions
 Genesys_allcrops$SPECIES <- gsub('z.mays', 'mays', Genesys_allcrops$SPECIES)
 Genesys_allcrops$SPECIES <- gsub('o.sativa', 'sativa', Genesys_allcrops$SPECIES)
 ######
@@ -167,8 +158,7 @@ Genesys_allcrops$SPAUTHOR <- ifelse(is.na(Genesys_allcrops$SPAUTHOR), "", Genesy
 # Concatenate Genus, species, 'subTaxa', and 'spAuthor' with spaces in between
 Genesys_allcrops$fullTaxa <- trimws(paste(Genesys_allcrops$GENUS, Genesys_allcrops$SPECIES, Genesys_allcrops$SUBTAXA, Genesys_allcrops$SPAUTHOR))
 
-## Standardize ACCENUMB field
-## remove blank/space between institute abbreviation and number
+## Standardize ACCENUMB field. Remove blank/space between institute abbreviation and number
 Genesys_allcrops <- Genesys_allcrops %>%
   mutate(ACCENUMB = str_replace_all(ACCENUMB, " ", ""))
 
@@ -182,13 +172,15 @@ Genesys_allcrops['ORIGCTY'][Genesys_allcrops['ORIGCTY'] == "YUG"] <- "SLO, HRV, 
 Genesys_allcrops['ORIGCTY'][Genesys_allcrops['ORIGCTY'] == "CSK"] <- "CZE, SVK"
 Genesys_allcrops['ORIGCTY'][Genesys_allcrops['ORIGCTY'] == "SUN"] <- "RUS"
 
-
 ####################################################################################################
 ## Combine Genesys and WIEWS data and Remove duplicates between Genesys and WIEWS, keep Genesys ##################################################
 combined_df <- bind_rows(Genesys_allcrops, WIEWS_allcrops)
 combined_df$ACCENUMB <- trimws(combined_df$ACCENUMB)
 combined_df$INSTCODE <- trimws(combined_df$INSTCODE)
 combined_df$ID <- paste0(combined_df$ACCENUMB, combined_df$INSTCODE)
+combined_df <- combined_df[!duplicated(combined_df$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
+# add the other dataset (BGCI)
+combined_df2 <- bind_rows(combined_df, BGCI_allcrops)
 combined_df <- combined_df[!duplicated(combined_df$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 # add the other dataset (BGCI)
 combined_df2 <- bind_rows(combined_df, BGCI_allcrops)
