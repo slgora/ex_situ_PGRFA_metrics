@@ -77,8 +77,7 @@ BGCI_allcrops <- select(BGCI_allcrops, -c('Germplasm, seed', "Germplasm, plant",
 # Fields we want to keep
 BGCI_allcrops <- subset(BGCI_allcrops, select = c(data_source, fullTaxa, GENUS, SPECIES, STORAGE, DECLATITUDE, DECLONGITUDE ))
 
-############### WIEWS: Data Read in and Cleaning ####################
-WIEWS_allcrops <- read_csv("../data_6/data_sources/FAOWIEWS_data/SDGBrequestExp.csv")
+############### WIEWS: Data Cleaning ####################
 #rename all columns according to MCPD naming style, and select columns that are needed
 WIEWS_allcrops <- WIEWS_allcrops %>%
   rename_with(~ c("holdingCty", "INSTCODE", "ACCENUMB", "fullTaxa", "GENUS", 
