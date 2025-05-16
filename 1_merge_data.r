@@ -181,6 +181,3 @@ combined_df$ID <- paste0(combined_df$ACCENUMB, combined_df$INSTCODE)
 combined_df <- combined_df[!duplicated(combined_df$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 # add the other dataset (BGCI)
 combined_df2 <- bind_rows(combined_df, BGCI_allcrops)
-combined_df <- combined_df[!duplicated(combined_df$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
-# add the other dataset (BGCI)
-combined_df2 <- bind_rows(combined_df, BGCI_allcrops)
