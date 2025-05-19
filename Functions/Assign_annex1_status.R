@@ -35,8 +35,8 @@ species_annex1_forages = c('Astragalus chinensis', 'Astragaslus cicer' , 'Astrag
                             'Trifolium resupinatum', 'Trifolium rueppellianum', 'Trifolium semipilosum', 'Trifolium subterraneum', 'Trifolium vesiculosum')
 
 #Aegilops was included as assuming Triticum et al. includes it
-exclude = c('Lepidium meyenii' , 'Musa textilis' , 'Phaseolus polyanthus', 'Zea perennis' , 'Zea diploperennis' , 'Zea luxurians', 'Solanum phureja')
-# potato Section tuberosa included, except Solanum phureja., 
+exclude = c('Lepidium meyenii' , 'Musa textilis' , 'Phaseolus polyanthus', 'Phaseolus dumosus' ,'Zea perennis' , 'Zea diploperennis' , 'Zea luxurians', 'Solanum phureja')
+# potato Section tuberosa included, except Solanum phureja.
 section_Petota <- read_excel("../data_6/processing/Solanum_section_Petota_Species_GRIN-Global.xlsx")
 # Split the "Name" column into "genus" and "species" 
 section_Petota <- section_Petota %>%
