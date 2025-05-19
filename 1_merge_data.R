@@ -164,4 +164,4 @@ combined_df <- combined_df[!duplicated(combined_df$ID), ]  # drop duplicates but
 combined_df2 <- bind_rows(combined_df, BGCI_allcrops)
 ####### correct country codes iso-codes
 source("Functions/Correct_country_codes.R")
-combined_df = correct_country_codes(combined_df, col = 'ORIGCTY')
+combined_df2 = correct_country_codes(combined_df, col = 'ORIGCTY')
