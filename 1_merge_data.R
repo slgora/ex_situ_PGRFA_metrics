@@ -162,6 +162,12 @@ combined_df$ID <- paste0(combined_df$ACCENUMB, combined_df$INSTCODE)
 combined_df <- combined_df[!duplicated(combined_df$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 # add the other dataset (BGCI)
 combined_df2 <- bind_rows(combined_df, BGCI_allcrops)
+
 ####### correct country codes iso-codes
 source("Functions/Correct_country_codes.R")
 combined_df2 = correct_country_codes(combined_df, col = 'ORIGCTY')
+
+###### add crop strategy categorical variable
+source("Functions/Assign_crop_strategy.R")
+crops <- read_excel("../Data_6/processing/croplist_PG.xlsx")
+combined_df2 = assign_crop_strategy(combined_df, crops = crops)                             
