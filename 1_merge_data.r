@@ -118,14 +118,6 @@ WIEWS_allcrops <- WIEWS_allcrops %>%
   select(-DUPLSITE) %>%                 #drop DUPLSITE column with wiews IDs
   rename(DUPLSITE = WIEWS_INSTCODE)  # Rename WIEWS_INSTCODE to DUPLSITE
 
-## Clean country field according to notes from CountryCodes_toClean file
-WIEWS_allcrops['ORIGCTY'][WIEWS_allcrops['ORIGCTY'] == "ANT"] <- "ATG"
-WIEWS_allcrops['ORIGCTY'][WIEWS_allcrops['ORIGCTY'] == "BYS"] <- "BLR"
-WIEWS_allcrops['ORIGCTY'][WIEWS_allcrops['ORIGCTY'] == "SCG"] = "SRB, MNE"
-WIEWS_allcrops['ORIGCTY'][WIEWS_allcrops['ORIGCTY'] == "YUG"] <- "SLO, HRV, BIH, SRB, MNE, MKD, XKX"
-WIEWS_allcrops['ORIGCTY'][WIEWS_allcrops['ORIGCTY'] == "CSK"] <- "CZE, SVK"
-WIEWS_allcrops['ORIGCTY'][WIEWS_allcrops['ORIGCTY'] == "SUN"] <- "RUS"
-
 # recode MLSSTAT as TRUE and FALSE
 WIEWS_allcrops$MLSSTAT[WIEWS_allcrops$MLSSTAT == "I"] <-  TRUE
 WIEWS_allcrops$MLSSTAT[WIEWS_allcrops$MLSSTAT == "N"] <-  FALSE
@@ -161,16 +153,6 @@ Genesys_allcrops$fullTaxa <- trimws(paste(Genesys_allcrops$GENUS, Genesys_allcro
 Genesys_allcrops <- Genesys_allcrops %>%
   mutate(ACCENUMB = str_replace_all(ACCENUMB, " ", ""))
 
-## Clean country field according to notes from CountryCodes_toClean file, PG: # PG XAE is CIMMYT and XAM is IRRI as origin of the material, it should not changed to country, ANT is BES
-Genesys_allcrops['ORIGCTY'][Genesys_allcrops['ORIGCTY'] == "ANT"] <- "BES"
-Genesys_allcrops['ORIGCTY'][Genesys_allcrops['ORIGCTY'] == "ZAR"] <- "COD"
-Genesys_allcrops['ORIGCTY'][Genesys_allcrops['ORIGCTY'] == "ROM"] <- "ROU"
-Genesys_allcrops['ORIGCTY'][Genesys_allcrops['ORIGCTY'] == "BYS"] <- "BLR"
-Genesys_allcrops['ORIGCTY'][Genesys_allcrops['ORIGCTY'] == "SCG"] <- "SER, MNE"
-Genesys_allcrops['ORIGCTY'][Genesys_allcrops['ORIGCTY'] == "YUG"] <- "SLO, HRV, BIH, SRB, MNE, MKD, XKX"
-Genesys_allcrops['ORIGCTY'][Genesys_allcrops['ORIGCTY'] == "CSK"] <- "CZE, SVK"
-Genesys_allcrops['ORIGCTY'][Genesys_allcrops['ORIGCTY'] == "SUN"] <- "RUS"
-
 ####################################################################################################
 ## Combine Genesys and WIEWS data and Remove duplicates between Genesys and WIEWS, keep Genesys ##################################################
 combined_df <- bind_rows(Genesys_allcrops, WIEWS_allcrops)
@@ -180,3 +162,6 @@ combined_df$ID <- paste0(combined_df$ACCENUMB, combined_df$INSTCODE)
 combined_df <- combined_df[!duplicated(combined_df$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 # add the other dataset (BGCI)
 combined_df2 <- bind_rows(combined_df, BGCI_allcrops)
+####### correct country codes iso-codes
+source("Functions/Correct_country_codes.R")
+combined_df = correct_country_codes(combined_df, col = 'ORIGCTY')
