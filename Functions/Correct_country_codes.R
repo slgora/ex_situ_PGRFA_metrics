@@ -10,5 +10,6 @@ df[col][df[col] == "SCG"] <- "SER, MNE"
 df[col][df[col] == "YUG"] <- "SLO, HRV, BIH, SRB, MNE, MKD, XKX"
 df[col][df[col] == "CSK"] <- "CZE, SVK"
 df[col][df[col] == "SUN"] <- "RUS"
+df[col][df[col] == "Pak"] <- "PAK"
 return(df)
 }
