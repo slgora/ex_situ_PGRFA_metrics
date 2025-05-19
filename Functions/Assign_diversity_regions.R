@@ -1,6 +1,6 @@
-# it requires tidyverse
-# it requires crops dataframe (croplist_PG.xlsx) and countries in regions (countries_in_regions.xlsx)
-# 
+# It requires tidyverse
+# It requires crops dataframe (croplist_PG.xlsx) and countries in regions (countries_in_regions.xlsx)
+# Need to decide if SAMPSTAT is considered here (i.e. breeding material should be 'Not applicable') or later in the code to estimate crop metric
 assign_diversity_regions = function(df, crops, countries_in_regions) {
 
 # Combine 'Genera_primary' and 'Genera_synonyms' columns while avoiding NA values
