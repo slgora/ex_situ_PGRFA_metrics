@@ -1,5 +1,5 @@
 # library(readxl) us needed
- function = load_SGSV_data(filepath){
+function = load_SGSV_data(filepath){
   SGSV_allcrops <- read_excel(filepath)
   # Change column names
   colnames(SGSV_allcrops) <- c( "source","instName","INSTCODE","instAcronym","ACCENUMB",
