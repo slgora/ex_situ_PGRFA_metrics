@@ -4,6 +4,6 @@ assign_org_type = function(df, table_FAO_WIEWS){
   organizations_type <- setNames(table_FAO_WIEWS$ORGANIZATIONTYPE, table_FAO_WIEWS$INSTCODE)
   df$ORGANIZATIONTYPE = NA
   df <- df %>%
-    mutate(ORGANIZATIONTYPE = ifelse(is.na(ORGANIZATIONTYPE), organizations_type[INSTCODE], ORGANIZATIONTYPE))
-  
-  return(df)}
+    mutate(ORGANIZATIONTYPE = ifelse(is.na(ORGANIZATIONTYPE), organizations_type[INSTCODE], ORGANIZATIONTYPE))  
+  return(df)
+}
