@@ -23,6 +23,11 @@ call_glis_API <- function(parameters) {
     params_page[["page"]] <- i
     resp_page <- GET(url, query = params_page)
     json_data <- content(resp_page, as = "text", encoding = "UTF-8")
+    if (startsWith(json_data, "<!DOCTYPE html>")) {
+      print("Received HTML instead of JSON. Check API status and parameters.")
+      print(json_data)
+      next  # or stop the loop
+      }
     page_results <- fromJSON(json_data, simplifyVector = FALSE)
     results <- c(results, page_results)
     Sys.sleep(1) # Sleep to respect rate limits
