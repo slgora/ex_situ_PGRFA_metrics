@@ -32,7 +32,7 @@ extract_result_GLIS <- function(results_API_call) {
       SUBTAXA      = safeget(i, "R04", "subtaxa"),
       STAUTH       = safeget(i, "R04", "stauth"),
       SAMPSTAT     = safeget(i, "R03", "code"),
-      ORIGCTY      = safeget(i, "A04", "country"),
+      ORIGCTY      = safeget(i, "A03", "provenance"),
       DECLATITUDE  = safeget(i, "A08", "Latitude"),
       DECLONGITUDE = safeget(i, "A09", "Longitude"),
       MLS          = safeget(i, "R07", "code"),
