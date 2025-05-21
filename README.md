@@ -6,7 +6,7 @@ Always use INSTCODE to identify a collection holder instead of full name
 # BGCI dataset issues identified
 
 To be discussed with Colin:
-country in BGCI dataset is not country of origin but it is country of institute holding the accession. Therefore the code for this part was deleted. 
+country in BGCI dataset is not country of origin but it is country of institute holding the accession. Therefore, the code for this part was deleted. 
 
 # To be done:
 BGCI institute code to be added, we need to ask BGCI if they have a conversion table for their garden ID to INSTCODE, otherwise a conversion table has to be done manually by searching FAO WIEWS organization database (They are not too many so it is doable). 
@@ -22,7 +22,8 @@ Function assign True/False value based on country of collection, SAMPSTAT not ta
 2)Intended use of "isCrop" Variable (Currently replaced with crop_status variable )
 
 
-
+# Notes on current implementation
+Country codes: country codes for Yugoslavia (YUG) and Czechoslovakia (CSK) are not recoded to new countries as this would lead to multiple countries for one accession, which would cause problems when computing the metrics. Instead, assess the number of accession with YUG and CSK in ORGICTY field and their impact on the metric.  
 
 
 
