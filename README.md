@@ -23,14 +23,14 @@ Sarah: where is the GCCS-Metrics_croplist.xlsx file that includes column Plantst
 Cleaning up, updating, and streamlining the code to estimate the metrics
 
 # To be discussed:
-1)Regions of diversity variables: 
-Function assign True/False value based on country of collection. Then the metrics (metric 6) count only accessions with SAMPSTAT < 399 and SAMPSTAT with missing values (NA), i.e. landraces, wild , and weedy material. 
-
-2)Intended use of "isCrop" Variable (Currently replaced with crop_status variable )
+1)Intended use of "isCrop" Variable (Currently replaced with crop_status variable )
 
 
 # Notes on current implementation
 Country codes: country codes for Yugoslavia (YUG) and Czechoslovakia (CSK) are not recoded to new countries as this would lead to multiple countries for one accession, which would cause problems when computing the metrics. Instead, assess the number of accession with YUG and CSK in ORGICTY field and their impact on the metric.  
+
+Regions of diversity variables: 
+Function assign True/False value based on country of collection. Then the metrics (metric 6) count only accessions with SAMPSTAT < 399 and SAMPSTAT with missing values (NA), i.e. landraces, wild , and weedy material. 
 
 
 
