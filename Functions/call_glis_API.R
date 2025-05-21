@@ -18,6 +18,7 @@ call_glis_API <- function(parameters) {
   # Iterate through pages and collect results
   results <- list()
   for (i in 1:pages) {
+    cat(sprintf("Processing page %d of %d\n", i, pages))
     # Add/override the page parameter
     params_page <- parameters
     params_page[["page"]] <- i
