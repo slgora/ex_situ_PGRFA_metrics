@@ -9,11 +9,11 @@ To be discussed with Colin:
 country in BGCI dataset is not country of origin but it is country of institute holding the accession. Therefore the code for this part was deleted. 
 
 # To be done:
-BGCI institute code to be added, we need to ask BGCI if they have a conversion table for their garden ID to INSTCODE, otherwise a conversion table has to be done manually. 
+BGCI institute code to be added, we need to ask BGCI if they have a conversion table for their garden ID to INSTCODE, otherwise a conversion table has to be done manually by searching FAO WIEWS organization database (They are not too many so it is doable). 
 
 SGSV data: Load (done) and clean separately
 
-GLIS data: Fetch data with API, and clean separately
+GLIS data: Fetch data with GLIS API, and clean separately
 
 # To be discussed:
 1)Regions of diversity variables: 
