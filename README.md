@@ -24,7 +24,7 @@ Cleaning up, updating, and streamlining the code to estimate the metrics
 
 # To be discussed:
 1)Regions of diversity variables: 
-Function assign True/False value based on country of collection, SAMPSTAT not taken into account, the distinction of Landraces (i.e. on the metric count only Landraces) with other material could be done when computing the metrics. To be further thought. Or for Breeding and research material the value could be NA rather than false (i.e. not applicable).  
+Function assign True/False value based on country of collection. Then the metrics (metric 6) count only accessions with SAMPSTAT < 399 and SAMPSTAT with missing values (NA), i.e. landraces, wild , and weedy material. 
 
 2)Intended use of "isCrop" Variable (Currently replaced with crop_status variable )
 
