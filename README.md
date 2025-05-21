@@ -15,6 +15,10 @@ SGSV data: Load (done) and clean separately
 
 GLIS data: Fetch data with GLIS API, and clean separately
 
+Load_PTFTW_dataset.R (in Functions folder): check why I don't have GCCS-Metrics_croplist.xlsx file that includes column PlantsthatFeedtheWorld_name (as in Sarah's code), edit as a function. 
+
+Sarah: where is the GCCS-Metrics_croplist.xlsx file that includes column PlantsthatFeedtheWorld_name ?
+
 # To be discussed:
 1)Regions of diversity variables: 
 Function assign True/False value based on country of collection, SAMPSTAT not taken into account, the distinction of Landraces (i.e. on the metric count only Landraces) with other material could be done when computing the metrics. To be further thought. Or for Breeding and research material the value could be NA rather than false (i.e. not applicable).  
