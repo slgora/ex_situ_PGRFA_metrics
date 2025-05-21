@@ -64,7 +64,7 @@ primary_region_metric <- combined_allcrops %>%
   filter(SAMPSTAT <= 399 | is.na(SAMPSTAT)) %>%
   percent_summary(
     cropstrategy,
-    sum(isinprimaryregions == "Y", na.rm = TRUE),
+    sum(fromPrimary_diversity_region, na.rm = TRUE),
     primaryregions_total_records,
     isinprimaryregion_perc
   )
@@ -72,7 +72,7 @@ secondary_region_metric <- combined_allcrops %>%
   filter(SAMPSTAT <= 399 | is.na(SAMPSTAT)) %>%
   percent_summary(
     cropstrategy,
-    sum(isinsecondaryregions == "Y", na.rm = TRUE),
+    sum(fromSecondary_diversity_region, na.rm = TRUE),
     secondaryregions_total_records,
     isinsecondaryregion_perc
   )
