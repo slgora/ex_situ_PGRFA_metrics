@@ -2,9 +2,13 @@
 Repository with the methodology to produce a set of metrics on the ex-situ conservation of PGRFA
 
 It includes: 
+
 1)Merging data from different sources
+
 2)Standardising taxa
+
 3)Computing the metrics
+
 
 This work in currently on-going. 
 
