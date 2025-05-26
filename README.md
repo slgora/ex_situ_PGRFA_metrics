@@ -8,8 +8,6 @@ It includes:
 2)Standardising taxa
 
 3)Computing the metrics
-
-
 This work in currently on-going. 
 
 # General
@@ -27,7 +25,6 @@ BGCI institute code to be added, we need to ask BGCI if they have a conversion t
 
 SGSV data: Load (done) and clean separately
 
-GLIS data: Fetch data with GLIS API, and clean separately
 
 Load_PTFTW_dataset.R (in Functions folder): check why I don't have GCCS-Metrics_croplist.xlsx file that includes column PlantsthatFeedtheWorld_name (as in Sarah's code), edit as a function. 
 
@@ -44,7 +41,10 @@ Cleaning up, updating, and streamlining the code to estimate the metrics
 Country codes: country codes for Yugoslavia (YUG) and Czechoslovakia (CSK) are not recoded to new countries as this would lead to multiple countries for one accession, which would cause problems when computing the metrics. Instead, assess the number of accession with YUG and CSK in ORGICTY field and their impact on the metric.  
 
 Regions of diversity variables: 
-Function assign True/False value based on country of collection. Then the metrics (metric 6) count only accessions with SAMPSTAT < 399 and SAMPSTAT with missing values (NA), i.e. landraces, wild , and weedy material. 
+Function assign True/False value based on country of collection. Then the metrics (metric 6) count only accessions with SAMPSTAT < 399 and SAMPSTAT with missing values (NA), i.e. landraces, wild, and weedy material. 
+
+GLIS data:
+Fetched JSON data with GLIS API for each of the genus. Selected fields were then extracted from each JSON to create a dataframe, this was then saved as a csv file. 
 
 
 
