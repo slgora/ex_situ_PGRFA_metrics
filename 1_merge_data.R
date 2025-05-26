@@ -170,4 +170,20 @@ combined_df2 = correct_country_codes(combined_df, col = 'ORIGCTY')
 ###### add crop strategy categorical variable
 source("Functions/Assign_crop_strategy.R")
 crops <- read_excel("../Data_6/processing/croplist_PG.xlsx")
-combined_df2 = assign_crop_strategy(combined_df, crops = crops)                             
+combined_df2 = assign_crop_strategy(combined_df, crops = crops)  
+
+################## GLIS data ########################################################################
+##### read all JSON files downloaded from GLIS and extract data 
+# create a list of file paths (each one is a Json file dowloaded from GLIS)
+filenames <- list.files("GLIS_json_data", pattern="*.json", full.names=TRUE)
+
+# Read all the downloaded GLIS json file and merge in one single dataframe
+source("Functions/extract_result_GLIS.R")
+li = list()
+for (i in filenames) {
+  json_data <- read_json(i)
+  r = extract_result_GLIS(json_data)
+  li[[i]] = r
+}
+#merge all the extracted dataframes in one single dataframe
+all_glis_data <- do.call("rbind", li)
