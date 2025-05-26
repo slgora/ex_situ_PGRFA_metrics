@@ -163,11 +163,10 @@ storage_term_summary <- combined_allcrops %>%
 # SGSV_allcrops <- read_csv("SGSV_allcrops.csv") # Uncomment and set path if file available
 # SGSV_dupl_count <- SGSV_allcrops %>% group_by(cropstrategy) %>% summarise(sgsvcount = n(), .groups = "drop")
 
-# 12. GLIS DOIs per crop
-# GLIS_DOIs <- read_excel("GLIS_DOIs.xlsx") # Update to correct path
-# GLIS_dois_count <- GLIS_DOIs %>% group_by(cropstrategy) %>% summarise(dois = sum(dois, na.rm = TRUE), .groups = "drop")
+# 12. GLIS: # of accessions with DOIs per crop, use data downloaded from GLIS (GLIS_dataset)
+# GLIS_dois_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(dois = sum(DOI, na.rm = TRUE), .groups = "drop")
 
-
+# 13: GLIS: # of accessions incuded in MLS
 # TO BE COMPLETED
 
 # --------- END OF SCRIPT ---------
