@@ -14,7 +14,11 @@ extract_result_GLIS <- function(results_API_call) {
         return(NA)
       }
     }
-    return(d)
+    if (is.character(d)){
+       return(d)}
+    else if (is.numeric(d)){
+      return(d)}
+       else {return(NA) }
   }
   
   # Initialize list to collect records
@@ -32,17 +36,17 @@ extract_result_GLIS <- function(results_API_call) {
       SUBTAXA      = safeget(i, "R04", "subtaxa"),
       STAUTH       = safeget(i, "R04", "stauth"),
       SAMPSTAT     = safeget(i, "R03", "code"),
-      ORIGCTY      = safeget(i, "A03", "provenance"),
-      DECLATITUDE  = safeget(i, "A08", "Latitude"),
-      DECLONGITUDE = safeget(i, "A09", "Longitude"),
+      ORIGCTY      = safeget(i, "A03"),
+      DECLATITUDE  = safeget(i, "A08"),
+      DECLONGITUDE = safeget(i, "A09"),
       MLS          = safeget(i, "R07", "code"),
       date_DOI     = safeget(i, "info", "doiregistered")
     )
   }
   
   # Convert list of records to data frame
-  df <- do.call(rbind.data.frame, r)
-  
+  #df <- do.call(rbind.data.frame, r)
+  df <- do.call(bind_rows, r)
   # Set column names
   colnames(df) <- c('DOI', 'ACCENUMB', 'INSTCODE', 'GENUS', 'SPECIES', 
                     'SPAUTH', 'SUBTAXA', 'STAUTH', 'SAMPSTAT', 'ORIGCTY',
