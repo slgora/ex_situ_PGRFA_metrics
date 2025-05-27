@@ -3,10 +3,10 @@ Repository with the methodology to produce a set of metrics on the ex-situ conse
 
 It includes: 
 
-1)Downloading data (Genesys, WIEWS, BGCI, GLIS, SGSV)
+0)Downloading data (Genesys, WIEWS, BGCI, GLIS, SGSV)
 Only GLIS data downloaded through API. 
 
-1)Merging data from different sources
+1)Loading and merging data from different sources (Genesys, WIEWS, BGCI, GLIS, SGSV)
 
 2)Standardising taxa
 
@@ -38,6 +38,8 @@ Cleaning up, updating, and streamlining the code to estimate the metrics
 
 # To be discussed:
 1)Intended use of "isCrop" Variable (Currently replaced with crop_status variable )
+
+2)Assigning variable Crop strategy: currently, this is done before standardizing taxa, but I think this should be done after. TBD with Colin.  
 
 
 # Notes on current implementation
