@@ -167,8 +167,8 @@ SGSV_dupl_count <- SGSV_allcrops %>% group_by(cropstrategy) %>% summarise(sgsvco
 GLIS_dataset <- read_csv("glis_data_processed.csv") # glis_data_processed is the data after adding the cropstrategy variable
 GLIS_dois_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(dois = sum(DOI, na.rm = TRUE), .groups = "drop")
 
-# 13: GLIS: # of accessions incuded in MLS, need to recode MLSSTAT as boolean
-#GLIS_MLS_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(MLS = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
+# 13: GLIS: # of accessions notified as incuded in MLS (based on GLIS dataset)
+GLIS_MLS_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
 
 
 # --------- END OF SCRIPT ---------
