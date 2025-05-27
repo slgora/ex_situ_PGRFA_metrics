@@ -11,12 +11,15 @@ Only GLIS data downloaded through API.
 2)Standardising taxa
 
 3)Computing the metrics
-This work is currently on-going. 
+This work is currently on-going. Clarify and clean code for PTFTW metrics
+
+4)Produce tables
+Code for tables goes here
 
 # General
 code: 
 - General principle is that simple and clean code should make easier to collaborate and to identify and correct errors
-- When sharing code in the repository, do not include code used only for testing
+- When sharing code in the repository, do not include code used only for testing or inspecting the data (for example, "View(dataframe)")
 - Avoid redundant code (i.e. load same library multiple times in same script)
 - Avoid repeating the same code by creating functions
 
