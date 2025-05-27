@@ -187,3 +187,14 @@ for (i in filenames) {
 }
 #merge all the extracted dataframes in one single dataframe
 all_glis_data <- do.call("rbind", li)
+
+################# SGSV data ########################################################################## 
+sgsv = load_SGSV_data('../data_6/data_sources/SGSV_data/SGSV_allcrops_unformatted.xlsx')
+
+# create uniqueID and drop duplicates                               
+sgsv$ACCENUMB <- trimws(sgsv$ACCENUMB)
+sgsv$INSTCODE <- trimws(sgsv$INSTCODE)
+sgsv$ID <- paste0(sgsv$ACCENUMB, sgsv$INSTCODE)
+sgsv <- sgsv[!duplicated(sgsv$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
+# save results
+write.csv(sgsv, 'sgsv_processed.csv')
