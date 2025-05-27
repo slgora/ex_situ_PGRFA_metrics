@@ -188,6 +188,13 @@ for (i in filenames) {
 #merge all the extracted dataframes in one single dataframe
 all_glis_data <- do.call("rbind", li)
 
+#generate MLSSTAT variable, used later to compute metrics on # of accessions included in the MLS
+all_glis_data$MLSSTAT = NA
+all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(1, 11, 12, 13, 14, 15), TRUE, all_glis_data$MLSSTAT)
+all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(0), FALSE, all_glis_data$MLSSTAT)
+# save results
+write.csv(all_glis_data, 'GLIS_processed.csv')
+
 ################# SGSV data ########################################################################## 
 sgsv = load_SGSV_data('../data_6/data_sources/SGSV_data/SGSV_allcrops_unformatted.xlsx')
 
