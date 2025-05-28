@@ -1,12 +1,19 @@
-######## operation to be done after taxa standardization, as these depend on correct genus and species #########
-
-###### 1. load datasets with standardized taxa  #######################
-
-###### 2. assign crop strategy                  ######################
+######## operation to be done after taxa standardization, as these depend on the correct genus and species #########
 
 
+###### 1. Load datasets with standardized taxa  #######################
 
-###### 3. assign diversity region               ######################
+
+###### 2. Assign crop strategy                  ######################
+#use Assign_crop_strategy.R function in Functions folder
+source("Functions/Assign_crop_strategy.R")
 
 
-###### 4. assign Annex 1 status                 ######################
+###### 3. Assign diversity region               ######################
+##use Assign_diversity_regions function in Functions folder
+source("Functions/Assign_diversity_regions.R")
+
+
+###### 4. Assign Annex 1 status                 ######################
+#use Assign_annex1_status function in Functions folder
+source("Functions/Assign_annex1_status.R")
