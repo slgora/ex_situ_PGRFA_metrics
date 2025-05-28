@@ -29,8 +29,8 @@ Names of columns and values: use MCPD standard as much as possible rather than a
 Always use INSTCODE to identify a collection holder instead of the full institute name
 
 # BGCI dataset issues identified
-To be discussed with Colin:
-country in BGCI dataset is not country of origin but it is country of institute holding the accession. Therefore, the code for this part was deleted. 
+
+
 
 # To be done:
 BGCI institute code to be added, we need to ask BGCI if they have a conversion table for their garden ID to INSTCODE, otherwise a conversion table has to be done manually by searching FAO WIEWS organization database (They are not too many so it is doable). 
@@ -53,6 +53,9 @@ Country codes: country codes for Yugoslavia (YUG) and Czechoslovakia (CSK) are n
 
 Regions of diversity variables: 
 Function assign True/False value based on country of collection. Then the metrics (metric 6) count only accessions with SAMPSTAT < 399 and SAMPSTAT with missing values (NA), i.e. landraces, wild, and weedy material. 
+
+BGCI data:
+country in BGCI dataset is not country of origin but it is country of institute holding the accession. Therefore, the code for this part was deleted. 
 
 GLIS data:
 Fetched JSON data with GLIS API for each of the genus. Selected fields were then extracted from each JSON to create a dataframe, this was then saved as a csv file. Cropstrategy column to be added after taxa are standardized. 
