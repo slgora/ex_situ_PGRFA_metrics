@@ -41,8 +41,6 @@ WIEWS_institute_IDs = subset(WIEWS_institute_IDs, select = c('ID' , 'WIEWS_INSTC
 
 names(BGCI_allcrops)[names(BGCI_allcrops) == 'Name (in PlantSearch)'] <- 'fullTaxa'
 names(BGCI_allcrops)[names(BGCI_allcrops) == 'Submitted Name'] <- 'SubmittedName'
-names(BGCI_allcrops)[names(BGCI_allcrops) == 'Latitude'] <- 'DECLATITUDE'
-names(BGCI_allcrops)[names(BGCI_allcrops) == 'Longitude'] <- 'DECLONGITUDE'
 BGCI_allcrops <- cbind(BGCI_allcrops, data_source = "BGCI") # Add field: data source
 
 # Separate fields: fullSciName, still have fullTaxa (which is the fullSciName standardized by BGCI )
@@ -75,7 +73,7 @@ BGCI_allcrops <- select(BGCI_allcrops, -c('Germplasm, seed', "Germplasm, plant",
 # PG this needs to be completed
 
 # Fields we want to keep
-BGCI_allcrops <- subset(BGCI_allcrops, select = c(data_source, fullTaxa, GENUS, SPECIES, STORAGE, DECLATITUDE, DECLONGITUDE ))
+BGCI_allcrops <- subset(BGCI_allcrops, select = c(data_source, fullTaxa, GENUS, SPECIES, STORAGE ))
 
 ############### WIEWS: Data Cleaning ####################
 #rename all columns according to MCPD naming style, and select columns that are needed
