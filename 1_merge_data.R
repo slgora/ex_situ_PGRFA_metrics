@@ -173,10 +173,12 @@ combined_df2 = assign_crop_strategy(combined_df, crops = crops)
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
 # create a list of file paths (each one is a Json file dowloaded from GLIS)
+install.packages("jsonlite")
+library("jsonlite")
+source("Extract_results_GLIS_API.R") # added 30May 2025 corrected                              
 filenames <- list.files("GLIS_json_data", pattern="*.json", full.names=TRUE)
 
 # Read all the downloaded GLIS json file and merge in one single dataframe
-source("Functions/extract_result_GLIS.R")
 li = list()
 for (i in filenames) {
   json_data <- read_json(i)
