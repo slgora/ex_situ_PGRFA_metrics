@@ -1,7 +1,7 @@
 # Read the Excel file
 # crops <- read_excel("../Data_6/processing/croplist_PG.xlsx")
 ########### Function to assign Crop_strategy categorical variable ############################################
-assign_crop_Strategy = function(df, crops){
+assign_crop_strategy = function(df, crops){
   # Combine 'Genera_primary' and 'Genera_synonyms' columns while avoiding NA values
   crops$genera <- trimws(ifelse(is.na(crops$Genera_primary), "", crops$Genera_primary)) %>% 
     paste(trimws(ifelse(is.na(crops$Genera_synonyms), "", crops$Genera_synonyms)), sep = ",")
