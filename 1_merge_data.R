@@ -165,11 +165,6 @@ combined_df2 <- bind_rows(combined_df, BGCI_allcrops)
 source("Functions/Correct_country_codes.R")
 combined_df2 = correct_country_codes(combined_df, col = 'ORIGCTY')
 
-###### add crop strategy categorical variable
-source("Functions/Assign_crop_strategy.R")
-crops <- read_excel("../Data_6/processing/croplist_PG.xlsx")
-combined_df2 = assign_crop_strategy(combined_df, crops = crops)  
-
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
 # create a list of file paths (each one is a Json file dowloaded from GLIS)
