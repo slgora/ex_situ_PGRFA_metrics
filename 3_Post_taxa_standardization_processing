@@ -4,22 +4,18 @@
 crops <- read_excel("../Data_processing/Support_files/GCCS_selected_crops/croplist_PG.xlsx")
 combined_df <- read_csv("../Data_processing/ADD_FILEPATH_HERE")
 
-####### 2. correct country codes iso-codes
-source("Functions/Correct_country_codes.R")
-combined_df = correct_country_codes(combined_df, col = 'ORIGCTY')
-
-###### 3. Assign crop strategy  categorical variable  ######################
+###### 2. Assign crop strategy  categorical variable  ######################
 #use Assign_crop_strategy.R function in Functions folder
 source("Functions/Assign_crop_strategy.R")
 combined_df = assign_crop_strategy(combined_df, crops = crops)  
 
-###### 4. Assign diversity region               ######################
+###### 3. Assign diversity region               ######################
 # It requires crops dataframe (croplist_PG.xlsx) and countries in regions (countries_in_regions.xlsx)
 source("Functions/Assign_diversity_regions.R")
 countries_in_regions <- read_excel("../Data_processing/Support_files/Geographical/countries_in_regions.xlsx")
 combined_df = assign_diversity_regions(combined_df, crops = crops, countries_in_regions = countries_in_regions)
 
-###### 5. Assign Annex 1 status                 ######################
+###### 4. Assign Annex 1 status                 ######################
 # in the function assign_annex1status one needs to change the path for the file containing the list of Petota and Melongena species
 # function taking a dataframe including a column taxa names and returning TRUE/FALSE , 
 source("Functions/Assign_annex1_status.R")
