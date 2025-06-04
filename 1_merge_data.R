@@ -191,7 +191,8 @@ all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(0), FALSE, all_glis_dat
 write.csv(all_glis_data, 'GLIS_processed.csv')
 
 ################# SGSV data ########################################################################## 
-sgsv = load_SGSV_data('../data_6/data_sources/SGSV_data/SGSV_allcrops_unformatted.xlsx')
+source("Functions/Load_SGSV_data.R")
+sgsv = load_SGSV_data('/Data/SGSV_data/SGSV_allcrops_unformatted.xlsx')
 
 # create uniqueID and drop duplicates                               
 sgsv$ACCENUMB <- trimws(sgsv$ACCENUMB)
@@ -200,3 +201,6 @@ sgsv$ID <- paste0(sgsv$ACCENUMB, sgsv$INSTCODE)
 sgsv <- sgsv[!duplicated(sgsv$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 # save results
 write.csv(sgsv, 'sgsv_processed.csv')
+################ PTFTW data ############################################################################
+source("Functions/load_PTFTW_dataset.R")
+PTFTW = process_ptftw_indicator_data(output_xlsx = "PTFTW_processed.xlsx")
