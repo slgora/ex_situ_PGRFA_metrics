@@ -9,8 +9,8 @@ df = read.csv("combined07_05_25.csv", header = TRUE )
 
 ####################
 # load functions
-source('Functions/Query_taxa_resolver.R'   # import function query_taxa_resolver
-source('Functions/Process_taxa_resolver_results.R' # import function extract_best_result
+source('Functions/Query_taxa_resolver.R')   # import function query_taxa_resolver
+source('Functions/Process_taxa_resolver_results.R') # import function extract_best_result
 
 # taxa list to be standardised
 taxa_list <- unique(trimws(na.omit(df$fullTaxa)))
@@ -40,7 +40,7 @@ colnames(taxa_standardized_df_GRIN) <- c('input_name', 'matched_name_GRIN', 'mat
 taxa_standardized_df_WFO <- cbind(taxa_standardized_df_WFO, data_source = "WFO")
 taxa_standardized_df_GRIN <- cbind(taxa_standardized_df_GRIN, data_source = "GRIN")
 
-# Join with institute_names to add duplInstName
+# Join results from GRIN with rersults from WFO
 taxa_standardized_df <- taxa_standardized_df_GRIN %>%
   full_join(taxa_standardized_df_WFO, by = c("input_name" = "input_name")) 
 
