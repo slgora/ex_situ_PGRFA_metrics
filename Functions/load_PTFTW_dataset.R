@@ -8,7 +8,7 @@
 #' @param output_xlsx Path for the output Excel file.
 #' @return Invisibly, the final processed dataframe.
 #' required packages: readr,  readxl, dplyr,  writexl
-create_ptftw_indicator_file <- function(
+process_ptftw_indicator_data <- function(
   ptftw_csv = "Data/PlantsThatFeedTheWorld/indicator_average.csv",
   crop_list_xlsx = "Data_processing/Support_files/GCCS_selected_crops/crop_list_PG.xlsx",
   output_xlsx = "PTFTW_indicator_avg.xlsx"
