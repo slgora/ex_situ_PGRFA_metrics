@@ -4,6 +4,12 @@
 crops <- read_excel("../Data_processing/Support_files/GCCS_selected_crops/croplist_PG.xlsx")
 combined_df <- read_csv("../Data_processing/ADD_FILEPATH_HERE")
 
+#### add standardized_taxa column here when the manual vetting is complete and standardization_table becomes available , code to be tested#######
+#standardization_table <- setNames(table_standardization$Standardized_taxa, crops$input_taxa)
+#  combined_df$Standardized_taxa = NA
+#  combined_df <- combined_df %>%
+#    mutate(Standardized_taxa = ifelse(is.na(Standardized_taxa), standardization_table[input_taxa], Standardized_taxa))
+  
 ###### 2. Assign crop strategy  categorical variable  ######################
 #use Assign_crop_strategy.R function in Functions folder
 source("Functions/Assign_crop_strategy.R")
