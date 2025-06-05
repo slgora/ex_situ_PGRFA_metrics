@@ -28,25 +28,8 @@ Names of columns and values: use MCPD standard as much as possible rather than a
 
 Always use INSTCODE to identify a collection holder instead of the full institute name
 
-# BGCI dataset issues identified
-
-
-
-# To be done:
-BGCI institute code to be added, we need to ask BGCI if they have a conversion table for their garden ID to INSTCODE, otherwise a conversion table has to be done manually by searching FAO WIEWS organization database (They are not too many so it is doable). 
-
-Load_PTFTW_dataset.R (in Functions folder): check why I don't have GCCS-Metrics_croplist.xlsx file that includes column PlantsthatFeedtheWorld_name (as in Sarah's code), edit as a function. 
-
-Sarah: where is the GCCS-Metrics_croplist.xlsx file that includes column PlantsthatFeedtheWorld_name ?
-
 # On-going
 Cleaning up, updating, and streamlining the code to estimate the metrics
-
-# To be discussed:
-1)Intended use of "isCrop" Variable (Currently replaced with crop_status variable )
-
-2)Assigning variable Crop strategy: currently, this is done before standardizing taxa, but I think this should be done after. TBD with Colin.  
-
 
 # Notes on current implementation
 Country codes: country codes for Yugoslavia (YUG) and Czechoslovakia (CSK) are not recoded to new countries as this would lead to multiple countries for one accession, which would cause problems when computing the metrics. Instead, assess the number of accession with YUG and CSK in ORGICTY field and their impact on the metric.  
