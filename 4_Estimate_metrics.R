@@ -158,18 +158,83 @@ storage_term_summary <- combined_allcrops %>%
   )
 
 # 10. Safety duplication - add your code here once data is available
+# SG added: degree of duplication SG Github script location
+# https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_PDCI_PGscript.R 
+
+#SG added: Number of accessions safety duplicated metric
+safetydupl_metric <- combined_allcrops %>%
+  group_by(cropstrategy) %>%
+  summarise(
+    safDuplSite_count = sum(!is.na(duplSite), na.rm = TRUE),
+    safDuplSite_total_records = n(),
+    .groups = "drop" ) %>%
+  mutate( safDuplSite_Perc = round((safDuplSite_count / safDuplSite_total_records) * 100, 2)
+  )
 
 # 11. SGSV duplicates (if applicable)
 SGSV_allcrops <- read_csv("sgsv_data_processed.csv") 
 SGSV_dupl_count <- SGSV_allcrops %>% group_by(cropstrategy) %>% summarise(sgsvcount = n(), .groups = "drop")
 
+# SG added: SGSV Duplication Count Metric
+SGSV_dupl_metric <- SGSV_allcrops %>%
+  group_by(cropstrategy) %>%
+  summarise(sgsv_dupl_count = n(), .groups = "drop") # Total SGSV duplicate count'
+
+# Calculate all accessions of crop in combined_allcrops
+total_count_combined <- combined_allcrops %>%
+group_by(cropstrategy) %>%
+summarise(total_count = n(), .groups = "drop")
+
+# Calculate percentage of accessions duplicated at SGSV, out of all accessions of crop
+SGSV_dupl_metric <- SGSV_dupl_metric %>%
+left_join(total_count_combined, by = "cropstrategy") %>%
+mutate(sgsv_dupl_perc = round((sgsv_dupl_count / total_count) * 100, 2)) %>%
+select(cropstrategy, sgsv_dupl_count, total_count, sgsv_dupl_perc)
+
+
 # 12. GLIS: # of accessions with DOIs per crop, use data downloaded from GLIS (GLIS_dataset)
 GLIS_dataset <- read_csv("glis_data_processed.csv") # glis_data_processed is the data after adding the cropstrategy variable
 GLIS_dois_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(dois = sum(DOI, na.rm = TRUE), .groups = "drop")
 
+
 # 13: GLIS: # of accessions notified as incuded in MLS (based on GLIS dataset)
 GLIS_MLS_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
 
+
+
+
+
+# SG added: Top institutions holding crop germplasm metric, calculate %
+institution_accessions_summary <- combined_allcrops %>%
+   filter(!is.na(instCode)) %>% # Exclude missing institution codes
+   group_by(cropstrategy, instCode, instName) %>%
+   summarise(accessions = n(), .groups = "drop") %>% # Count accessions per institution
+   mutate(total_accessions = sum(accessions, na.rm = TRUE), # Total accessions per crop strategy
+   percentage = round((accessions / total_accessions) * 100, 2)) # Percentage per institution
+
+
+# SG added: Calculate the number of unique taxa listed in BGCI_data metric
+BGCI_taxa_metric <- BGCI_data %>%
+   select(cropstrategy, taxa_standardized) %>%
+   filter(!is.na(taxa_standardized)) %>% # Remove missing taxa entries
+   distinct() %>%
+   group_by(cropstrategy) %>%
+   summarise(unique_taxa_count = n_distinct(taxa_standardized), .groups = "drop") # Count unique taxa
+
+# SG added: Count of unique institutions holding crop germplasm (BGCI data)
+BGCI_inst_metric <- BGCI_data %>%
+select(cropstrategy, Ex_situ_Site_GardenSearch_ID) %>%
+filter(!is.na(Ex_situ_Site_GardenSearch_ID)) %>%
+distinct() %>% # Ensure unique institution entries
+group_by(cropstrategy) %>%
+summarise(unique_inst_count = n_distinct(Ex_situ_Site_GardenSearch_ID), .groups = "drop")
+
+
+
+# SG added: extract 3 metrics from WIEWS indicator file:
+#number_of_accessions_regenerated_and_or_multiplied
+#number_of_accessions_in_need_of_regeneration
+#number_of_accessions_in_need_of_regeneration_without_budget_for_regeneration
 
 # --------- END OF SCRIPT ---------
 
