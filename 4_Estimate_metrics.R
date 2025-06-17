@@ -259,6 +259,99 @@ summary_pdci <- df %>%
 
 
 
+
+
+###################### still working on code ############################################
+
+### SG added: PTFTW Metrics
+# read in Plants that Feed the World indicator file that has been filtered by our crops
+PTFTW_indicator_avg_ourCrops <- read_excel("C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/PTFTW_indicator_ourcrops_2025-06-16.xlsx")
+
+# select fields to be summed (some fields will be averaged, some fields are summed)
+PTFTW_indicator_sum_ourCrops <- subset(PTFTW_indicator_avg_ourCrops, 
+                                       select = c( "CropStrategy",
+                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_gene", 
+                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_genome",
+                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_nucleotide", 
+                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_protein", 
+                                                   "supply-research_supply-research_supply_gbif-research_supply_gbif_taxon", 
+                                                   "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_accessions",
+                                                   "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_samples", 
+                                                   "demand-germplasm_distributions_treaty-germplasm_distributions_treaty-germplasm_distributions_treaty", 
+                                                   "demand-varietal_release_fao_wiews-varietal_release_fao_wiews-varietal_release_fao_wiews_taxon", 
+                                                   "demand-varietal_registrations_upov-varietal_registrations_upov-varietal_registrations_upov_taxon", 
+                                                   "crop_use-faostat-production-area_harvested_ha", 
+                                                   "crop_use-faostat-production-gross_production_value_us", 
+                                                   "crop_use-faostat-production-production_quantity_tonnes", 
+                                                   "crop_use-faostat-trade-export_quantity_tonnes", 
+                                                   "crop_use-faostat-food_supply-fat_supply_quantity_g",
+                                                   "crop_use-faostat-trade-export_value_tonnes"
+                                       ))
+
+## sum across genera and crops for metrics that need to be summed
+PTFTW_summarised <- PTFTW_indicator_sum_ourCrops %>% 
+  group_by(CropStrategy) %>% 
+  summarise(across(.cols = where(is.numeric), .fns = sum, na.rm = TRUE))
+
+# save PTFTW summed metrics
+write_xlsx(PTFTW_summarised, "C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/PTFTW_metrics_sum_2025_06_16.xlsx")
+
+
+
+## PTFTW averaged metrics and summed metrics 
+# rename fields 
+PTFTW_indicator_avg_ourCrops <- PTFTW_indicator_avg_ourCrops %>%
+  rename(
+    PTFTW_name = PlantsthatFeedtheWorld_name,
+    cropstrategy = CropStrategy,
+    genus = Genera_primary,
+    fullTaxa = Taxa_main
+  )
+
+# subset out the fields to be averaged
+PTFTW_averaged  <- PTFTW_indicator_avg_ourCrops%>%
+  select(
+    `PTFTW_name`,
+    `cropstrategy`,
+    `genus`,
+    `fullTaxa`,
+    `crop_use-faostat-food_supply-food_supply_kcal`,
+    `crop_use-faostat-food_supply-food_supply_quantity_g`,
+    `crop_use-faostat-food_supply-protein_supply_quantity_g`,
+    `crop_use-faostat-trade-export_quantity_tonnes`,
+    `crop_use-faostat-trade-export_value_tonnes`,
+    `crop_use-public_interest-wikipedia_pageviews-taxon`,
+    `crop_use-research_significance-google_scholar-taxon`,
+    `crop_use-research_significance-pubmed_central-taxon`,
+    `interdependence-faostat-food_supply-food_supply_kcal`,
+    `interdependence-faostat-food_supply-food_supply_quantity_g`,
+    `interdependence-faostat-food_supply-protein_supply_quantity_g`,
+    `interdependence-faostat-trade-import_quantity_tonnes`,
+    `interdependence-faostat-trade-import_value_tonnes`,
+    `interdependence-faostat_change_over_time-food_supply-food_supply_kcal`,
+    `interdependence-faostat_change_over_time-food_supply-food_supply_quantity_g`,
+    `interdependence-faostat_change_over_time-food_supply-protein_supply_quantity_g`,
+    `interdependence-faostat_change_over_time-trade-import_quantity_tonnes`,
+    `interdependence-faostat_change_over_time-trade-import_value_tonnes` )
+
+# average PTFTW data by crop (some have multiple genera per crop)
+# combine each field as a list and separate by a semicolon: PTFTW_name, genus, fullTaxa
+# average the numbers across crops
+PTFTW_averaged <- PTFTW_averaged %>%
+  group_by(cropstrategy) %>%
+  summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)))
+
+
+
+## combine PTFTW averaged metrics and summed metrics into one df
+# rename fields 
+PTFTW_summarised <- PTFTW_summarised %>% rename(cropstrategy = CropStrategy)
+# join
+PTFTW_metrics <- PTFTW_averaged %>%
+  full_join(PTFTW_summarised, by = "cropstrategy")
+
+
+
 # --------- END OF SCRIPT ---------
 
 
