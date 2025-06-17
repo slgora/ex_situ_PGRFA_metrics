@@ -223,18 +223,41 @@ BGCI_taxa_metric <- BGCI_data %>%
 
 # SG added: Count of unique institutions holding crop germplasm (BGCI data)
 BGCI_inst_metric <- BGCI_data %>%
-select(cropstrategy, Ex_situ_Site_GardenSearch_ID) %>%
-filter(!is.na(Ex_situ_Site_GardenSearch_ID)) %>%
-distinct() %>% # Ensure unique institution entries
-group_by(cropstrategy) %>%
-summarise(unique_inst_count = n_distinct(Ex_situ_Site_GardenSearch_ID), .groups = "drop")
+   select(cropstrategy, Ex_situ_Site_GardenSearch_ID) %>%
+   filter(!is.na(Ex_situ_Site_GardenSearch_ID)) %>%
+   distinct() %>% # Ensure unique institution entries
+   group_by(cropstrategy) %>%
+   summarise(unique_inst_count = n_distinct(Ex_situ_Site_GardenSearch_ID), .groups = "drop")
 
 
 
 # SG added: extract 3 metrics from WIEWS indicator file:
-#number_of_accessions_regenerated_and_or_multiplied
-#number_of_accessions_in_need_of_regeneration
-#number_of_accessions_in_need_of_regeneration_without_budget_for_regeneration
+# data prep in this script: 
+# https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_WIEWS_Indicator_Filter-ourCrops.R
+
+
+# Metrics already calculated and filtered for our crops
+# "number_of_accessions_regenerated_and_or_multiplied"                          
+# "number_of_accessions_in_need_of_regeneration"                                
+# "number_of_accessions_in_need_of_regeneration_without_budget_for_regeneration"
+WIEWS_indicator_ourcrops <- read_excel("C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/WIEWS_indicator_ourcrops_2025-06-16.xlsx")
+WIEWS_regeneration_summary <- WIEWS_indicator_ourcrops
+
+
+
+# SG added: PDCI metric
+# PDCI calculation in this script: 
+# https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_PDCI_PGscript.R
+
+# Metric we want to extract is calculated at the end of the PDCI_PGscript.R
+# Group by cropStrategy and calculate the median PDCI
+summary_pdci <- df %>% 
+  group_by(cropStrategy) %>%
+  summarise(
+    median_PDCI = median(PDCI, na.rm = TRUE)
+  )
+
+
 
 # --------- END OF SCRIPT ---------
 
