@@ -22,6 +22,7 @@ percent_summary <- function(df, group_col, count_expr, total_col, percent_col) {
 # --------- DATA IMPORT ---------
 combined_allcrops <- read_csv("combined_allcrops.csv") 
 SGSV_allcrops <- read_csv("SGSV_allcrops.csv") # Note: Add SGSV_allcrops import if used
+BGCI_allcrops <- read_csv("BGCI_allcrops.csv") # Note: Add BGCI_allcrops import if used
 
 # --------- METRICS CALCULATIONS ---------
 
@@ -166,7 +167,7 @@ storage_term_summary <- combined_allcrops %>%
 # by_genus_genesys
 # by_genebank_genesys
 
-# SG: Number of accessions safety duplicated metric
+# SG: Number of accessions safety duplicated metric (based on combined dataset)
 safetydupl_metric <- combined_allcrops %>%
   group_by(cropstrategy) %>%
   summarise(
@@ -180,24 +181,21 @@ safetydupl_metric <- combined_allcrops %>%
 SGSV_allcrops <- read_csv("sgsv_data_processed.csv") 
 SGSV_dupl_count <- SGSV_allcrops %>% group_by(cropstrategy) %>% summarise(sgsvcount = n(), .groups = "drop")
 
-# SG: Percent SGSV duplicates
+#SG: Percent SGSV duplicates
 SGSV_dupl_perc <- SGSV_dupl_metric %>%
   left_join(count(combined_allcrops, cropstrategy, name = "total_count"), 
             by = "cropstrategy") %>%   #Calculate all accessions of crop in combined_allcrops
    mutate(sgsv_dupl_perc = round(sgsv_dupl_count / total_count * 100, 2)) %>%
    select(cropstrategy, sgsv_dupl_count, total_count, sgsv_dupl_perc)
 
-
 # 12. GLIS: # of accessions with DOIs per crop, use data downloaded from GLIS (GLIS_dataset)
 GLIS_dataset <- read_csv("glis_data_processed.csv") # glis_data_processed is the data after adding the cropstrategy variable
 GLIS_dois_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(dois = sum(DOI, na.rm = TRUE), .groups = "drop")
 
-
-# 13: GLIS: # of accessions notified as incuded in MLS (based on GLIS dataset)
+# 13. GLIS: # of accessions notified as incuded in MLS (based on GLIS dataset)
 GLIS_MLS_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
 
-
-# SG: Top institutions holding crop germplasm
+# 14. SG: Top institutions holding crop germplasm
 institution_accessions_summary <- combined_allcrops %>%
    filter(!is.na(instCode)) %>%
    group_by(cropstrategy, instCode, instName) %>%
@@ -205,7 +203,7 @@ institution_accessions_summary <- combined_allcrops %>%
    mutate(total_accessions = sum(accessions, na.rm = TRUE),
    percentage = round((accessions / total_accessions) * 100, 2))
 
-# SG: Number of unique taxa listed in BGCI data metric (BGCI datset)
+# 15. SG: Number of unique taxa listed in BGCI data metric (BGCI datset)
 BGCI_taxa_count <- BGCI_data %>%
    select(cropstrategy, taxa_standardized) %>%
    filter(!is.na(taxa_standardized)) %>%
@@ -213,7 +211,7 @@ BGCI_taxa_count <- BGCI_data %>%
    group_by(cropstrategy) %>%
    summarise(unique_taxa_count = n_distinct(taxa_standardized), .groups = "drop")
 
-# SG: Number of unique institutions holding crop germplasm (BGCI dataset)
+# 16. SG: Number of unique institutions holding crop germplasm (BGCI dataset)
 BGCI_inst_count <- BGCI_data %>%
    select(cropstrategy, Ex_situ_Site_GardenSearch_ID) %>%
    filter(!is.na(Ex_situ_Site_GardenSearch_ID)) %>%
@@ -221,21 +219,14 @@ BGCI_inst_count <- BGCI_data %>%
    group_by(cropstrategy) %>%
    summarise(unique_inst_count = n_distinct(Ex_situ_Site_GardenSearch_ID), .groups = "drop")
 
-
-# SG: Regeneration metrics (based on WIEWS indicator file)
+# 17. SG: Regeneration metrics (based on WIEWS indicator file)
 # SG note for writing script: # data prep of WIEWS indicator 22 file in this script: 
 # https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_WIEWS_Indicator_Filter-ourCrops.R
 # add data prep to 4_Estimate_metrics.R before metric calc or keep as a separate script in new repo???
-
-# Metrics already calculated and filtered for our crops
-# "number_of_accessions_regenerated_and_or_multiplied"                          
-# "number_of_accessions_in_need_of_regeneration"                                
-# "number_of_accessions_in_need_of_regeneration_without_budget_for_regeneration"
 WIEWS_indicator_ourcrops <- read_excel("C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/WIEWS_indicator_ourcrops_2025-06-16.xlsx")
 WIEWS_regeneration_summary <- WIEWS_indicator_ourcrops
 
-
-# SG: PDCI metric
+# 18. SG: PDCI metric
 # SG note for writing script: PDCI calculation in this script:
 # https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_PDCI_PGscript.R
 # add data prep to 4_Estimate_metrics.R before metric calc or keep as a separate script in new repo???
@@ -247,7 +238,7 @@ summary_pdci <- df %>%
     median_PDCI = median(PDCI, na.rm = TRUE) #median PDCI
   )
 
-### SG: PTFTW Metrics
+### 19. SG: PTFTW Metrics
 # read in Plants that Feed the World indicator file that has been filtered by our crops
 PTFTW_indicator_avg_ourCrops <- read_excel("PTFTW_indicator_ourcrops.xlsx")
 
@@ -298,11 +289,8 @@ PTFTW_metrics <- read_excel("PTFTW_indicator_ourcrops.xlsx") %>%
   summarise( across(all_of(sum_cols), sum, na.rm = TRUE),
              across(all_of(avg_cols), mean, na.rm = TRUE),
              .groups = "drop" )
-
 # save 
 write_xlsx(PTFTW_metrics,"PTFTW_metrics.xlsx")
-
-
 
 
 # --------- END OF SCRIPT ---------
