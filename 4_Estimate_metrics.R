@@ -21,7 +21,7 @@ percent_summary <- function(df, group_col, count_expr, total_col, percent_col) {
 
 # --------- DATA IMPORT ---------
 combined_allcrops <- read_csv("combined_allcrops.csv") 
-# Note: Add SGSV_allcrops import if used
+SGSV_allcrops <- read_csv("SGSV_allcrops.csv") # Note: Add SGSV_allcrops import if used
 
 # --------- METRICS CALCULATIONS ---------
 
@@ -42,7 +42,7 @@ improved_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT
 othervar_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT == 999, na.rm = TRUE), othervar_total_records, percent_999SAMPSTAT)
 no_SAMPSTAT_metric <- percent_summary(combined_allcrops, cropstrategy, sum(is.na(SAMPSTAT)), noSAMPSTAT_total_records, percent_na_SAMPSTAT)
 
-# 4. Unique taxa per crop
+# 4. Unique taxa per crop strategy
 unique_taxa <- combined_allcrops %>%
   select(cropstrategy, standardizedtaxa) %>%
   distinct() %>%
@@ -64,7 +64,7 @@ primary_region_metric <- combined_allcrops %>%
   filter(SAMPSTAT <= 399 | is.na(SAMPSTAT)) %>%
   percent_summary(
     cropstrategy,
-    sum(fromPrimary_diversity_region, na.rm = TRUE),
+    sum(fromPrimary_diversity_region, na.rm = TRUE), 
     primaryregions_total_records,
     isinprimaryregion_perc
   )
@@ -72,7 +72,7 @@ secondary_region_metric <- combined_allcrops %>%
   filter(SAMPSTAT <= 399 | is.na(SAMPSTAT)) %>%
   percent_summary(
     cropstrategy,
-    sum(fromSecondary_diversity_region, na.rm = TRUE),
+    sum(fromSecondary_diversity_region, na.rm = TRUE), 
     secondaryregions_total_records,
     isinsecondaryregion_perc
   )
@@ -89,7 +89,7 @@ accessions_by_org_type <- combined_allcrops %>%
   )
 
 mls_by_orgtype <- combined_allcrops %>%
-  group_by(cropstrategy, ORGANIZATIONTYPE) %>%
+  group_by(cropstrategy, ORGANIZATIONTYPE) %>% 
   summarise(
     count_includedmls = sum(MLSSTAT, na.rm = TRUE),
     count_notincludedmls = sum(!MLSSTAT, na.rm = TRUE),
@@ -102,7 +102,7 @@ mls_by_orgtype <- combined_allcrops %>%
 # 8. Accessions in Annex I
 annex1_count <- combined_allcrops %>%
   group_by(cropstrategy) %>%
-  summarise(count_includedannex1 = sum(ANNEX1, na.rm = TRUE), .groups = "drop")
+  summarise(count_includedannex1 = sum(ANNEX1, na.rm = TRUE), .groups = "drop") 
 annex1_perc <- combined_allcrops %>%
   group_by(cropstrategy) %>%
   summarise(
@@ -158,38 +158,34 @@ storage_term_summary <- combined_allcrops %>%
   )
 
 # 10. Safety duplication - add your code here once data is available
-# SG added: degree of duplication SG Github script location
+# SG note for writing script: degree of duplication SG Github script location
 # https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_PDCI_PGscript.R 
+# add data prep to 4_Estimate_metrics.R before metric calc or keep as a separate script in new repo???
 
-#SG added: Number of accessions safety duplicated metric
+# 2 metrics from SD calc: by genus and by instcode (genebank)
+# by_genus_genesys
+# by_genebank_genesys
+
+# SG: Number of accessions safety duplicated metric
 safetydupl_metric <- combined_allcrops %>%
   group_by(cropstrategy) %>%
   summarise(
-    safDuplSite_count = sum(!is.na(duplSite), na.rm = TRUE),
-    safDuplSite_total_records = n(),
+    safduplsite_count = sum(!is.na(duplsite), na.rm = TRUE), #duplSite
+    safduplsite_total_records = n(),
     .groups = "drop" ) %>%
-  mutate( safDuplSite_Perc = round((safDuplSite_count / safDuplSite_total_records) * 100, 2)
+  mutate(safduplsite_perc = round((safduplsite_count / safduplsite_total_records) * 100, 2)
   )
 
 # 11. SGSV duplicates (if applicable)
 SGSV_allcrops <- read_csv("sgsv_data_processed.csv") 
 SGSV_dupl_count <- SGSV_allcrops %>% group_by(cropstrategy) %>% summarise(sgsvcount = n(), .groups = "drop")
 
-# SG added: SGSV Duplication Count Metric
-SGSV_dupl_metric <- SGSV_allcrops %>%
-  group_by(cropstrategy) %>%
-  summarise(sgsv_dupl_count = n(), .groups = "drop") # Total SGSV duplicate count'
-
-# Calculate all accessions of crop in combined_allcrops
-total_count_combined <- combined_allcrops %>%
-group_by(cropstrategy) %>%
-summarise(total_count = n(), .groups = "drop")
-
-# Calculate percentage of accessions duplicated at SGSV, out of all accessions of crop
-SGSV_dupl_metric <- SGSV_dupl_metric %>%
-left_join(total_count_combined, by = "cropstrategy") %>%
-mutate(sgsv_dupl_perc = round((sgsv_dupl_count / total_count) * 100, 2)) %>%
-select(cropstrategy, sgsv_dupl_count, total_count, sgsv_dupl_perc)
+# SG: Percent SGSV duplicates
+SGSV_dupl_perc <- SGSV_dupl_metric %>%
+  left_join(count(combined_allcrops, cropstrategy, name = "total_count"), 
+            by = "cropstrategy") %>%   #Calculate all accessions of crop in combined_allcrops
+   mutate(sgsv_dupl_perc = round(sgsv_dupl_count / total_count * 100, 2)) %>%
+   select(cropstrategy, sgsv_dupl_count, total_count, sgsv_dupl_perc)
 
 
 # 12. GLIS: # of accessions with DOIs per crop, use data downloaded from GLIS (GLIS_dataset)
@@ -201,28 +197,24 @@ GLIS_dois_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(dois = 
 GLIS_MLS_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
 
 
-
-
-
-# SG added: Top institutions holding crop germplasm metric, calculate %
+# SG: Top institutions holding crop germplasm
 institution_accessions_summary <- combined_allcrops %>%
-   filter(!is.na(instCode)) %>% # Exclude missing institution codes
+   filter(!is.na(instCode)) %>%
    group_by(cropstrategy, instCode, instName) %>%
-   summarise(accessions = n(), .groups = "drop") %>% # Count accessions per institution
-   mutate(total_accessions = sum(accessions, na.rm = TRUE), # Total accessions per crop strategy
-   percentage = round((accessions / total_accessions) * 100, 2)) # Percentage per institution
+   summarise(accessions = n(), .groups = "drop") %>%
+   mutate(total_accessions = sum(accessions, na.rm = TRUE),
+   percentage = round((accessions / total_accessions) * 100, 2))
 
-
-# SG added: Calculate the number of unique taxa listed in BGCI_data metric
-BGCI_taxa_metric <- BGCI_data %>%
+# SG: Number of unique taxa listed in BGCI data metric (BGCI datset)
+BGCI_taxa_count <- BGCI_data %>%
    select(cropstrategy, taxa_standardized) %>%
-   filter(!is.na(taxa_standardized)) %>% # Remove missing taxa entries
+   filter(!is.na(taxa_standardized)) %>%
    distinct() %>%
    group_by(cropstrategy) %>%
-   summarise(unique_taxa_count = n_distinct(taxa_standardized), .groups = "drop") # Count unique taxa
+   summarise(unique_taxa_count = n_distinct(taxa_standardized), .groups = "drop")
 
-# SG added: Count of unique institutions holding crop germplasm (BGCI data)
-BGCI_inst_metric <- BGCI_data %>%
+# SG: Number of unique institutions holding crop germplasm (BGCI dataset)
+BGCI_inst_count <- BGCI_data %>%
    select(cropstrategy, Ex_situ_Site_GardenSearch_ID) %>%
    filter(!is.na(Ex_situ_Site_GardenSearch_ID)) %>%
    distinct() %>% # Ensure unique institution entries
@@ -230,11 +222,10 @@ BGCI_inst_metric <- BGCI_data %>%
    summarise(unique_inst_count = n_distinct(Ex_situ_Site_GardenSearch_ID), .groups = "drop")
 
 
-
-# SG added: extract 3 metrics from WIEWS indicator file:
-# data prep in this script: 
+# SG: Regeneration metrics (based on WIEWS indicator file)
+# SG note for writing script: # data prep of WIEWS indicator 22 file in this script: 
 # https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_WIEWS_Indicator_Filter-ourCrops.R
-
+# add data prep to 4_Estimate_metrics.R before metric calc or keep as a separate script in new repo???
 
 # Metrics already calculated and filtered for our crops
 # "number_of_accessions_regenerated_and_or_multiplied"                          
@@ -244,111 +235,73 @@ WIEWS_indicator_ourcrops <- read_excel("C:/Users/sarah/Desktop/ex_situ_PGRFA_met
 WIEWS_regeneration_summary <- WIEWS_indicator_ourcrops
 
 
-
-# SG added: PDCI metric
-# PDCI calculation in this script: 
+# SG: PDCI metric
+# SG note for writing script: PDCI calculation in this script:
 # https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_PDCI_PGscript.R
+# add data prep to 4_Estimate_metrics.R before metric calc or keep as a separate script in new repo???
 
-# Metric we want to extract is calculated at the end of the PDCI_PGscript.R
-# Group by cropStrategy and calculate the median PDCI
+# Metric we want to extract is calculated at end of PDCI_script.R
 summary_pdci <- df %>% 
   group_by(cropStrategy) %>%
   summarise(
-    median_PDCI = median(PDCI, na.rm = TRUE)
+    median_PDCI = median(PDCI, na.rm = TRUE) #median PDCI
   )
 
-
-
-
-
-###################### still working on code ############################################
-
-### SG added: PTFTW Metrics
+### SG: PTFTW Metrics
 # read in Plants that Feed the World indicator file that has been filtered by our crops
-PTFTW_indicator_avg_ourCrops <- read_excel("C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/PTFTW_indicator_ourcrops_2025-06-16.xlsx")
+PTFTW_indicator_avg_ourCrops <- read_excel("PTFTW_indicator_ourcrops.xlsx")
 
-# select fields to be summed (some fields will be averaged, some fields are summed)
-PTFTW_indicator_sum_ourCrops <- subset(PTFTW_indicator_avg_ourCrops, 
-                                       select = c( "CropStrategy",
-                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_gene", 
-                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_genome",
-                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_nucleotide", 
-                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_protein", 
-                                                   "supply-research_supply-research_supply_gbif-research_supply_gbif_taxon", 
-                                                   "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_accessions",
-                                                   "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_samples", 
-                                                   "demand-germplasm_distributions_treaty-germplasm_distributions_treaty-germplasm_distributions_treaty", 
-                                                   "demand-varietal_release_fao_wiews-varietal_release_fao_wiews-varietal_release_fao_wiews_taxon", 
-                                                   "demand-varietal_registrations_upov-varietal_registrations_upov-varietal_registrations_upov_taxon", 
-                                                   "crop_use-faostat-production-area_harvested_ha", 
-                                                   "crop_use-faostat-production-gross_production_value_us", 
-                                                   "crop_use-faostat-production-production_quantity_tonnes", 
-                                                   "crop_use-faostat-trade-export_quantity_tonnes", 
-                                                   "crop_use-faostat-food_supply-fat_supply_quantity_g",
-                                                   "crop_use-faostat-trade-export_value_tonnes"
-                                       ))
+# Define columns to sum vs. average
+sum_cols <- c("supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_gene", 
+  "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_genome",
+  "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_nucleotide", 
+  "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_protein", 
+  "supply-research_supply-research_supply_gbif-research_supply_gbif_taxon", 
+  "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_accessions",
+  "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_samples", 
+  "demand-germplasm_distributions_treaty-germplasm_distributions_treaty-germplasm_distributions_treaty", 
+  "demand-varietal_release_fao_wiews-varietal_release_fao_wiews-varietal_release_fao_wiews_taxon", 
+  "demand-varietal_registrations_upov-varietal_registrations_upov-varietal_registrations_upov_taxon", 
+  "crop_use-faostat-production-area_harvested_ha", 
+  "crop_use-faostat-production-gross_production_value_us", 
+  "crop_use-faostat-production-production_quantity_tonnes", 
+  "crop_use-faostat-trade-export_quantity_tonnes", 
+  "crop_use-faostat-food_supply-fat_supply_quantity_g",
+  "crop_use-faostat-trade-export_value_tonnes" )
 
-## sum across genera and crops for metrics that need to be summed
-PTFTW_summarised <- PTFTW_indicator_sum_ourCrops %>% 
-  group_by(CropStrategy) %>% 
-  summarise(across(.cols = where(is.numeric), .fns = sum, na.rm = TRUE))
+avg_cols <- c("crop_use-faostat-food_supply-food_supply_kcal",
+  "crop_use-faostat-food_supply-food_supply_quantity_g",
+  "crop_use-faostat-food_supply-protein_supply_quantity_g",
+  "crop_use-faostat-trade-export_quantity_tonnes",
+  "crop_use-faostat-trade-export_value_tonnes",
+  "crop_use-public_interest-wikipedia_pageviews-taxon",
+  "crop_use-research_significance-google_scholar-taxon",
+  "crop_use-research_significance-pubmed_central-taxon",
+  "interdependence-faostat-food_supply-food_supply_kcal",
+  "interdependence-faostat-food_supply-food_supply_quantity_g",
+  "interdependence-faostat-food_supply-protein_supply_quantity_g",
+  "interdependence-faostat-trade-import_quantity_tonnes",
+  "interdependence-faostat-trade-import_value_tonnes",
+  "interdependence-faostat_change_over_time-food_supply-food_supply_kcal",
+  "interdependence-faostat_change_over_time-food_supply-food_supply_quantity_g",
+  "interdependence-faostat_change_over_time-food_supply-protein_supply_quantity_g",
+  "interdependence-faostat_change_over_time-trade-import_quantity_tonnes",
+  "interdependence-faostat_change_over_time-trade-import_value_tonnes")
 
-# save PTFTW summed metrics
-write_xlsx(PTFTW_summarised, "C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/PTFTW_metrics_sum_2025_06_16.xlsx")
-
-
-
-## PTFTW averaged metrics and summed metrics 
-# rename fields 
-PTFTW_indicator_avg_ourCrops <- PTFTW_indicator_avg_ourCrops %>%
+PTFTW_metrics <- read_excel("PTFTW_indicator_ourcrops.xlsx") %>%
   rename(
-    PTFTW_name = PlantsthatFeedtheWorld_name,
     cropstrategy = CropStrategy,
-    genus = Genera_primary,
-    fullTaxa = Taxa_main
-  )
-
-# subset out the fields to be averaged
-PTFTW_averaged  <- PTFTW_indicator_avg_ourCrops%>%
-  select(
-    `PTFTW_name`,
-    `cropstrategy`,
-    `genus`,
-    `fullTaxa`,
-    `crop_use-faostat-food_supply-food_supply_kcal`,
-    `crop_use-faostat-food_supply-food_supply_quantity_g`,
-    `crop_use-faostat-food_supply-protein_supply_quantity_g`,
-    `crop_use-faostat-trade-export_quantity_tonnes`,
-    `crop_use-faostat-trade-export_value_tonnes`,
-    `crop_use-public_interest-wikipedia_pageviews-taxon`,
-    `crop_use-research_significance-google_scholar-taxon`,
-    `crop_use-research_significance-pubmed_central-taxon`,
-    `interdependence-faostat-food_supply-food_supply_kcal`,
-    `interdependence-faostat-food_supply-food_supply_quantity_g`,
-    `interdependence-faostat-food_supply-protein_supply_quantity_g`,
-    `interdependence-faostat-trade-import_quantity_tonnes`,
-    `interdependence-faostat-trade-import_value_tonnes`,
-    `interdependence-faostat_change_over_time-food_supply-food_supply_kcal`,
-    `interdependence-faostat_change_over_time-food_supply-food_supply_quantity_g`,
-    `interdependence-faostat_change_over_time-food_supply-protein_supply_quantity_g`,
-    `interdependence-faostat_change_over_time-trade-import_quantity_tonnes`,
-    `interdependence-faostat_change_over_time-trade-import_value_tonnes` )
-
-# average PTFTW data by crop (some have multiple genera per crop)
-# combine each field as a list and separate by a semicolon: PTFTW_name, genus, fullTaxa
-# average the numbers across crops
-PTFTW_averaged <- PTFTW_averaged %>%
+    PTFTW_name   = PlantsthatFeedtheWorld_name,
+    genus        = Genera_primary,
+    fullTaxa     = Taxa_main) %>%
   group_by(cropstrategy) %>%
-  summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)))
+  summarise( across(all_of(sum_cols), sum, na.rm = TRUE),
+             across(all_of(avg_cols), mean, na.rm = TRUE),
+             .groups = "drop" )
 
+# save 
+write_xlsx(PTFTW_metrics,"PTFTW_metrics.xlsx")
 
-
-## combine PTFTW averaged metrics and summed metrics into one df
-# rename fields 
-PTFTW_summarised <- PTFTW_summarised %>% rename(cropstrategy = CropStrategy)
-# join
-PTFTW_metrics <- PTFTW_averaged %>%
-  full_join(PTFTW_summarised, by = "cropstrategy")
 
 
 
