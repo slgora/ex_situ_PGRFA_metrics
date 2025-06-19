@@ -70,5 +70,10 @@ assign_annex1status = function(df, standardize_taxa = 'Standardized_taxa') {
   # exclude some species
   df$Annex1 <- ifelse(df$GENUS_SPECIES %in% exclude , FALSE, df$Annex1) 
 
+  # Detect specific string in standardize_taxa and set Annex1 FALSE if found (PG: to be tested)
+  df$Annex1 <- ifelse(grepl('Phaseolus × dumosus', df[[standardize_taxa]], ignore.case = TRUE), FALSE, df$Annex1)
+  df$Annex1 <- ifelse(grepl('Phaseolus X dumosus', df[[standardize_taxa]], ignore.case = TRUE), FALSE, df$Annex1)
+
+
   return(df)
 } # end of function
