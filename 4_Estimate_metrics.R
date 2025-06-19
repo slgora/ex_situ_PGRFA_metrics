@@ -35,13 +35,20 @@ unique_institutions <- combined_allcrops %>%
   group_by(cropstrategy) %>% summarise(unique_instcount = n_distinct(instcode), .groups = "drop")
 
 # 3. Wild, Weedy, Landrace, Breeding, Improved, Other, No SAMPSTAT - % summaries
-cwr_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT >= 100 & SAMPSTAT < 200, na.rm = TRUE), cwr_total_records, percent_100SAMPSTAT)
-weedy_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT == 200, na.rm = TRUE), weedy_total_records, percent_200SAMPSTAT)
-landrace_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT == 300, na.rm = TRUE), landrace_total_records, percent_300SAMPSTAT)
-breeding_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT >= 400 & SAMPSTAT < 500, na.rm = TRUE), breedingmat_total_records, percent_400SAMPSTAT)
-improved_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT == 500, na.rm = TRUE), improvedvar_total_records, percent_500SAMPSTAT)
-othervar_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT == 999, na.rm = TRUE), othervar_total_records, percent_999SAMPSTAT)
-no_SAMPSTAT_metric <- percent_summary(combined_allcrops, cropstrategy, sum(is.na(SAMPSTAT)), noSAMPSTAT_total_records, percent_na_SAMPSTAT)
+cwr_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT >= 100 & SAMPSTAT < 200, na.rm = TRUE), cwr_total_records, percent_100SAMPSTAT) %>%
+  rename(count_100SAMPSTAT = count)
+weedy_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT == 200, na.rm = TRUE), weedy_total_records, percent_200SAMPSTAT) %>%
+  rename(count_200SAMPSTAT = count)
+landrace_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT == 300, na.rm = TRUE), landrace_total_records, percent_300SAMPSTAT)%>%
+  rename(count_300SAMPSTAT = count)
+breeding_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT >= 400 & SAMPSTAT < 500, na.rm = TRUE), breedingmat_total_records, percent_400SAMPSTAT)%>%
+  rename(count_400SAMPSTAT = count)
+improved_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT == 500, na.rm = TRUE), improvedvar_total_records, percent_500SAMPSTAT)%>%
+  rename(count_500SAMPSTAT = count)
+othervar_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT == 999, na.rm = TRUE), othervar_total_records, percent_999SAMPSTAT)%>%
+  rename(count_999SAMPSTAT = count)
+no_SAMPSTAT_metric <- percent_summary(combined_allcrops, cropstrategy, sum(is.na(SAMPSTAT)), noSAMPSTAT_total_records, percent_na_SAMPSTAT)%>%
+  rename(count_na_SAMPSTAT = count)
 
 # 4. Unique taxa per crop strategy
 unique_taxa <- combined_allcrops %>%
@@ -135,13 +142,13 @@ storage_summary <- combined_allcrops %>%
     nostorage_count = sum(is.na(STORAGE))
   ) %>%
   mutate(
-    seed_pct      = round(100 * seed_count / total_records, 2),
-    field_pct     = round(100 * field_count / total_records, 2),
-    invitro_pct   = round(100 * invitro_count / total_records, 2),
-    cryo_pct      = round(100 * cryo_count / total_records, 2),
-    dna_pct       = round(100 * dna_count / total_records, 2),
-    other_pct     = round(100 * other_count / total_records, 2),
-    nostorage_pct = round(100 * nostorage_count / total_records, 2)
+    seed_perc      = round(100 * seed_count / total_records, 2),
+    field_perc     = round(100 * field_count / total_records, 2),
+    invitro_perc   = round(100 * invitro_count / total_records, 2),
+    cryo_perc      = round(100 * cryo_count / total_records, 2),
+    dna_perc       = round(100 * dna_count / total_records, 2),
+    other_perc     = round(100 * other_count / total_records, 2),
+    nostorage_perc = round(100 * nostorage_count / total_records, 2)
   )
 
 storage_term_summary <- combined_allcrops %>%
