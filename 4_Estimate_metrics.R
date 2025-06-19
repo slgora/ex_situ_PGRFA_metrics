@@ -20,7 +20,7 @@ percent_summary <- function(df, group_col, count_expr, total_col, percent_col) {
 }
 
 # --------- DATA IMPORT ---------
-combined_allcrops <- read_csv("combined_allcrops.csv") 
+combined_allcrops <- read_csv("combined_allcrops.csv")
 SGSV_allcrops <- read_csv("SGSV_allcrops.csv") # Note: Add SGSV_allcrops import if used
 BGCI_allcrops <- read_csv("BGCI_allcrops.csv") # Note: Add BGCI_allcrops import if used
 
@@ -199,9 +199,9 @@ GLIS_MLS_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(MLS_noti
 institution_accessions_summary <- combined_allcrops %>%
    filter(!is.na(instCode)) %>%
    group_by(cropstrategy, instCode, instName) %>%
-   summarise(accessions = n(), .groups = "drop") %>%
+   summarise(institution_accessions_count = n(), .groups = "drop") %>%
    mutate(total_accessions = sum(accessions, na.rm = TRUE),
-   percentage = round((accessions / total_accessions) * 100, 2))
+          institution_accessions_perc = round((accessions / total_accessions) * 100, 2))
 
 # 15. SG: Number of unique taxa listed in BGCI data metric (BGCI datset)
 BGCI_taxa_count <- BGCI_data %>%
