@@ -59,7 +59,7 @@ country_count <- combined_allcrops %>%
   group_by(cropstrategy) %>%
   summarise(unique_countrycount = n_distinct(origcty), .groups = "drop")
 
-# 6. Accessions from primary & secondary regions of diversity
+# 6.a and 6.b Accessions from primary & secondary regions of diversity
 primary_region_metric <- combined_allcrops %>%
   filter(SAMPSTAT <= 399 | is.na(SAMPSTAT)) %>%
   percent_summary(
@@ -68,14 +68,20 @@ primary_region_metric <- combined_allcrops %>%
     primaryregions_total_records,
     isinprimaryregion_perc
   )
-secondary_region_metric <- combined_allcrops %>%
+
+# 6.c and 6.d Diversity_regions_metric (includes accessions from primary and secondary regions of diversity)
+diversity_regions_metric <- combined_allcrops %>%
   filter(SAMPSTAT <= 399 | is.na(SAMPSTAT)) %>%
-  percent_summary(
-    cropstrategy,
-    sum(fromSecondary_diversity_region, na.rm = TRUE),
-    secondaryregions_total_records,
-    isinsecondaryregion_perc
+  group_by(cropstrategy) %>%
+  summarise(
+    total_diversity_regions = sum(fromPrimary_diversity_region, na.rm = TRUE) + 
+                             sum(fromSecondary_diversity_region, na.rm = TRUE),
+    total_accessions = n(),
+    percent_diversity_regions = round(100 * total_diversity_regions / total_accessions, 2),
+    .groups = "drop"
   )
+
+
 
 # 7. accessions by org type,  and MLS accessions for organization type
 accessions_by_org_type <- combined_allcrops %>%
