@@ -321,15 +321,34 @@ PTFTW_metrics <- PTFTW_indicator_avg_ourCrops %>%
   summarise( across(all_of(sum_cols), sum, na.rm = TRUE),
              across(all_of(avg_cols), mean, na.rm = TRUE),
              .groups = "drop" )
-
 # save 
 write_xlsx(PTFTW_metrics,"PTFTW_metrics.xlsx")
-
 
 
 ## 20. gini metric calculations (3 metrics)
 # import in the gini metrics, completed in metrics_transfer.R file
 transfers_metrics <- read_excel("transfers_metrics_2015_2021_06-25-2025.xlsx")
+
+
+# 21. Count of records in GBIF
+source('Functions/Call_gbif_API.R')   # Import function get_gbif_count
+croplist <- read_csv("croplist.csv")  # Load croplist for genera list
+
+# Run GBIF count of occurrences for each genus and synonyms
+results <- croplist %>%                 
+  rowwise() %>%
+  mutate(
+    count_primary = get_gbif_count(Genera_primary),
+    count_synonym = get_gbif_count(Genera_synonyms),
+    GBIF_count_total = sum(count_primary, count_synonym, na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+# Summarize by CropStrategy
+summary_gbif_count <- results %>%
+  group_by(CropStrategy) %>%
+  summarise(total_GBIF_count = sum(GBIF_count_total, na.rm = TRUE), .groups = "drop")
+
 
 
 
