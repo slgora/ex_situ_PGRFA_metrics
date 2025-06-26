@@ -321,14 +321,13 @@ PTFTW_metrics <- PTFTW_indicator_avg_ourCrops %>%
   summarise( across(all_of(sum_cols), sum, na.rm = TRUE),
              across(all_of(avg_cols), mean, na.rm = TRUE),
              .groups = "drop" )
-
-
-## Import in the gini metric calculations (3 metrics)
-
-
-
 # save 
 write_xlsx(PTFTW_metrics,"PTFTW_metrics.xlsx")
+
+
+## 20. gini metric calculations (3 metrics)
+# import in the gini metrics, completed in metrics_transfer.R file
+transfers_metrics <- read_excel("transfers_metrics_2015_2021_06-25-2025.xlsx")
 
 
 # --------- END OF SCRIPT ---------
