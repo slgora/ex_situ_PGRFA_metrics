@@ -1,6 +1,3 @@
-### Project: Global Crop Conservation Strategies Metrics ###
-### Author: Sarah Gora
-### Last updated: 2025_06_25
 
 # ---- Libraries ----
 library(tidyverse)
@@ -9,11 +6,11 @@ library(ineq)
 library(writexl)
 
 # ---- File paths (edit as needed) ----
-ptftw_file <- "C:/Users/sarah/Desktop/GCCS-Metrics/Data/Transfers/Copy of ITPGRFA_MLS-Data-Store_2022_7_1.xlsx - smta.csv"    #change this SG
-croplist_file <- "C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/croplist_PG.xlsx"
-transfers_2019_2021_file <- "C:/Users/sarah/Desktop/GCCS-Metrics/Data/Transfers/Transfers_ourcrops_2019-2021.xlsx"
-countries_regions_file <- "C:/Users/sarah/Desktop/GCCS-Metrics/Data/CropRegions_PlantsThatFeedtheWorld/countries_in_regions.xlsx"
-output_file <- "transfers_metrics_2015_2021_06-25-2025.xlsx"
+ptftw_file <- "ITPGRFA_MLS-Data-Store_2022_7_1.xlsx"    #SG fix these files paths with correct names in Drive
+croplist_file <- "croplist.xlsx"
+transfers_2019_2021_file <- "Transfers/Transfers_ourcrops_2019-2021.xlsx"
+countries_regions_file <- "Data/CropRegions_PlantsThatFeedtheWorld/countries_in_regions.xlsx"
+output_file <- "transfers_metrics_2015_2021.xlsx"
 
 # ---- Read and Clean Data ----
 
