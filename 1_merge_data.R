@@ -153,18 +153,18 @@ Genesys_allcrops <- Genesys_allcrops %>%
 
 ####################################################################################################
 ## Combine Genesys and WIEWS data and Remove duplicates between Genesys and WIEWS, keep Genesys ##################################################
-combined_df <- bind_rows(Genesys_allcrops, WIEWS_allcrops)
-combined_df$ACCENUMB <- trimws(combined_df$ACCENUMB)
-combined_df$INSTCODE <- trimws(combined_df$INSTCODE)
-combined_df$ID <- paste0(combined_df$ACCENUMB, combined_df$INSTCODE)
-combined_df <- combined_df[!duplicated(combined_df$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
+gen_wiews_df <- bind_rows(Genesys_allcrops, WIEWS_allcrops)
+gen_wiews_df$ACCENUMB <- trimws(gen_wiews_df$ACCENUMB)
+gen_wiews_df$INSTCODE <- trimws(gen_wiews_df$INSTCODE)
+gen_wiews_df$ID <- paste0(gen_wiews_df$ACCENUMB, gen_wiews_df$INSTCODE)
+gen_wiews_df <- gen_wiews_df[!duplicated(gen_wiews_df$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 # add the other dataset (BGCI)
-combined_df2 <- bind_rows(combined_df, BGCI_allcrops)
+gen_wiews_df <- bind_rows(gen_wiews_df, BGCI_allcrops)
 
 ####### correct country codes iso-codes
 source("Functions/Correct_country_codes.R")
-combined_df2 = correct_country_codes(combined_df, col = 'ORIGCTY')
-
+gen_wiews_df = correct_country_codes(gen_wiews_df, col = 'ORIGCTY')
+write.csv(gen_wiews_df, 'gen_wiews_df.csv')
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
 # create a list of file paths (each one is a Json file dowloaded from GLIS)
