@@ -10,7 +10,6 @@ ptftw_file <- "ITPGRFA_MLS-Data-Store_2022_7_1.xlsx"    #SG fix these files path
 croplist_file <- "croplist.xlsx"
 transfers_2019_2021_file <- "Transfers/Transfers_ourcrops_2019-2021.xlsx"
 countries_regions_file <- "Data/CropRegions_PlantsThatFeedtheWorld/countries_in_regions.xlsx"
-output_file <- "transfers_metrics_2015_2021.xlsx"
 
 # ---- Read and Clean Data ----
 
@@ -86,4 +85,4 @@ transfers_metrics_2015_2021 <- df_avg_final %>%
   )
 
 # ---- Save to File ----
-write_xlsx(transfers_metrics_2015_2021, output_file_name)
+write_xlsx(transfers_metrics_2015_2021, transfers_metrics2025_06_27)  # add date output file created at end, YYYY_MM_DD
