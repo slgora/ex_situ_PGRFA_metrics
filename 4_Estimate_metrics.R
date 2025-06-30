@@ -248,7 +248,7 @@ summary_pdci <- df %>%
 
 ### 19. SG: PTFTW Metrics
 # read in Plants that Feed the World indicator file that has been filtered by our crops
-PTFTW_indicator_avg_ourCrops <- read_excel("PTFTW_indicator_ourcrops.xlsx")
+PTFTW_indicator_avg_ourCrops <- read_excel("Data/Plants_that_feed_the_world/Indicators/PTFTW_indicator_ourcrops.xlsx")   #temp file name is PTFTW_indicator_ourcrops2025_06_23.xlsx
 
 # Define columns to sum vs. average across genera in crops (if necessary)
 sum_cols <- c("supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_gene", 
