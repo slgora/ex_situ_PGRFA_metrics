@@ -231,7 +231,7 @@ BGCI_inst_count <- BGCI_data %>%
 # SG note for writing script: # data prep of WIEWS indicator 22 file in this script: 
 # https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_WIEWS_Indicator_Filter-ourCrops.R
 # add data prep to 4_Estimate_metrics.R before metric calc or keep as a separate script in new repo???
-WIEWS_indicator_ourcrops <- read_excel("C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/WIEWS_indicator_ourcrops_2025-06-16.xlsx")
+WIEWS_indicator_ourcrops <- read_excel("Data_processing/3_Post_taxa_standardization/Resulting_datasets/WIEWS_indicator_ourcrops_2025-06-16.xlsx")
 WIEWS_regeneration_summary <- WIEWS_indicator_ourcrops
 
 # 18. SG: PDCI metric
@@ -249,8 +249,6 @@ summary_pdci <- df %>%
 ### 19. SG: PTFTW Metrics
 # read in Plants that Feed the World indicator file that has been filtered by our crops
 PTFTW_indicator_avg_ourCrops <- read_excel("PTFTW_indicator_ourcrops.xlsx")
-
-PTFTW_indicator_avg_ourCrops <- read_excel("C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/PTFTW_indicator_ourcrops_2025-06-23.xlsx")
 
 # Define columns to sum vs. average across genera in crops (if necessary)
 sum_cols <- c("supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_gene", 
