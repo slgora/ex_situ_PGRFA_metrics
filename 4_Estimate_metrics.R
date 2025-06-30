@@ -325,8 +325,85 @@ write_xlsx(PTFTW_metrics,"4_Estimate_metrics/Priority_metrics_results/PTFTW_metr
 
 
 ## 20. gini metric calculations (3 metrics)
-# import in the gini metrics, completed in metrics_transfer.R file
-transfers_metrics <- read_excel("Data_processing/4_Estimate_metrics/Distribution/transfers_2015_2021_metrics2025_06_25")
+
+# ---- Read and Clean Data ----
+transfers_2012_2019 <- "Data/Plant_Treaty/Data_store/ITPGRFA_MLSDataStore2022_7_1.xlsx"
+transfers_2019_2021 <- "Data/Plant_Treaty/Data_store/Transfers_ourcrops_2019-2021.xlsx"
+countries_regions <- "Data_proccessing/Support_files/Geographical/countries_in_regions.xlsx"
+
+# Filter 2015-2018 data
+transfers_2015_2018 <- read_csv(transfers_2012_2019) %>%
+  filter(Year >= 2015 & Year <= 2018 & Dataset != "CGIAR only") %>%
+  select(provider_ISO3, Provider_country, Crop_cleaned, Taxonomic_name, Year, Samples, ISO3, Recipient_country) %>%
+  rename(
+    provider_country_name = Provider_country,
+    recipient_ISO3 = ISO3,
+    year = Year,
+    recipient_country_name = Recipient_country,
+    number_of_samples = Samples,
+    PlantsthatFeedtheWorld_name = Crop_cleaned
+  )
+
+# Filter crops from Croplist in transfers_2015_2018
+croplist <- read_excel(croplist_file) %>%
+  select(PlantsthatFeedtheWorld_name, CropStrategy, Genera_primary, Taxa_main) %>%
+  filter(PlantsthatFeedtheWorld_name != "NA") %>%
+  distinct(PlantsthatFeedtheWorld_name, .keep_all = TRUE)
+
+# 2015-2018 data, select relevant data
+transfers_2015_2018 <- left_join(croplist, transfers_2015_2018, by = "PlantsthatFeedtheWorld_name") %>%
+  select(CropStrategy, year, provider_ISO3, provider_country_name, recipient_ISO3, recipient_country_name, number_of_samples) %>%
+  rename(crop_strategy = CropStrategy) %>%
+  filter(!is.na(number_of_samples))
+
+# 2019-2021 data, select relevant data
+transfers_2019_2021 <- transfers_2019_2021 %>% 
+  select(crop_strategy, year, provider_ISO3, provider_country_name, recipient_ISO3, recipient_country_name, number_of_samples)
+
+# ---- Combine Data ----
+transfers_2025_2021 <- bind_rows(transfers_2019_2021, transfers_2015_2018)
+
+# ---- Metrics ----
+# Calculate Average number of samples per year by crop
+df_avg_final <- transfers_2025_2021 %>%
+  group_by(crop_strategy, year) %>%
+  summarize(avg_number_of_samples = mean(number_of_samples), .groups = "drop") %>%
+  group_by(crop_strategy) %>%
+  summarize(avg_number_of_samples_per_year = mean(avg_number_of_samples), .groups = "drop")
+
+# Calculate Average number of recipient countries per year by crop
+df_avg_recipient_counts <- transfers_2025_2021 %>%
+  group_by(crop_strategy, year) %>%
+  summarize(number_of_recipient_countries = n_distinct(recipient_ISO3), .groups = "drop") %>%
+  group_by(crop_strategy) %>%
+  summarize(avg_number_of_recipient_countries = mean(number_of_recipient_countries), .groups = "drop")
+
+# Calculate Gini index for recipient regions by crop
+countries_in_regions <- read_excel(countries_regions_file) %>%
+  select(recipient_ISO3 = Country_code, regions = PlantsThatFeedTheWorld_Region_new)
+
+transfers_regions <- left_join(transfers, countries_in_regions, by = "recipient_ISO3") %>%
+  separate_rows(regions, sep = ",") %>%
+  mutate(regions = trimws(regions))
+
+gini_results <- transfers_regions %>%
+  group_by(crop_strategy, regions) %>%
+  summarize(total_samples = sum(number_of_samples, na.rm = TRUE), .groups = "drop") %>%
+  group_by(crop_strategy) %>%
+  summarize(gini_index = ineq::Gini(total_samples), .groups = "drop")
+
+# ---- Combine All Metrics ----
+transfers_metrics_2015_2021 <- df_avg_final %>%
+  left_join(df_avg_recipient_counts, by = "crop_strategy") %>%
+  left_join(gini_results, by = "crop_strategy") %>%
+  rename(
+    "demand-germplasm_distributions_treaty-germplasm_distributions_treaty-germplasm_distributions_treaty" = avg_number_of_samples_per_year,
+    "demand-germplasm_distributions_treaty-germplasm_distributions_treaty-count_of_countries_recipients_distributions_treaty" = avg_number_of_recipient_countries,
+    "demand-germplasm_distributions_treaty-germplasm_distributions_treaty-gini_recipients_distributions_treaty" = gini_index
+  )
+
+# save
+write_xlsx(transfers_metrics_2015_2021, transfers_2015_2021_metrics2025_06_25.xlsx) 
 
 # 21. Count of records in GBIF
 source('Functions/Call_gbif_API.R')   # Import function get_gbif_count
