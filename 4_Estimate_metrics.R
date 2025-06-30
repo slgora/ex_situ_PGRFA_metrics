@@ -21,6 +21,7 @@ percent_summary <- function(df, group_col, count_expr, total_col, percent_col) {
 
 # --------- DATA IMPORT ---------
 combined_allcrops <- read_csv("combined_allcrops.csv")
+#combined_allcrops <- read_csv("C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/combined_df2_PG_30May2025.csv")
 SGSV_allcrops <- read_csv("SGSV_allcrops.csv") # Note: Add SGSV_allcrops import if used
 BGCI_allcrops <- read_csv("BGCI_allcrops.csv") # Note: Add BGCI_allcrops import if used
 
@@ -45,7 +46,7 @@ breeding_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT
   rename(count_400SAMPSTAT = count)
 improved_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT == 500, na.rm = TRUE), improvedvar_total_records, percent_500SAMPSTAT)%>%
   rename(count_500SAMPSTAT = count)
-othervar_metric <- percent_summary(combined_allcrops, cropstrategy, sum(SAMPSTAT == 999, na.rm = TRUE), othervar_total_records, percent_999SAMPSTAT)%>%
+othervar_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT == 999, na.rm = TRUE), othervar_total_records, percent_999SAMPSTAT)%>%
   rename(count_999SAMPSTAT = count)
 no_SAMPSTAT_metric <- percent_summary(combined_allcrops, cropstrategy, sum(is.na(SAMPSTAT)), noSAMPSTAT_total_records, percent_na_SAMPSTAT)%>%
   rename(count_na_SAMPSTAT = count)
@@ -204,8 +205,8 @@ GLIS_MLS_count <- GLIS_dataset %>% group_by(cropstrategy) %>% summarise(MLS_noti
 
 # 14. SG: Top institutions holding crop germplasm
 institution_accessions_summary <- combined_allcrops %>%
-   filter(!is.na(instCode)) %>%
-   group_by(cropstrategy, instCode, instName) %>%
+   filter(!is.na(INSTCODE)) %>%
+   group_by(cropstrategy, INSTCODE, instName) %>%
    summarise(institution_accessions_count = n(), .groups = "drop") %>%
    mutate(total_accessions = sum(accessions, na.rm = TRUE),
           institution_accessions_perc = round((accessions / total_accessions) * 100, 2))
@@ -272,8 +273,8 @@ sum_cols <- c("supply-digital_sequence_supply-digital_sequence_supply-digital_se
 avg_cols <- c("crop_use-faostat-food_supply-food_supply_kcal",
   "crop_use-faostat-food_supply-food_supply_quantity_g",
   "crop_use-faostat-food_supply-protein_supply_quantity_g",
-  "crop_use-faostat-trade-import_quantity_tonnes",       # added forgotten metrics, confirm columns to sum or avg
-  "crop_use-faostat-trade-import_value_tonnes",       
+  #"crop_use-faostat-trade-import_quantity_tonnes",       # need to add these metrics in previous step
+  #"crop_use-faostat-trade-import_value_tonnes",       
   "crop_use-faostat_count_countries-count_countries_food_supply-food_supply_kcal", # added
   "crop_use-faostat_count_countries-count_countries_food_supply-protein_supply_quantity_g",
   "crop_use-faostat_count_countries-count_countries_food_supply-fat_supply_quantity_g",
@@ -322,7 +323,7 @@ PTFTW_metrics <- PTFTW_indicator_avg_ourCrops %>%
              across(all_of(avg_cols), mean, na.rm = TRUE),
              .groups = "drop" )
 # save 
-write_xlsx(PTFTW_metrics,"PTFTW_metrics.xlsx")
+write_xlsx(PTFTW_metrics,"PTFTW_metrics2025_06_27.xlsx")  #add processing date
 
 
 ## 20. gini metric calculations (3 metrics)
@@ -349,6 +350,27 @@ summary_gbif_count <- results %>%
   group_by(CropStrategy) %>%
   summarise(total_GBIF_count = sum(GBIF_count_total, na.rm = TRUE), .groups = "drop")
 
+
+
+
+### 22. Characterization and Evaluation datasets
+# example count for Lentil
+
+
+##3 delete didnt work
+## and delete the lentil datasets metadata and the lentil datasets folder
+library(httr)
+
+# URL for metadata export of Lentil datasets (search results)
+csv_url <- "https://www.genesys-pgr.org/datasets?q=Lentil&format=csv"
+
+# Destination file
+dest_file <- "lentil_datasets_metadata.csv"
+
+# Download the CSV
+download.file(csv_url, destfile = dest_file, mode = "wb")
+
+cat("Metadata downloaded to:", dest_file, "\n")
 
 
 
