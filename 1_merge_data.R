@@ -8,6 +8,8 @@ setwd("path")
 install.packages("tidyverse")
 library(tidyverse)
 library(readxl)
+install.packages("writexl")
+library(writexl)
 
 ####################################################################################################
 ########### Read in all database data for all crops ################################################
