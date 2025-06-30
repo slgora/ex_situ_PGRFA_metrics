@@ -321,7 +321,7 @@ PTFTW_metrics <- PTFTW_indicator_avg_ourCrops %>%
              across(all_of(avg_cols), mean, na.rm = TRUE),
              .groups = "drop" )
 # save 
-write_xlsx(PTFTW_metrics,"PTFTW_metrics2025_06_27.xlsx")  #add processing date
+write_xlsx(PTFTW_metrics,"4_Estimate_metrics/Priority_metrics_results/PTFTW_metrics2025_06_27.xlsx")  #add processing date
 
 
 ## 20. gini metric calculations (3 metrics)
