@@ -330,7 +330,7 @@ transfers_metrics <- read_excel("Data_processing/4_Estimate_metrics/Distribution
 
 # 21. Count of records in GBIF
 source('Functions/Call_gbif_API.R')   # Import function get_gbif_count
-croplist <- read_csv("croplist.csv")  # Load croplist for genera list
+croplist <- read_csv("Data_processing/Support_files/GCCS_Selected_Crops/croplist_PG.csv")  # Load croplist for genera list
 
 # Run GBIF count of occurrences for each genus and synonyms
 results <- croplist %>%                 
