@@ -11,25 +11,25 @@ library(readxl)
 
 ####################################################################################################
 ########### Read in all database data for all crops ################################################
-BGCI_allcrops <- read_excel("../data_6/data_sources/BGCIPlantSearch_data/BGCI_allcrops_unformatted.xlsx")
-WIEWS_allcrops <- read_csv("../data_6/data_sources/FAOWIEWS_data/SDGBrequestExp.csv")
-Genesys_allcrops <- read_csv("../data_6/data_sources/GenesysPGR_data/Genesys_allcrops_unformatted.csv") # Read in as a csv, not excel, helped eliminate data loss
-GBIF_allcrops <- read_csv("../data_6/data_sources/GBIF_data/GBIF_allcrops_unformatted.csv")
+BGCI_allcrops <- read_excel("../../Data/BGCIPlantSearch_data/BGCI_allcrops_unformatted.xlsx")
+WIEWS_allcrops <- read_csv("../../Data/FAO_WIEWS/SDGBrequestExp.csv")
+Genesys_allcrops <- read_csv("../../Data/Genesys/Genesys_allcrops_unformatted.csv") # Read in as a csv, not excel, helped eliminate data loss
+GBIF_allcrops <- read_csv("../../Data/GBIF/GBIF_allcrops_unformatted.csv")
 
 ##### read file with country codes, I added na.strings to resolve the problem with NA for Namibia becoming a NaN value
-geo_names <- read_csv("../data_6/processing/geo_names.csv" , na = c("", "-"))
+geo_names <- read_csv("../../Data_processing/Support_files/Geographical/geo_names.csv" , na = c("", "-"))
 ## subset only the relevant column to join- 2 letter country code and the 3 letter abbreviation
 geo_names <- subset(geo_names, select = c(country2, country3))
 #####  file with institute names and FAO INSTCODE, some synonims were added to the list 
-institute_names <- read_excel("../data_6/processing/FAO_WIEWS_organizations_PG_with_synonyms.xlsx")
+institute_names <- read_excel("../../Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_organizations_PG_with_synonyms.xlsx")
 names(institute_names)[names(institute_names) == 'WIEWS instcode'] <- 'INSTCODE'
 names(institute_names)[names(institute_names) == 'Name of organization'] <- 'Name_of_organization'
 institute_names_full <- subset(institute_names, select = c(`INSTCODE`, `Name_of_organization`))  %>% drop_na()
-institute_names_no_syn <- read_excel("../data_6/processing/FAO_WIEWS_organizations_PG.xlsx")
+institute_names_no_syn <- read_excel("../../Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_organizations_PG.xlsx")
 names(institute_names_no_syn)[names(institute_names_no_syn) == 'WIEWS instcode'] <- 'INSTCODE'
 names(institute_names_no_syn)[names(institute_names_no_syn) == 'Organization authority status'] <- 'ORGANIZATIONTYPE'
 institute_names_no_syn <- subset(institute_names_no_syn, select = c(`INSTCODE`, `ORGANIZATIONTYPE`))  %>% drop_na()
-WIEWS_institute_IDs <- read_excel("../data_6/processing/WIEWS_instIDs.xlsx")
+WIEWS_institute_IDs <- read_excel("../../Data_processing/Support_files/FAO_WIEWS/WIEWS_instIDs.xlsx")
 WIEWS_institute_IDs = subset(WIEWS_institute_IDs, select = c('ID' , 'WIEWS_INSTCODE'))
 ####################################################################################################
 ########## Change field names to follow MCPD standard see https://www.fao.org/plant-treaty/tools/toolbox-for-sustainable-use/details/en/c/1367915/ ############################################
@@ -164,13 +164,13 @@ gen_wiews_df <- bind_rows(gen_wiews_df, BGCI_allcrops)
 ####### correct country codes iso-codes
 source("Functions/Correct_country_codes.R")
 gen_wiews_df = correct_country_codes(gen_wiews_df, col = 'ORIGCTY')
-write.csv(gen_wiews_df, 'gen_wiews_df.csv')
+write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/DATE_OF_RUN/gen_wiews_df.csv')
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
 # create a list of file paths (each one is a Json file dowloaded from GLIS)
 install.packages("jsonlite")
 library("jsonlite")
-source("Extract_results_GLIS_API.R") # added 30May 2025 corrected                              
+source("Functions/Extract_results_GLIS_API.R") # added 30May 2025 corrected                              
 filenames <- list.files("GLIS_json_data", pattern="*.json", full.names=TRUE)
 
 # Read all the downloaded GLIS json file and merge in one single dataframe
@@ -188,11 +188,11 @@ all_glis_data$MLSSTAT = NA
 all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(1, 11, 12, 13, 14, 15), TRUE, all_glis_data$MLSSTAT)
 all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(0), FALSE, all_glis_data$MLSSTAT)
 # save results
-write.csv(all_glis_data, 'GLIS_processed.csv')
+write.csv(all_glis_data, '../../Data_processing/1_merge_data/DATE_OF_RUN/GLIS_processed.csv')
 
 ################# SGSV data ########################################################################## 
 source("Functions/Load_SGSV_data.R")
-sgsv = load_SGSV_data('/Data/SGSV_data/SGSV_allcrops_unformatted.xlsx')
+sgsv = load_SGSV_data('../../Data/SGSV_data/SGSV_allcrops_unformatted.xlsx')
 
 # create uniqueID and drop duplicates                               
 sgsv$ACCENUMB <- trimws(sgsv$ACCENUMB)
@@ -200,7 +200,7 @@ sgsv$INSTCODE <- trimws(sgsv$INSTCODE)
 sgsv$ID <- paste0(sgsv$ACCENUMB, sgsv$INSTCODE)
 sgsv <- sgsv[!duplicated(sgsv$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 # save results
-write.csv(sgsv, 'sgsv_processed.csv')
+write.csv(sgsv, '../../Data_processing/1_merge_data/DATE_OF_RUN/sgsv_processed.csv')
 ################ PTFTW data ############################################################################
 source("Functions/load_PTFTW_dataset.R")
-PTFTW = process_ptftw_indicator_data(output_xlsx = "PTFTW_processed.xlsx")
+PTFTW = process_ptftw_indicator_data(output_xlsx = "../../Data_processing/1_merge_data/DATE_OF_RUN/PTFTW_processed.xlsx")
