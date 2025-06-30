@@ -227,12 +227,62 @@ BGCI_inst_count <- BGCI_data %>%
    group_by(cropstrategy) %>%
    summarise(unique_inst_count = n_distinct(Ex_situ_Site_GardenSearch_ID), .groups = "drop")
 
+
 # 17. SG: Regeneration metrics (based on WIEWS indicator file)
-# SG note for writing script: # data prep of WIEWS indicator 22 file in this script: 
-# https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_WIEWS_Indicator_Filter-ourCrops.R
-# add data prep to 4_Estimate_metrics.R before metric calc or keep as a separate script in new repo???
-WIEWS_indicator_ourcrops <- read_excel("Data_processing/3_Post_taxa_standardization/Resulting_datasets/WIEWS_indicator_ourcrops_2025-06-16.xlsx")
-WIEWS_regeneration_summary <- WIEWS_indicator_ourcrops
+
+# Data read in: Wiews indicator 22 file 
+WIEWS_Indicator22 <- "Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_Indicator22_regeneration_allcrops.csv"
+
+# Select relevant columns 
+WIEWS_Indicator22 <- WIEWS_Indicator22 %>%
+  select("Crop/crop group name",
+         # "Country (ISO3)",  # use this for calc later
+         # "Stakeholder (Instcode)", # use this for calc later
+         "Total number of accessions in the national genebank(s)",
+         "Number of accessions regenerated and/or multiplied",
+         "Number of accessions in need of regeneration",
+         "Number of accessions in need of regeneration without a budget for regeneration")
+
+# Function to check for crop matches across multiple columns 
+find_crop_strategy <- function(common_name, croplist) { match_row <- croplist %>% 
+  filter(str_detect(CropStrategy, fixed(common_name, ignore_case = TRUE)) | 
+           str_detect(CommonName_primary, fixed(common_name, ignore_case = TRUE)) | 
+           str_detect(CommonName_synonym, fixed(common_name, ignore_case = TRUE)) | 
+           str_detect(Genera_primary, fixed(common_name, ignore_case = TRUE)) | 
+           str_detect(Genera_synonyms, fixed(common_name, ignore_case = TRUE)) | 
+           str_detect(Taxa_main, fixed(common_name, ignore_case = TRUE))) 
+if (nrow(match_row) > 0) { 
+  return(match_row$CropStrategy[1]) 
+} else { 
+  return(NA) 
+} 
+}    
+
+# Use function to check for crop and add CropStrategy to WIEWS_Indicator22 
+WIEWS_Indicator22 <- WIEWS_Indicator22 %>% 
+  mutate(cropStrategy = sapply(`Crop/crop group name`, find_crop_strategy, croplist = croplist))
+
+# Keep rows where CropStrategy is filled out, ~ 313 rows 
+WIEWS_Indicator22 <- WIEWS_Indicator22 %>% filter(!is.na(cropStrategy) & cropStrategy != "")
+# sum data by crop (some rows have multiple entries per crop)
+# combine name field as a list and separate by a semicolon: "Crop/crop group name"
+# sum the numbers across crops
+# removed irrelevant columns and renamed relevant columns to standardize
+WIEWS_Indicator22_ourCrops <- WIEWS_Indicator22 %>% 
+  group_by(cropStrategy) %>% 
+  summarise("Crop/crop group name" = paste(unique(na.omit(`Crop/crop group name`)), collapse = "; "), 
+            across(where(is.numeric), ~ ifelse(all(is.na(.x)), NA, sum(.x, na.rm = TRUE)))) %>%
+  select(-"Crop/crop group name") %>%  #drop WIEWS crop name column
+  select (-"Total number of accessions in the national genebank(s)") %>%  #drop column, have more up to date data on this
+  rename( number_of_accessions_regenerated_and_or_multiplied = "Number of accessions regenerated and/or multiplied",
+          number_of_accessions_in_need_of_regeneration= "Number of accessions in need of regeneration",
+          number_of_accessions_in_need_of_regeneration_without_budget_for_regeneration= "Number of accessions in need of regeneration without a budget for regeneration") 
+
+# save file
+write_xlsx(WIEWS_Indicator22_ourCrops, "Data_processing/3_Post_taxa_standardization/Resulting_datasets/WIEWS_indicator_ourcrops2025_06_16.xlsx")
+
+# extract metrics
+WIEWS_regeneration_summary <- WIEWS_Indicator22_ourCrops
 
 # 18. SG: PDCI metric
 # SG note for writing script: PDCI calculation in this script:
@@ -404,6 +454,7 @@ transfers_metrics_2015_2021 <- df_avg_final %>%
 
 # save
 write_xlsx(transfers_metrics_2015_2021, transfers_2015_2021_metrics2025_06_25.xlsx) 
+
 
 # 21. Count of records in GBIF
 source('Functions/Call_gbif_API.R')   # Import function get_gbif_count
