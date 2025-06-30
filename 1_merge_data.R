@@ -166,6 +166,7 @@ gen_wiews_df = correct_country_codes(gen_wiews_df, col = 'ORIGCTY')
 source("Functions/Assign_organization_status.R")
 gen_wiews_df = assign_org_type(gen_wiews_df, institute_names_no_syn)
                                
+# Note: you need to create folder DATE_OF_RUN before running the following line of code                               
 write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/DATE_OF_RUN/gen_wiews_df.csv')
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
@@ -194,7 +195,7 @@ write.csv(all_glis_data, '../../Data_processing/1_merge_data/DATE_OF_RUN/GLIS_pr
 
 ################# SGSV data ########################################################################## 
 source("Functions/Load_SGSV_data.R")
-sgsv = load_SGSV_data('../../Data/SGSV_data/SGSV_allcrops_unformatted.xlsx')
+sgsv = load_SGSV_data('../../Data/SGSV/Deposits_all_genera_aggregated/SGSV_allcrops_unformatted.xlsx')
 
 # create uniqueID and drop duplicates                               
 sgsv$ACCENUMB <- trimws(sgsv$ACCENUMB)
