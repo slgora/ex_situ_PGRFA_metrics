@@ -326,8 +326,7 @@ write_xlsx(PTFTW_metrics,"4_Estimate_metrics/Priority_metrics_results/PTFTW_metr
 
 ## 20. gini metric calculations (3 metrics)
 # import in the gini metrics, completed in metrics_transfer.R file
-transfers_metrics <- read_excel("transfers_metrics_2015_2021_06-25-2025.xlsx")
-
+transfers_metrics <- read_excel("Data_processing/4_Estimate_metrics/Distribution/transfers_2015_2021_metrics2025_06_25")
 
 # 21. Count of records in GBIF
 source('Functions/Call_gbif_API.R')   # Import function get_gbif_count
