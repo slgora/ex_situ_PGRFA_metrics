@@ -21,7 +21,6 @@ percent_summary <- function(df, group_col, count_expr, total_col, percent_col) {
 
 # --------- DATA IMPORT ---------
 combined_allcrops <- read_csv("combined_allcrops.csv")
-#combined_allcrops <- read_csv("C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/combined_df2_PG_30May2025.csv")
 SGSV_allcrops <- read_csv("SGSV_allcrops.csv") # Note: Add SGSV_allcrops import if used
 BGCI_allcrops <- read_csv("BGCI_allcrops.csv") # Note: Add BGCI_allcrops import if used
 
@@ -229,9 +228,9 @@ BGCI_inst_count <- BGCI_data %>%
 
 
 # 17. SG: Regeneration metrics (based on WIEWS indicator file)
-
-# Data read in: Wiews indicator 22 file 
+# Data read in: Wiews indicator 22 file and croplist
 WIEWS_Indicator22 <- "Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_Indicator22_regeneration_allcrops.csv"
+croplist <- read_csv("Data_processing/Support_files/GCCS_Selected_Crops/croplist_PG.csv")  # Load croplist for genera list
 
 # Select relevant columns 
 WIEWS_Indicator22 <- WIEWS_Indicator22 %>%
@@ -244,7 +243,7 @@ WIEWS_Indicator22 <- WIEWS_Indicator22 %>%
          "Number of accessions in need of regeneration without a budget for regeneration")
 
 # Function to check for crop matches across multiple columns 
-find_crop_strategy <- function(common_name, croplist) { match_row <- croplist %>% 
+find_crop_strategy <- function(common_name, croplist) { match_row <- croplist %>% # source function later if we use this function
   filter(str_detect(CropStrategy, fixed(common_name, ignore_case = TRUE)) | 
            str_detect(CommonName_primary, fixed(common_name, ignore_case = TRUE)) | 
            str_detect(CommonName_synonym, fixed(common_name, ignore_case = TRUE)) | 
@@ -280,16 +279,19 @@ WIEWS_Indicator22_ourCrops <- WIEWS_Indicator22 %>%
 
 # save file
 write_xlsx(WIEWS_Indicator22_ourCrops, "Data_processing/3_Post_taxa_standardization/Resulting_datasets/WIEWS_indicator_ourcrops2025_06_16.xlsx")
-
 # extract metrics
 WIEWS_regeneration_summary <- WIEWS_Indicator22_ourCrops
 
-# 18. SG: PDCI metric
-# SG note for writing script: PDCI calculation in this script:
-# https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_PDCI_PGscript.R
-# add data prep to 4_Estimate_metrics.R before metric calc or keep as a separate script in new repo???
+# 18. PDCI metric
+# load data
+df <- combined_allcrops   # update name combined_allcrops to gen_wiews_df
+df$sampStat <- as.numeric(as.character(df$sampStat)) #convert sampStat to numeric
 
-# Metric we want to extract is calculated at end of PDCI_script.R
+# Source and Run function to calculate PDCI
+source(Functions/Get_PDCI.R)
+df <- get_PDCI(df)
+
+# Extract median PDCI
 summary_pdci <- df %>% 
   group_by(cropStrategy) %>%
   summarise(
@@ -375,7 +377,6 @@ write_xlsx(PTFTW_metrics,"4_Estimate_metrics/Priority_metrics_results/PTFTW_metr
 
 
 ## 20. gini metric calculations (3 metrics)
-
 # ---- Read and Clean Data ----
 transfers_2012_2019 <- "Data/Plant_Treaty/Data_store/ITPGRFA_MLSDataStore2022_7_1.xlsx"
 transfers_2019_2021 <- "Data/Plant_Treaty/Data_store/Transfers_ourcrops_2019-2021.xlsx"
@@ -458,7 +459,6 @@ write_xlsx(transfers_metrics_2015_2021, transfers_2015_2021_metrics2025_06_25.xl
 
 # 21. Count of records in GBIF
 source('Functions/Call_gbif_API.R')   # Import function get_gbif_count
-croplist <- read_csv("Data_processing/Support_files/GCCS_Selected_Crops/croplist_PG.csv")  # Load croplist for genera list
 
 # Run GBIF count of occurrences for each genus and synonyms
 results <- croplist %>%                 
@@ -478,10 +478,6 @@ summary_gbif_count <- results %>%
 
 ### 22. Characterization and Evaluation datasets
 # SG didnt add yet
-
-
-
-
 
 
 # --------- END OF SCRIPT ---------
