@@ -69,9 +69,6 @@ BGCI_allcrops$STORAGE <- apply(BGCI_allcrops[, c("Germplasm, seed", "Germplasm, 
 # Drop the specified columns from the BGCI_allcrops data frame
 BGCI_allcrops <- select(BGCI_allcrops, -c('Germplasm, seed', "Germplasm, plant", "Germplasm, pollen", "Germplasm, explant"))
 
-# see if you can add INSTCODE based on Ex Situ Site Name field
-# PG this needs to be completed
-
 # Fields we want to keep
 BGCI_allcrops <- subset(BGCI_allcrops, select = c(data_source, fullTaxa, GENUS, SPECIES, STORAGE ))
 
@@ -164,6 +161,11 @@ gen_wiews_df <- bind_rows(gen_wiews_df, BGCI_allcrops)
 ####### correct country codes iso-codes
 source("Functions/Correct_country_codes.R")
 gen_wiews_df = correct_country_codes(gen_wiews_df, col = 'ORIGCTY')
+
+####### assign organization type ############
+source("Functions/Assign_organization_status.R")
+gen_wiews_df = assign_org_type(gen_wiews_df, institute_names_no_syn)
+                               
 write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/DATE_OF_RUN/gen_wiews_df.csv')
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
