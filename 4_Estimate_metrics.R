@@ -226,7 +226,6 @@ BGCI_inst_count <- BGCI_data %>%
    group_by(cropstrategy) %>%
    summarise(unique_inst_count = n_distinct(Ex_situ_Site_GardenSearch_ID), .groups = "drop")
 
-
 # 17. SG: Regeneration metrics (based on WIEWS indicator file)
 # Data read in: Wiews indicator 22 file and croplist
 WIEWS_Indicator22 <- "Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_Indicator22_regeneration_allcrops.csv"
@@ -299,70 +298,157 @@ summary_pdci <- df %>%
   )
 
 ### 19. SG: PTFTW Metrics
-# read in Plants that Feed the World indicator file that has been filtered by our crops
-PTFTW_indicator_avg_ourCrops <- read_excel("Data/Plants_that_feed_the_world/Indicators/PTFTW_indicator_ourcrops.xlsx")   #temp file name is PTFTW_indicator_ourcrops2025_06_23.xlsx
+## Data read in: Plants That Feed the World dataset
+PTFTW_indicator_average <- "Data/Plants_that_feed_the_world/Indicators/indicator_average.csv"
 
-# Define columns to sum vs. average across genera in crops (if necessary)
-sum_cols <- c("supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_gene", 
-  "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_genome",
-  "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_nucleotide", 
-  "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_protein", 
-  "supply-research_supply-research_supply_gbif-research_supply_gbif_taxon", 
-  "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_accessions",
-  "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_samples", 
-  "demand-germplasm_distributions_treaty-germplasm_distributions_treaty-germplasm_distributions_treaty", 
-  "demand-varietal_release_fao_wiews-varietal_release_fao_wiews-varietal_release_fao_wiews_taxon", 
-  "demand-varietal_registrations_upov-varietal_registrations_upov-varietal_registrations_upov_taxon", 
-  "crop_use-faostat-production-area_harvested_ha", 
-  "crop_use-faostat-production-gross_production_value_us", 
-  "crop_use-faostat-production-production_quantity_tonnes", 
-  "crop_use-faostat-trade-export_quantity_tonnes",  
-  "crop_use-faostat-food_supply-fat_supply_quantity_g",
-  "crop_use-faostat-trade-export_value_tonnes" )
+# replace "Rice (Asian)" in crop field to be "Rice"
+PTFTW_indicator_average['crop'][PTFTW_indicator_average['crop'] == "Rice (Asian)"] <- "Rice"
+# replace "Chickpeas" in crop field to be "Chickpea"
+PTFTW_indicator_average['crop'][PTFTW_indicator_average['crop'] == "Chickpeas"] <- "Chickpea"
 
-avg_cols <- c("crop_use-faostat-food_supply-food_supply_kcal",
-  "crop_use-faostat-food_supply-food_supply_quantity_g",
-  "crop_use-faostat-food_supply-protein_supply_quantity_g",
-  #"crop_use-faostat-trade-import_quantity_tonnes",       # need to add these metrics in previous step
-  #"crop_use-faostat-trade-import_value_tonnes",       
-  "crop_use-faostat_count_countries-count_countries_food_supply-food_supply_kcal", # added
-  "crop_use-faostat_count_countries-count_countries_food_supply-protein_supply_quantity_g",
-  "crop_use-faostat_count_countries-count_countries_food_supply-fat_supply_quantity_g",
-  "crop_use-faostat_count_countries-count_countries_food_supply-food_supply_quantity_g",
-  "crop_use-faostat_count_countries-count_countries_production-area_harvested_ha",
-  "crop_use-faostat_count_countries-count_countries_production-production_quantity_tonnes",
-  "crop_use-faostat_count_countries-count_countries_production-gross_production_value_us",
-  "crop_use-faostat_count_countries-count_countries_trade-export_quantity_tonnes",
-  "crop_use-faostat_count_countries-count_countries_trade-export_value_tonnes",
-  "crop_use-faostat_count_countries-count_countries_trade-import_quantity_tonnes",
-  "crop_use-faostat_count_countries-count_countries_trade-import_value_tonnes",
-  "crop_use-public_interest-wikipedia_pageviews-taxon",
-  "crop_use-research_significance-google_scholar-taxon",
-  "crop_use-research_significance-pubmed_central-taxon",
-  "crop_use-faostat_equality_of_use-gini_food_supply-food_supply_kcal",        # added  gini index metrics, confirm avg and not recalc gini index
-  "crop_use-faostat_equality_of_use-gini_food_supply-protein_supply_quantity_g",
-  "crop_use-faostat_equality_of_use-gini_food_supply-fat_supply_quantity_g",
-  "crop_use-faostat_equality_of_use-gini_food_supply-food_supply_quantity_g",
-  "crop_use-faostat_equality_of_use-gini_production-area_harvested_ha",
-  "crop_use-faostat_equality_of_use-gini_production-production_quantity_tonnes",
-  "crop_use-faostat_equality_of_use-gini_production-gross_production_value_us",
-  "crop_use-faostat_equality_of_use-gini_trade-export_quantity_tonnes",
-  "crop_use-faostat_equality_of_use-gini_trade-export_value_tonnes",
-  "crop_use-faostat_equality_of_use-gini_trade-import_quantity_tonnes",
-  "crop_use-faostat_equality_of_use-gini_trade-import_value_tonnes",
-  "interdependence-faostat-food_supply-food_supply_kcal",          # added interdependence metrics
-  "interdependence-faostat-food_supply-protein_supply_quantity_g",
-  "interdependence-faostat-food_supply-fat_supply_quantity_g",
-  "interdependence-faostat-food_supply-food_supply_quantity_g",
-  "interdependence-faostat-production-area_harvested_ha",
-  "interdependence-faostat-production-production_quantity_tonnes",
-  "interdependence-faostat-production-gross_production_value_us",
-  "interdependence-faostat-trade-export_quantity_tonnes",
-  "interdependence-faostat-trade-export_value_tonnes",
-  "interdependence-faostat-trade-import_quantity_tonnes",
-  "interdependence-faostat-trade-import_value_tonnes" )                        
+# filter by our crops, Subset relevant columns and drop rows with NA in PlantsthatFeedtheWorld_name 
+PlantsthatFeedtheWorld_ourcrops <- croplist %>% 
+  select(PlantsthatFeedtheWorld_name, CropStrategy, Genera_primary, Taxa_main) %>% 
+  filter(PlantsthatFeedtheWorld_name != "NA")
 
-PTFTW_metrics <- PTFTW_indicator_avg_ourCrops %>%
+# rename crop field in Plants That Feed the World dataset to PlantsthatFeedtheWorld_name
+PTFTW_indicator_average <- PTFTW_indicator_average %>% 
+  rename(PlantsthatFeedtheWorld_name = crop)
+
+## join PlantsthatFeedtheWorld_ourcrops to PlantsThatFeedTheWorld_rawdata
+PTFTW_indicator_average <- PlantsthatFeedtheWorld_ourcrops %>% 
+  left_join(PTFTW_indicator_average, by = "PlantsthatFeedtheWorld_name")
+
+## select relevant fields to keep for the indicator file for our summaries and metrics
+PTFTW_indicator_ourCrops <- subset(PTFTW_indicator_average, 
+                                       select = c( "PlantsthatFeedtheWorld_name",
+                                                   "CropStrategy",
+                                                   "Genera_primary",
+                                                   "Taxa_main", 
+                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_gene",
+                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_genome",
+                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_nucleotide",
+                                                   "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_protein",
+                                                   "supply-research_supply-research_supply_gbif-research_supply_gbif_taxon",
+                                                   "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_accessions",
+                                                   "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_samples",
+                                                   "demand-germplasm_distributions_treaty-germplasm_distributions_treaty-germplasm_distributions_treaty",
+                                                   "demand-varietal_release_fao_wiews-varietal_release_fao_wiews-varietal_release_fao_wiews_taxon",
+                                                   "demand-varietal_registrations_upov-varietal_registrations_upov-varietal_registrations_upov_taxon",
+                                                   "crop_use-faostat-production-area_harvested_ha",
+                                                   "crop_use-faostat-production-gross_production_value_us",
+                                                   "crop_use-faostat-production-production_quantity_tonnes",
+                                                   "crop_use-faostat-trade-export_quantity_tonnes",
+                                                   "crop_use-faostat-trade-export_value_tonnes",
+                                                   "crop_use-faostat-trade-import_quantity_tonnes",
+                                                   "crop_use-faostat-trade-import_value_tonnes",
+                                                   "crop_use-faostat-food_supply-fat_supply_quantity_g",
+                                                   "crop_use-faostat-food_supply-food_supply_kcal",
+                                                   "crop_use-faostat-food_supply-food_supply_quantity_g",
+                                                   "crop_use-faostat-food_supply-protein_supply_quantity_g",
+                                                   "crop_use-public_interest-wikipedia_pageviews-taxon",
+                                                   "crop_use-research_significance-google_scholar-taxon",
+                                                   "crop_use-research_significance-pubmed_central-taxon",
+                                                   "crop_use-faostat_count_countries-count_countries_food_supply-food_supply_kcal",
+                                                   "crop_use-faostat_count_countries-count_countries_food_supply-protein_supply_quantity_g",
+                                                   "crop_use-faostat_count_countries-count_countries_food_supply-fat_supply_quantity_g",
+                                                   "crop_use-faostat_count_countries-count_countries_food_supply-food_supply_quantity_g",
+                                                   "crop_use-faostat_count_countries-count_countries_production-area_harvested_ha",
+                                                   "crop_use-faostat_count_countries-count_countries_production-production_quantity_tonnes",
+                                                   "crop_use-faostat_count_countries-count_countries_production-gross_production_value_us",
+                                                   "crop_use-faostat_count_countries-count_countries_trade-export_quantity_tonnes",
+                                                   "crop_use-faostat_count_countries-count_countries_trade-export_value_tonnes",
+                                                   "crop_use-faostat_count_countries-count_countries_trade-import_quantity_tonnes",
+                                                   "crop_use-faostat_count_countries-count_countries_trade-import_value_tonnes",
+                                                   "crop_use-faostat_equality_of_use-gini_food_supply-food_supply_kcal",
+                                                   "crop_use-faostat_equality_of_use-gini_food_supply-protein_supply_quantity_g",
+                                                   "crop_use-faostat_equality_of_use-gini_food_supply-fat_supply_quantity_g",
+                                                   "crop_use-faostat_equality_of_use-gini_food_supply-food_supply_quantity_g",
+                                                   "crop_use-faostat_equality_of_use-gini_production-area_harvested_ha",
+                                                   "crop_use-faostat_equality_of_use-gini_production-production_quantity_tonnes",
+                                                   "crop_use-faostat_equality_of_use-gini_production-gross_production_value_us",
+                                                   "crop_use-faostat_equality_of_use-gini_trade-export_quantity_tonnes",
+                                                   "crop_use-faostat_equality_of_use-gini_trade-export_value_tonnes",
+                                                   "crop_use-faostat_equality_of_use-gini_trade-import_quantity_tonnes",
+                                                   "crop_use-faostat_equality_of_use-gini_trade-import_value_tonnes",
+                                                   "interdependence-faostat-food_supply-food_supply_kcal",
+                                                   "interdependence-faostat-food_supply-protein_supply_quantity_g",
+                                                   "interdependence-faostat-food_supply-fat_supply_quantity_g",
+                                                   "interdependence-faostat-food_supply-food_supply_quantity_g",
+                                                   "interdependence-faostat-production-area_harvested_ha",
+                                                   "interdependence-faostat-production-production_quantity_tonnes",
+                                                   "interdependence-faostat-production-gross_production_value_us",
+                                                   "interdependence-faostat-trade-export_quantity_tonnes",
+                                                   "interdependence-faostat-trade-export_value_tonnes",
+                                                   "interdependence-faostat-trade-import_quantity_tonnes",
+                                                   "interdependence-faostat-trade-import_value_tonnes"                     
+                                                          ))
+
+# save file as Indicator file
+write_xlsx(PTFTW_indicator_ourCrops, "C:/Users/sarah/Desktop/ex_situ_PGRFA_metrics/data_SG/PTFTW_indicator_ourcrops2025_06_23.xlsx")
+
+# Define processing method across genera in crops (if necessary)
+sum_cols <- c("supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_gene",
+              "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_genome",
+              "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_nucleotide",
+              "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_protein",
+              "supply-research_supply-research_supply_gbif-research_supply_gbif_taxon",
+              "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_accessions",
+              "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_samples",
+              "demand-germplasm_distributions_treaty-germplasm_distributions_treaty-germplasm_distributions_treaty",
+              "demand-varietal_release_fao_wiews-varietal_release_fao_wiews-varietal_release_fao_wiews_taxon",
+              "demand-varietal_registrations_upov-varietal_registrations_upov-varietal_registrations_upov_taxon",
+              "crop_use-faostat-production-area_harvested_ha",
+              "crop_use-faostat-production-gross_production_value_us",
+              "crop_use-faostat-production-production_quantity_tonnes",
+              "crop_use-faostat-trade-export_quantity_tonnes",
+              "crop_use-faostat-trade-export_value_tonnes",
+              "crop_use-faostat-trade-import_quantity_tonnes",
+              "crop_use-faostat-trade-import_value_tonnes",
+              "crop_use-faostat-food_supply-fat_supply_quantity_g",
+              "crop_use-faostat-food_supply-food_supply_kcal",
+              "crop_use-faostat-food_supply-food_supply_quantity_g",
+              "crop_use-faostat-food_supply-protein_supply_quantity_g",
+              "crop_use-public_interest-wikipedia_pageviews-taxon",
+              "crop_use-research_significance-google_scholar-taxon",
+              "crop_use-research_significance-pubmed_central-taxon" )
+
+avg_cols <- c("crop_use-faostat_equality_of_use-gini_food_supply-food_supply_kcal",
+              "crop_use-faostat_equality_of_use-gini_food_supply-protein_supply_quantity_g",
+              "crop_use-faostat_equality_of_use-gini_food_supply-fat_supply_quantity_g",
+              "crop_use-faostat_equality_of_use-gini_food_supply-food_supply_quantity_g",
+              "crop_use-faostat_equality_of_use-gini_production-area_harvested_ha",
+              "crop_use-faostat_equality_of_use-gini_production-production_quantity_tonnes",
+              "crop_use-faostat_equality_of_use-gini_production-gross_production_value_us",
+              "crop_use-faostat_equality_of_use-gini_trade-export_quantity_tonnes",
+              "crop_use-faostat_equality_of_use-gini_trade-export_value_tonnes",
+              "crop_use-faostat_equality_of_use-gini_trade-import_quantity_tonnes",
+              "crop_use-faostat_equality_of_use-gini_trade-import_value_tonnes",
+              "interdependence-faostat-food_supply-food_supply_kcal",
+              "interdependence-faostat-food_supply-protein_supply_quantity_g",
+              "interdependence-faostat-food_supply-fat_supply_quantity_g",
+              "interdependence-faostat-food_supply-food_supply_quantity_g",
+              "interdependence-faostat-production-area_harvested_ha",
+              "interdependence-faostat-production-production_quantity_tonnes",
+              "interdependence-faostat-production-gross_production_value_us",
+              "interdependence-faostat-trade-export_quantity_tonnes",
+              "interdependence-faostat-trade-export_value_tonnes",
+              "interdependence-faostat-trade-import_quantity_tonnes",
+              "interdependence-faostat-trade-import_value_tonnes" )
+
+max_cols <- c("crop_use-faostat_count_countries-count_countries_food_supply-food_supply_kcal",
+              "crop_use-faostat_count_countries-count_countries_food_supply-protein_supply_quantity_g",
+              "crop_use-faostat_count_countries-count_countries_food_supply-fat_supply_quantity_g",
+              "crop_use-faostat_count_countries-count_countries_food_supply-food_supply_quantity_g",
+              "crop_use-faostat_count_countries-count_countries_production-area_harvested_ha",
+              "crop_use-faostat_count_countries-count_countries_production-production_quantity_tonnes",
+              "crop_use-faostat_count_countries-count_countries_production-gross_production_value_us",
+              "crop_use-faostat_count_countries-count_countries_trade-export_quantity_tonnes",
+              "crop_use-faostat_count_countries-count_countries_trade-export_value_tonnes",
+              "crop_use-faostat_count_countries-count_countries_trade-import_quantity_tonnes",
+              "crop_use-faostat_count_countries-count_countries_trade-import_value_tonnes")
+
+PTFTW_metrics <- PTFTW_indicator_ourCrops %>%
   rename(
     cropstrategy = CropStrategy,
     PTFTW_name   = PlantsthatFeedtheWorld_name,
@@ -371,6 +457,7 @@ PTFTW_metrics <- PTFTW_indicator_avg_ourCrops %>%
   group_by(cropstrategy) %>%
   summarise( across(all_of(sum_cols), sum, na.rm = TRUE),
              across(all_of(avg_cols), mean, na.rm = TRUE),
+             across(all_of(max_cols), max, na.rm = TRUE)
              .groups = "drop" )
 # save 
 write_xlsx(PTFTW_metrics,"4_Estimate_metrics/Priority_metrics_results/PTFTW_metrics2025_06_27.xlsx")  #add processing date
