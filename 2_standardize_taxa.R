@@ -5,7 +5,7 @@ library(httr)
 library(jsonlite)
 
 # read dataset 
-df = read.csv("../../Data_processing/1_merge_data/DATEOFRUN/gen_wiews_df.csv", header = TRUE )
+df = read.csv("../../Data_processing/1_merge_data/DATE_OF_RUN/gen_wiews_df.csv", header = TRUE )
 
 ####################
 # load functions
