@@ -11,10 +11,10 @@ library(readxl)
 
 ####################################################################################################
 ########### Read in all database data for all crops ################################################
-BGCI_allcrops <- read_excel("../../Data/BGCIPlantSearch_data/BGCI_allcrops_unformatted.xlsx")
-WIEWS_allcrops <- read_csv("../../Data/FAO_WIEWS/SDGBrequestExp.csv")
-Genesys_allcrops <- read_csv("../../Data/Genesys/Genesys_allcrops_unformatted.csv") # Read in as a csv, not excel, helped eliminate data loss
-GBIF_allcrops <- read_csv("../../Data/GBIF/GBIF_allcrops_unformatted.csv")
+BGCI_allcrops <- read_excel("../../Data/BGCIPlantSearch_data/FullReport_counts_and_origin/BGCI_allcrops_unformatted.xlsx")
+WIEWS_allcrops <- read_csv("../../Data/FAO_WIEWS/Passport_data/SDGBrequestExp.csv")
+Genesys_allcrops <- read_csv("../../Data/Genesys/Data_aggregated_all_selected_GCCS/Genesys_allcrops_unformatted.csv") # Read in as a csv, not excel, helped eliminate data loss
+GBIF_allcrops <- read_csv("../../Data/GBIF/Living_records_all_genus_aggregated/GBIF_allcrops_unformatted.csv")
 
 ##### read file with country codes, I added na.strings to resolve the problem with NA for Namibia becoming a NaN value
 geo_names <- read_csv("../../Data_processing/Support_files/Geographical/geo_names.csv" , na = c("", "-"))
