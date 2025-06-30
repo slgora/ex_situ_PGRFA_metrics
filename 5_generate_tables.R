@@ -2,7 +2,7 @@
 
 
 # Read in Metrics and data descriptions table as guide file for table set up
-metrics_guide <- read_excel("Metrics_and_data_descriptions_table2025_06_27.xlsx")
+metrics_guide <- read_excel("Data_processing/Metrics_and_data_descriptions_table.xlsx")
 
 # SG note: Read in all metrics in a separate file here 
 #          or include table generation at end of 4_Estimate_metrics ?
@@ -18,7 +18,7 @@ filtered_guide <- metrics_guide %>% filter(`Pertains to Table` == 1)
 # Fun function to generate table 1
 table1_by_crop <- generate_table1(1, PTFTW_metrics, filtered_guide)
 # Export all crop tables into one Excel file with each crop as a tab
-write_xlsx(table1_by_crop, path = "Table1_all_crops2025_06-27.xlsx") # add date table generated
+write_xlsx(table1_by_crop, path = "Table1_all_crops2025_06_27.xlsx") # add date table generated
 
 
 # ---------- Table 2 ------------
