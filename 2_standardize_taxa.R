@@ -5,7 +5,7 @@ library(httr)
 library(jsonlite)
 
 # read dataset 
-df = read.csv("combined07_05_25.csv", header = TRUE )
+df = read.csv("../../Data_processing/1_merge_data/combined07_05_25.csv", header = TRUE )
 
 ####################
 # load functions
@@ -46,4 +46,4 @@ taxa_standardized_df <- taxa_standardized_df_GRIN %>%
 
 # save table with results from both WFO and GRIN
 df_save_results <- apply(taxa_standardized_df,2,as.character)
-write.csv(df_save_results, 'standardized_taxa7_05_25.csv', row.names = FALSE)
+write.csv(df_save_results, '../../Data_processing/2_standardize_taxa/standardized_taxaDATE.csv', row.names = FALSE)
