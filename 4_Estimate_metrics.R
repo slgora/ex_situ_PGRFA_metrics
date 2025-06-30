@@ -476,26 +476,11 @@ summary_gbif_count <- results %>%
   summarise(total_GBIF_count = sum(GBIF_count_total, na.rm = TRUE), .groups = "drop")
 
 
-
-
 ### 22. Characterization and Evaluation datasets
-# example count for Lentil
+# SG didnt add yet
 
 
-##3 delete didnt work
-## and delete the lentil datasets metadata and the lentil datasets folder
-library(httr)
 
-# URL for metadata export of Lentil datasets (search results)
-csv_url <- "https://www.genesys-pgr.org/datasets?q=Lentil&format=csv"
-
-# Destination file
-dest_file <- "lentil_datasets_metadata.csv"
-
-# Download the CSV
-download.file(csv_url, destfile = dest_file, mode = "wb")
-
-cat("Metadata downloaded to:", dest_file, "\n")
 
 
 
