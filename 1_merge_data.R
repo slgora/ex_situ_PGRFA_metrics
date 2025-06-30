@@ -1,7 +1,6 @@
 ### Project: Global Crop Conservation Strategies Metrics ###
-### Data sources cleaning individually and Join 
-#### Set working directory ####
-setwd("path")
+### Data sources, clean individually and Join when it is possible (Genesys and WIEWS)
+#### Set working directory: working directory is assumed to be Code/R_code , following shared folder structure ####
 
 #### Install packages ####
 # tidyverse already include tidyr , dplyr, readr, magrittr, stringr, readxl
