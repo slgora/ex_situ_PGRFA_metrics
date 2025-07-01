@@ -4,10 +4,7 @@
 crops <- read_excel("../../Data_processing/Support_files/GCCS_selected_crops/croplist_PG.xlsx")
 combined_df <- read_csv("../../Data_processing/1_merge_data/2025_07_01/gen_wiews_df.csv")
 
-#combined_df$fullTaxa2 = trimws(gsub("\\s+", " ", na.omit(combined_df$fullTaxa)))
-#combined_df$fullTaxa2  <- gsub("+", " ", combined_df$fullTaxa2 )
-
-
+# remove spaces and + and ? , as they where causing problems
 combined_df$fullTaxa2 <- trimws(
   gsub("\\s+", " ",
        gsub("\\?", "",
