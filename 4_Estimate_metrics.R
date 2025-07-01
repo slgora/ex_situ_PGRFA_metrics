@@ -73,7 +73,7 @@ primary_region_metric <- combined_allcrops %>%
   percent_summary(
     cropstrategy,
     sum(fromPrimary_diversity_region, na.rm = TRUE), 
-    primaryregions_total_records,
+    isinprimaryregions_count,
     isinprimaryregion_perc
   )
 
@@ -82,10 +82,10 @@ diversity_regions_metric <- combined_allcrops %>%
   filter(SAMPSTAT <= 399 | is.na(SAMPSTAT)) %>%
   group_by(cropstrategy) %>%
   summarise(
-    total_diversity_regions = sum(fromPrimary_diversity_region, na.rm = TRUE) + 
+    isindiversityregions_count = sum(fromPrimary_diversity_region, na.rm = TRUE) + 
                              sum(fromSecondary_diversity_region, na.rm = TRUE),
     total_accessions = n(),
-    percent_diversity_regions = round(100 * total_diversity_regions / total_accessions, 2),
+    isindiversityregions_perc = round(100 * isindiversityregions_count / total_accessions, 2),
     .groups = "drop"
  )
 
