@@ -2,13 +2,40 @@
 
 ###### 1. Load datasets with standardized taxa  #######################
 crops <- read_excel("../../Data_processing/Support_files/GCCS_selected_crops/croplist_PG.xlsx")
-combined_df <- read_csv("../../Data_processing/ADD_FILEPATH_HERE")
+combined_df <- read_csv("../../Data_processing/1_merge_data/2025_07_01/gen_wiews_df.csv")
 
+#combined_df$fullTaxa2 = trimws(gsub("\\s+", " ", na.omit(combined_df$fullTaxa)))
+#combined_df$fullTaxa2  <- gsub("+", " ", combined_df$fullTaxa2 )
+
+
+combined_df$fullTaxa2 <- trimws(
+  gsub("\\s+", " ",
+       gsub("\\?", "",
+            gsub("\\+", " ",
+                      na.omit(combined_df$fullTaxa)
+                 )
+            )
+       )
+  )
+
+# remove NAs, replace tabs with whitespaces, collapse multiple whitespaces
+#combined_df$fullTaxa2 <- trimws(gsub("\\s+", " ", gsub("\t", " ", na.omit(combined_df$fullTaxa))))
 #### add standardized_taxa column here when the manual vetting is complete and standardization_table becomes available , code to be tested#######
-#standardization_table <- setNames(table_standardization$Standardized_taxa, crops$input_taxa)
-#  combined_df$Standardized_taxa = NA
-#  combined_df <- combined_df %>%
-#    mutate(Standardized_taxa = ifelse(is.na(Standardized_taxa), standardization_table[input_taxa], Standardized_taxa))
+#load standardization table
+table_standardization <- read_excel("../../Data_processing/Support_files/Taxa_standardization/standardization_table_WFO_GRIN_2025_07_01.xlsx")
+
+# Replace tabs with space in input_name
+table_standardization$input_name <- gsub("\t", " ", table_standardization$input_name)
+
+#replace multiple spaces with one space 
+table_standardization$input_name <- gsub("\\s+", " ", table_standardization$input_name)
+
+# Create named vector: input_name -> PG_recommendation
+standardization_table <- setNames(table_standardization$PG_recommendation, table_standardization$input_name)
+
+combined_df$Standardized_taxa = NA
+combined_df <- combined_df %>%
+    mutate(Standardized_taxa = ifelse(is.na(Standardized_taxa), standardization_table[fullTaxa2], Standardized_taxa))
   
 ###### 2. Assign crop strategy  categorical variable  ######################
 #use Assign_crop_strategy.R function in Functions folder
@@ -18,7 +45,7 @@ combined_df = assign_crop_strategy(combined_df, crops = crops)
 ###### 3. Assign diversity region               ######################
 # It requires crops dataframe (croplist_PG.xlsx) and countries in regions (countries_in_regions.xlsx)
 source("Functions/Assign_diversity_regions.R")
-countries_in_regions <- read_excel("../Data_processing/Support_files/Geographical/countries_in_regions.xlsx")
+countries_in_regions <- read_excel("../../Data_processing/Support_files/Geographical/countries_in_regions.xlsx")
 combined_df = assign_diversity_regions(combined_df, crops = crops, countries_in_regions = countries_in_regions)
 
 ###### 4. Assign Annex 1 status                 ######################
@@ -28,4 +55,4 @@ source("Functions/Assign_annex1_status.R")
 combined_df = assign_annex1status(combined_df, standardize_taxa = 'Standardized_taxa')  # assumed the column with standardized taxa is named Standardized_taxa
 
 ##### save dataset
-write.csv(combined_df, '../../Data_processing/3_post_taxa_standardization_processing/DATE_OF_RUN/combined_df.csv')
+write.csv(combined_df, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/combined_df_2025_07_01.csv')
