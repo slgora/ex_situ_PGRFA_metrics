@@ -39,7 +39,7 @@ assign_annex1status = function(df, standardize_taxa = 'Standardized_taxa') {
   #Aegilops was included as assuming Triticum et al. includes it
   exclude = c('Lepidium meyenii' , 'Musa textilis' , 'Phaseolus polyanthus', 'Phaseolus dumosus' ,'Zea perennis' , 'Zea diploperennis' , 'Zea luxurians', 'Solanum phureja')
   # potato Section tuberosa included, except Solanum phureja.
-  section_Petota <- read_excel("../data_6/processing/Solanum_section_Petota_Species_GRIN-Global.xlsx")
+  section_Petota <- read_excel("../../Data_processing/Support_files/Annex1_crops/Solanum_section_Petota_Species_GRIN-Global.xlsx")
   # Split the "Name" column into "genus" and "species" 
   section_Petota <- section_Petota %>%
     mutate(GENUS   = word(Name, 1),  # Extract the first word (genus)
@@ -48,7 +48,7 @@ assign_annex1status = function(df, standardize_taxa = 'Standardized_taxa') {
   Petota_species = as.list(trimws(section_Petota$SPECIES))
 
   #eggplant Section melongena included species list in file Section_Melongena_GRIN-Global.xlsx
-  section_Melongena <- read_excel("../data_6/processing/Section_Melongena_Species_GRIN-Global.xlsx")
+  section_Melongena <- read_excel("../../Data_processing/Support_files/Annex1_crops/Section_Melongena_Species_GRIN-Global.xlsx")
   # Split the "fullSciName" column into "genus" and "species" without removing "fullSciName"
   section_Melongena <- section_Melongena %>%
     mutate(GENUS   = word(Name, 1),  # Extract the first word (genus)
