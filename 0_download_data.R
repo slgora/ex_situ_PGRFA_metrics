@@ -1,5 +1,5 @@
 ##### download data from GLIS using the API, save JSON files in working directory
-crops <- read_excel("../Data_6/processing/croplist_PG.xlsx")
+crops <- read_excel("../../Data_processing/Support_files/croplist_PG.xlsx")
 crops$genera <- trimws(ifelse(is.na(crops$Genera_primary), "", crops$Genera_primary)) %>% 
   paste(trimws(ifelse(is.na(crops$Genera_synonyms), "", crops$Genera_synonyms)), sep = ",")
 

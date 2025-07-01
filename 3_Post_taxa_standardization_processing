@@ -1,8 +1,8 @@
 ######## operation to be done after taxa standardisation, as these depend on the correct genus and species #########
 
 ###### 1. Load datasets with standardized taxa  #######################
-crops <- read_excel("../Data_processing/Support_files/GCCS_selected_crops/croplist_PG.xlsx")
-combined_df <- read_csv("../Data_processing/ADD_FILEPATH_HERE")
+crops <- read_excel("../../Data_processing/Support_files/GCCS_selected_crops/croplist_PG.xlsx")
+combined_df <- read_csv("../../Data_processing/ADD_FILEPATH_HERE")
 
 #### add standardized_taxa column here when the manual vetting is complete and standardization_table becomes available , code to be tested#######
 #standardization_table <- setNames(table_standardization$Standardized_taxa, crops$input_taxa)
@@ -26,3 +26,6 @@ combined_df = assign_diversity_regions(combined_df, crops = crops, countries_in_
 # function taking a dataframe including a column taxa names and returning TRUE/FALSE , 
 source("Functions/Assign_annex1_status.R")
 combined_df = assign_annex1status(combined_df, standardize_taxa = 'Standardized_taxa')  # assumed the column with standardized taxa is named Standardized_taxa
+
+##### save dataset
+write.csv(combined_df, '../../Data_processing/3_post_taxa_standardization_processing/DATE_OF_RUN/combined_df.csv')
