@@ -169,16 +169,54 @@ storage_term_summary <- combined_allcrops %>%
     shortterm_storage_perc  = round(100 * shortterm_storage_count / total_records, 2)
   )
 
-# 10. Safety duplication - add your code here once data is available
-# SG note for writing script: degree of duplication SG Github script location
-# https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_PDCI_PGscript.R 
-# add data prep to 4_Estimate_metrics.R before metric calc or keep as a separate script in new repo???
+# 10. Safety duplication
 
-# 2 metrics from SD calc: by genus and by instcode (genebank)
-# by_genus_genesys
-# by_genebank_genesys
+# source functions 
+source(Functions/SD_duplicates_out_country.R)    # sg note: source individually or document functions all-together in one file?
+source(Functions/SD_duplicates_in_country.R)
+source(Functions/SD_duplicates_SDGV.R)
+source(Functions/SD_duplicates_only_in_country.R)
+source(Functions/SD_safety_duplication_complete.R)
 
-# SG: Number of accessions safety duplicated metric (based on combined dataset)
+### note, before running the sd analysis you need to drop genebanks that only old safety duplicates 
+### such as NOR051 and BRA003 from the datasets
+
+#### SG note, need to confirm that SD analysis is run on Genesys dataset not on the gen_wiews_df
+
+# Read dataset 
+gen<- read.csv("Genesys_allcrops.csv", header = TRUE )        # update path to drive location
+# keep fields needed and change names according to functions used 
+gen <- subset(gen, select = c(INSTCODE, ACCENUMB, GENUS, SPECIES, DUPLSITE))
+colnames(gen) <- c("instCode","acceNumb","genus","species","duplSite")
+
+# Prepare dataset 
+gen$instCode <- as.character(gen$instCode)
+gen$acceNumb <- as.character(gen$acceNumb)
+gen$ID <- paste0(gen$instCode, gen$acceNumb)
+gen$duplSite <- as.character(gen$duplSite) # added while debugging
+gen  <- gen  %>% mutate(duplSite = str_replace_all(duplSite, " ", "")) # added while debugging because found some duplsite entries with whitespaces
+gen2 <- gen %>% distinct(ID, .keep_all = TRUE) # maybe whitespaces should be eliminated from ID before this
+gen2 <- gen2 %>% mutate(holding_country = substr(instCode, 1, 3))
+
+# Use value in duplSite to create a list with each institute code as item
+gen2 <- gen2 %>% mutate(duplSite_LIST = strsplit(ifelse(is.na(duplSite), '', duplSite), ';'))
+
+# Run function to calculate metric, SD by genus
+sd_by_genus_genesys <- safety_duplication_complete(gen2, groupby = 'genus')
+
+# Run function to calculate metric, SD by instCode (i.e. genebank)
+sd_by_genebank_genesys <- safety_duplication_complete(gen2, groupby = 'instCode')
+
+# Save results
+sd_by_genus_genesys <- apply(sd_by_genus_genesys,2,as.character)  
+write.csv(sd_by_genus_genesys, 'genesys_sd_results_by_crop.csv', row.names = FALSE) # write ouput to Drive folder
+sd_by_genebank_genesys <- apply(sd_by_genebank_genesys,2,as.character)
+write.csv(sd_by_genebank_genesys, 'genesys_sd_results_by_genebanks.csv', row.names = FALSE) # write ouput to Drive folder
+
+
+
+
+# Number of accessions safety duplicated metric (based on combined dataset)
 safetydupl_metric <- combined_allcrops %>%
   group_by(cropstrategy) %>%
   summarise(
@@ -187,6 +225,8 @@ safetydupl_metric <- combined_allcrops %>%
     .groups = "drop" ) %>%
   mutate(safduplsite_perc = round((safduplsite_count / safduplsite_total_records) * 100, 2)
   )
+
+
 
 # 11. SGSV duplicates (if applicable)
 SGSV_allcrops <- read_csv("sgsv_data_processed.csv") 
