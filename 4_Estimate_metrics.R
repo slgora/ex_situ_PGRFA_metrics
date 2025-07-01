@@ -89,8 +89,6 @@ diversity_regions_metric <- combined_allcrops %>%
     .groups = "drop"
  )
 
-
-
 # 7. accessions by org type,  and MLS accessions for organization type
 accessions_by_org_type <- combined_allcrops %>%
   group_by(cropstrategy, ORGANIZATIONTYPE) %>%
@@ -349,6 +347,7 @@ PTFTW_indicator_ourCrops <- subset(PTFTW_indicator_average,
                                                    "crop_use-faostat-trade-import_quantity_tonnes",
                                                    "crop_use-faostat-trade-import_value_tonnes",
                                                    "crop_use-faostat-food_supply-fat_supply_quantity_g",
+                                                   "crop_use-faostat-food_supply-food_supply_fat_g",
                                                    "crop_use-faostat-food_supply-food_supply_kcal",
                                                    "crop_use-faostat-food_supply-food_supply_quantity_g",
                                                    "crop_use-faostat-food_supply-protein_supply_quantity_g",
@@ -412,6 +411,7 @@ sum_cols <- c("supply-digital_sequence_supply-digital_sequence_supply-digital_se
               "crop_use-faostat-trade-import_quantity_tonnes",
               "crop_use-faostat-trade-import_value_tonnes",
               "crop_use-faostat-food_supply-fat_supply_quantity_g",
+              "crop_use-faostat-food_supply-food_supply_fat_g",
               "crop_use-faostat-food_supply-food_supply_kcal",
               "crop_use-faostat-food_supply-food_supply_quantity_g",
               "crop_use-faostat-food_supply-protein_supply_quantity_g",
