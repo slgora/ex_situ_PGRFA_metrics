@@ -166,7 +166,10 @@ gen_wiews_df = correct_country_codes(gen_wiews_df, col = 'ORIGCTY')
 ####### assign organization type ############
 source("Functions/Assign_organization_status.R")
 gen_wiews_df = assign_org_type(gen_wiews_df, institute_names_no_syn)
-                               
+
+# added to drop all Pisum accessions
+gen_wiews_df <-gen_wiews_df %>% filter(!grepl("Pisum", fullTaxa))                               
+
 # Note: you need to create folder DATE_OF_RUN before running the following line of code                               
 write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_02/gen_wiews_df.csv')
 ################## GLIS data ########################################################################
