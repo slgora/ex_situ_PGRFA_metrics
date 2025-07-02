@@ -1,10 +1,14 @@
-######## operation to be done after taxa standardisation, as these depend on the correct genus and species #########
+######## use conversion table with validated taxa for taxa standardisation, 
+## do the processing that comes after standardization,as these depend on the correct genus and species #########
 
-###### 1. Load datasets with standardized taxa  #######################
+###### 1. Load datasets with taxa to be standardised using conversion table  #######################
 crops <- read_excel("../../Data_processing/Support_files/GCCS_selected_crops/croplist_PG.xlsx")
-combined_df <- read_csv("../../Data_processing/1_merge_data/2025_07_01/gen_wiews_df.csv")
+combined_df <- read_csv("../../Data_processing/1_merge_data/2025_07_02/gen_wiews_df.csv")
+SGSV_allcrops <- read_csv("../../Data_processing/1_merge_data/2025_07_01/SGSV_processed.csv") 
+GLIS_processed <- read_csv('../../Data_processing/1_merge_data/2025_07_02/GLIS_processed.csv')
+BGCI_processed <- read_csv('../../Data_processing/1_merge_data/2025_07_02/BGCI_processed.csv')
 
-# remove spaces and + and ? , as they where causing problems
+# create a copy of fullTaxa without some characters that gave problmems when using the conversion table
 combined_df$fullTaxa2 <- trimws(
   gsub("\\s+", " ",
        gsub("\\?", "",
@@ -15,8 +19,7 @@ combined_df$fullTaxa2 <- trimws(
        )
   )
 
-# remove NAs, replace tabs with whitespaces, collapse multiple whitespaces
-#combined_df$fullTaxa2 <- trimws(gsub("\\s+", " ", gsub("\t", " ", na.omit(combined_df$fullTaxa))))
+
 #### add standardized_taxa column here when the manual vetting is complete and standardization_table becomes available , code to be tested#######
 #load standardization table
 table_standardization <- read_excel("../../Data_processing/Support_files/Taxa_standardization/standardization_table_WFO_GRIN_2025_07_01.xlsx")
@@ -33,12 +36,20 @@ standardization_table <- setNames(table_standardization$PG_recommendation, table
 combined_df$Standardized_taxa = NA
 combined_df <- combined_df %>%
     mutate(Standardized_taxa = ifelse(is.na(Standardized_taxa), standardization_table[fullTaxa2], Standardized_taxa))
-  
+
+BGCI_processed$Standardized_taxa = NA
+BGCI_processed <- BGCI_processed %>%
+  mutate(Standardized_taxa = ifelse(is.na(Standardized_taxa), standardization_table[fullTaxa], Standardized_taxa))
+
+# NOTE in SGSV dataset and GLIS dataset taxa were not yet standardized
+
 ###### 2. Assign crop strategy  categorical variable  ######################
 #use Assign_crop_strategy.R function in Functions folder
 source("Functions/Assign_crop_strategy.R")
-combined_df = assign_crop_strategy(combined_df, crops = crops)  
-
+combined_df    = assign_crop_strategy(combined_df, crops = crops)  
+SGSV_allcrops  = assign_crop_strategy(SGSV_allcrops, crops = crops)  
+GLIS_processed = assign_crop_strategy(GLIS_processed, crops = crops)  
+BGCI_processed = assign_crop_strategy(BGCI_processed, crops = crops)  
 ###### 3. Assign diversity region               ######################
 # It requires crops dataframe (croplist_PG.xlsx) and countries in regions (countries_in_regions.xlsx)
 source("Functions/Assign_diversity_regions.R")
@@ -51,5 +62,10 @@ combined_df = assign_diversity_regions(combined_df, crops = crops, countries_in_
 source("Functions/Assign_annex1_status.R")
 combined_df = assign_annex1status(combined_df, standardize_taxa = 'Standardized_taxa')  # assumed the column with standardized taxa is named Standardized_taxa
 
-##### save dataset
-write.csv(combined_df, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/combined_df_2025_07_01.csv')
+
+##### save resulting datasets in folder: ../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/
+write.csv(combined_df, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/combined_df_2025_07_02.csv')
+write.csv(SGSV_allcrops, "../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/SGSV_processed.csv")
+write.csv(all_glis_data, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/GLIS_processed.csv')
+write.csv(GLIS_processed, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/GLIS_processed.csv')
+write.csv(BGCI_processed, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/BGCI_processed.csv')
