@@ -178,7 +178,7 @@ write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_02/gen_wiews
 install.packages("jsonlite")
 library("jsonlite")
 source("Functions/Extract_results_GLIS_API.R") # added 30May 2025 corrected                              
-filenames <- list.files("GLIS_json_data", pattern="*.json", full.names=TRUE)
+filenames <- list.files("../../Data/Plant_Treaty/GLIS/", pattern="*.json", full.names=TRUE)
 
 # Read all the downloaded GLIS json file and merge in one single dataframe
 li = list()
