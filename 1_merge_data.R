@@ -72,7 +72,7 @@ BGCI_allcrops <- select(BGCI_allcrops, -c('Germplasm, seed', "Germplasm, plant",
 
 # Fields we want to keep
 BGCI_allcrops <- subset(BGCI_allcrops, select = c(data_source, fullTaxa, GENUS, SPECIES, STORAGE ))
-
+write.csv(BGCI_allcrops, '../../Data_processing/1_merge_data/2025_07_02/BGCI_processed.csv')
 ############### WIEWS: Data Cleaning ####################
 #rename all columns according to MCPD naming style, and select columns that are needed
 WIEWS_allcrops <- WIEWS_allcrops %>%
@@ -157,7 +157,7 @@ gen_wiews_df$INSTCODE <- trimws(gen_wiews_df$INSTCODE)
 gen_wiews_df$ID <- paste0(gen_wiews_df$ACCENUMB, gen_wiews_df$INSTCODE)
 gen_wiews_df <- gen_wiews_df[!duplicated(gen_wiews_df$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 # add the other dataset (BGCI)
-gen_wiews_df <- bind_rows(gen_wiews_df, BGCI_allcrops)
+
 
 ####### correct country codes iso-codes
 source("Functions/Correct_country_codes.R")
@@ -168,7 +168,7 @@ source("Functions/Assign_organization_status.R")
 gen_wiews_df = assign_org_type(gen_wiews_df, institute_names_no_syn)
                                
 # Note: you need to create folder DATE_OF_RUN before running the following line of code                               
-write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/DATE_OF_RUN/gen_wiews_df.csv')
+write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_02/gen_wiews_df.csv')
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
 # create a list of file paths (each one is a Json file dowloaded from GLIS)
@@ -192,7 +192,7 @@ all_glis_data$MLSSTAT = NA
 all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(1, 11, 12, 13, 14, 15), TRUE, all_glis_data$MLSSTAT)
 all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(0), FALSE, all_glis_data$MLSSTAT)
 # save results
-write.csv(all_glis_data, '../../Data_processing/1_merge_data/DATE_OF_RUN/GLIS_processed.csv')
+write.csv(all_glis_data, '../../Data_processing/1_merge_data/2025_07_02/GLIS_processed.csv')
 
 ################# SGSV data ########################################################################## 
 source("Functions/Load_SGSV_data.R")
@@ -204,7 +204,7 @@ sgsv$INSTCODE <- trimws(sgsv$INSTCODE)
 sgsv$ID <- paste0(sgsv$ACCENUMB, sgsv$INSTCODE)
 sgsv <- sgsv[!duplicated(sgsv$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 # save results
-write.csv(sgsv, '../../Data_processing/1_merge_data/DATE_OF_RUN/sgsv_processed.csv')
+write.csv(sgsv, '../../Data_processing/1_merge_data/2025_07_02/sgsv_processed.csv')
 ################ PTFTW data ############################################################################
 source("Functions/load_PTFTW_dataset.R")
-PTFTW = process_ptftw_indicator_data(output_xlsx = "../../Data_processing/1_merge_data/DATE_OF_RUN/PTFTW_processed.xlsx")
+PTFTW = process_ptftw_indicator_data(output_xlsx = "../../Data_processing/1_merge_data/2025_07_02/PTFTW_processed.xlsx")
