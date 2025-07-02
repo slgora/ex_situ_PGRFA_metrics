@@ -190,7 +190,7 @@ GLIS_dois_count <- GLIS_dataset %>%
 # 13: GLIS: # of accessions notified as incuded in MLS (based on GLIS dataset)
 GLIS_MLS_count <- GLIS_dataset %>% group_by(Crop_strategy) %>% summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
 
-# 14 neeeds to be tested and corrected
+# 14 needs to be tested and corrected
 
 # 15. SG: Number of unique taxa listed in BGCI data metric (BGCI datset)
 BGCI_taxa_count <- BGCI_allcrops %>%
@@ -200,18 +200,15 @@ BGCI_taxa_count <- BGCI_allcrops %>%
   group_by(Crop_strategy) %>%
   summarise(unique_taxa_count = n_distinct(Standardized_taxa), .groups = "drop")
 
-# 16 needs to add Ex_situ_Site_GardenSearch_ID in the variables in the dataset in script 1
+# 16 needs to add Ex_situ_Site_GardenSearch_ID in the variables in the BGCI dataset in script 1 otherwise this won't work
 
 # 17. SG: Regeneration metrics (based on WIEWS indicator file)
 # Data read in: Wiews indicator 22 file and croplist
 WIEWS_Indicator22 <- "../../Data/FAO_WIEWS/FAO_WIEWS_Indicator22_regeneration_allcrops.csv"  # this is the right path, this does not goes into support files
-croplist <- read_csv("../../Data_processing/Support_files/GCCS_Selected_Crops/croplist_PG.xlsx")  # 
+croplist <- read_excel("../../Data_processing/Support_files/GCCS_Selected_Crops/croplist_PG.xlsx")  # Load croplist for genera list
 
 
-############ works until here, the rest need to be corrected #########
+############ works until here, the rest needs to be corrected #########
 
-
-
-# --------- END OF SCRIPT ---------
 
 
