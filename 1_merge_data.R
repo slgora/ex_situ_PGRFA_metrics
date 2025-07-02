@@ -42,7 +42,7 @@ WIEWS_institute_IDs = subset(WIEWS_institute_IDs, select = c('ID' , 'WIEWS_INSTC
 
 names(BGCI_allcrops)[names(BGCI_allcrops) == 'Name (in PlantSearch)'] <- 'fullTaxa'
 names(BGCI_allcrops)[names(BGCI_allcrops) == 'Submitted Name'] <- 'SubmittedName'
-names(BGCI_allcrops)[names(BGCI_allcrops) == 'Ex Situ Site GardenSearch ID'] <- 'ex_situ_site_gardenSearch_ID'
+names(BGCI_allcrops)[names(BGCI_allcrops) == 'Ex Situ Site GardenSearch ID'] <- 'ex_situ_site_gardenSearch_ID' #added
 BGCI_allcrops <- cbind(BGCI_allcrops, data_source = "BGCI") # Add field: data source
 
 # Separate fields: fullSciName, still have fullTaxa (which is the fullSciName standardized by BGCI )
