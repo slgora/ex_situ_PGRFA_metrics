@@ -209,6 +209,8 @@ sgsv$ID <- paste0(sgsv$ACCENUMB, sgsv$INSTCODE)
 sgsv <- sgsv[!duplicated(sgsv$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 # save results
 write.csv(sgsv, '../../Data_processing/1_merge_data/2025_07_02/sgsv_processed.csv')
+
 ################ PTFTW data ############################################################################
 source("Functions/load_PTFTW_dataset.R")
 PTFTW = process_ptftw_indicator_data(output_xlsx = "../../Data_processing/1_merge_data/2025_07_02/PTFTW_processed.xlsx")
+
