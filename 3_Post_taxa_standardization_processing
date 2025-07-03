@@ -1,7 +1,7 @@
 ######## use conversion table with validated taxa for taxa standardisation, 
 ## do the processing that comes after standardization,as these depend on the correct genus and species #########
 
-###### 1. Load datasets with taxa to be standardised using conversion table  #######################
+###### 1. Load datasets with taxa to be stadardized using conversion table  #######################
 crops <- read_excel("../../Data_processing/Support_files/GCCS_selected_crops/croplist_PG.xlsx")
 combined_df <- read_csv("../../Data_processing/1_merge_data/2025_07_02/gen_wiews_df.csv")
 SGSV_allcrops <- read_csv("../../Data_processing/1_merge_data/2025_07_01/SGSV_processed.csv") 
@@ -18,7 +18,6 @@ combined_df$fullTaxa2 <- trimws(
             )
        )
   )
-
 
 #### add standardized_taxa column here when the manual vetting is complete and standardization_table becomes available , code to be tested#######
 #load standardization table
@@ -46,10 +45,18 @@ BGCI_processed <- BGCI_processed %>%
 ###### 2. Assign crop strategy  categorical variable  ######################
 #use Assign_crop_strategy.R function in Functions folder
 source("Functions/Assign_crop_strategy.R")
-combined_df    = assign_crop_strategy(combined_df, crops = crops)  
-SGSV_allcrops  = assign_crop_strategy(SGSV_allcrops, crops = crops)  
-GLIS_processed = assign_crop_strategy(GLIS_processed, crops = crops)  
-BGCI_processed = assign_crop_strategy(BGCI_processed, crops = crops)  
+
+combined_df <- combined_df %>% mutate(GENUS_standardized   = word(!!sym("Standardized_taxa"), 1))  # Extract the first word (genus)
+combined_df    = assign_crop_strategy(combined_df, crops = crops, col_name = "GENUS_standardized")  
+
+
+SGSV_allcrops  = assign_crop_strategy(SGSV_allcrops, crops = crops, col_name = "GENUS")   
+
+GLIS_processed = assign_crop_strategy(GLIS_processed, crops = crops, col_name = "GENUS")   
+
+BGCI_processed <- BGCI_processed %>% mutate(GENUS_standardized = word(!!sym("Standardized_taxa"), 1))  # Extract the first word (genus)
+BGCI_processed = assign_crop_strategy(BGCI_processed, crops = crops, col_name = "GENUS_standardized")    
+
 ###### 3. Assign diversity region               ######################
 # It requires crops dataframe (croplist_PG.xlsx) and countries in regions (countries_in_regions.xlsx)
 source("Functions/Assign_diversity_regions.R")
@@ -64,8 +71,8 @@ combined_df = assign_annex1status(combined_df, standardize_taxa = 'Standardized_
 
 
 ##### save resulting datasets in folder: ../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/
-write.csv(combined_df, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/combined_df_2025_07_02.csv')
-write.csv(SGSV_allcrops, "../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/SGSV_processed.csv")
-write.csv(all_glis_data, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/GLIS_processed.csv')
-write.csv(GLIS_processed, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/GLIS_processed.csv')
-write.csv(BGCI_processed, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/BGCI_processed.csv')
+write.csv(combined_df, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_03/combined_df.csv')
+write.csv(SGSV_allcrops, "../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_03/SGSV_processed.csv")
+write.csv(all_glis_data, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_03/GLIS_processed.csv')
+write.csv(GLIS_processed, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_03/GLIS_processed.csv')
+write.csv(BGCI_processed, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_03/BGCI_processed.csv')
