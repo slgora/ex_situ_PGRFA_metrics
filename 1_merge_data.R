@@ -37,11 +37,12 @@ WIEWS_institute_IDs = subset(WIEWS_institute_IDs, select = c('ID' , 'WIEWS_INSTC
 
 
 ############### BGCI Plant Search: Data Read in and Cleaning ####################
-# PG notes BGCI country code is country of Botanical Gaarden not origin country of the plant (it may be the same ? but is it a. valid assumption)
-# only useful column seems to be insititute name, taxa name in plant search (standardized), and type of germplasm
+# PG notes BGCI country code is country of Botanical Garden not origin country of the plant (it may be the same ? but is it a. valid assumption)
+# only useful column seems to be institute name, taxa name in plant search (standardized), and type of germplasm
 
 names(BGCI_allcrops)[names(BGCI_allcrops) == 'Name (in PlantSearch)'] <- 'fullTaxa'
 names(BGCI_allcrops)[names(BGCI_allcrops) == 'Submitted Name'] <- 'SubmittedName'
+names(BGCI_allcrops)[names(BGCI_allcrops) == 'Ex Situ Site GardenSearch ID'] <- 'ex_situ_site_gardenSearch_ID' #added
 BGCI_allcrops <- cbind(BGCI_allcrops, data_source = "BGCI") # Add field: data source
 
 # Separate fields: fullSciName, still have fullTaxa (which is the fullSciName standardized by BGCI )
@@ -71,7 +72,7 @@ BGCI_allcrops$STORAGE <- apply(BGCI_allcrops[, c("Germplasm, seed", "Germplasm, 
 BGCI_allcrops <- select(BGCI_allcrops, -c('Germplasm, seed', "Germplasm, plant", "Germplasm, pollen", "Germplasm, explant"))
 
 # Fields we want to keep
-BGCI_allcrops <- subset(BGCI_allcrops, select = c(data_source, fullTaxa, GENUS, SPECIES, STORAGE ))
+BGCI_allcrops <- subset(BGCI_allcrops, select = c(data_source, fullTaxa, ex_situ_site_gardenSearch_ID, GENUS, SPECIES, STORAGE ))
 write.csv(BGCI_allcrops, '../../Data_processing/1_merge_data/2025_07_02/BGCI_processed.csv')
 ############### WIEWS: Data Cleaning ####################
 #rename all columns according to MCPD naming style, and select columns that are needed
@@ -208,6 +209,8 @@ sgsv$ID <- paste0(sgsv$ACCENUMB, sgsv$INSTCODE)
 sgsv <- sgsv[!duplicated(sgsv$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 # save results
 write.csv(sgsv, '../../Data_processing/1_merge_data/2025_07_02/sgsv_processed.csv')
+
 ################ PTFTW data ############################################################################
 source("Functions/load_PTFTW_dataset.R")
 PTFTW = process_ptftw_indicator_data(output_xlsx = "../../Data_processing/1_merge_data/2025_07_02/PTFTW_processed.xlsx")
+

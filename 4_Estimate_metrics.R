@@ -15,7 +15,7 @@ percent_summary <- function(df, group_col, count_expr, total_col, percent_col) {
 
 # --------- DATA IMPORT ---------
 combined_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/combined_df_2025_07_02.csv") 
-SGSV_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/SGSV_processed.csv") 
+SGSV_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/SGSV_processed.csv")
 BGCI_allcrops <- read_csv("../../Data_processing//1_merge_data/2025_07_02//BGCI_processed.csv") # Note: Add BGCI_allcrops import if used, check if need to add Crop_strategy here
 GLIS_dataset  <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/GLIS_processed.csv") # glis_data_processed is the data after adding the cropstrategy variable
 
@@ -70,10 +70,10 @@ diversity_regions_metric <- combined_allcrops %>%
   filter(SAMPSTAT <= 399 | is.na(SAMPSTAT)) %>%
   group_by(Crop_strategy) %>%
   summarise(
-    total_diversity_regions = sum(fromPrimary_diversity_region, na.rm = TRUE) + 
+    isindiversityregions_count = sum(fromPrimary_diversity_region, na.rm = TRUE) + 
                              sum(fromSecondary_diversity_region, na.rm = TRUE),
     total_accessions = n(),
-    percent_diversity_regions = round(100 * total_diversity_regions / total_accessions, 2),
+    isindiversityregions_perc = round(100 * isindiversityregions_count / total_accessions, 2),
     .groups = "drop"
   )
 
@@ -157,58 +157,72 @@ storage_term_summary <- combined_allcrops %>%
     shortterm_storage_perc  = round(100 * shortterm_storage_count / total_records, 2)
   )
 
+# 10. Safety duplication >>> SG still working
+## percentage of accessions duplicated out of the country in other genebanks (excluding SGSV) calculated only using Genesys data. 
 
-# 10. Safety duplication - add your code here once data is available
-# SG note for writing script: degree of duplication SG Github script location
-# https://github.com/slgora/GCCS-Metrics/blob/main/GCCS-Metrics_PDCI_PGscript.R 
-# add data prep to 4_Estimate_metrics.R before metric calc or keep as a separate script in new repo???
+### note, before running the sd analysis you need to drop genebanks that only old safety duplicates 
+### such as NOR051 and BRA003 from the datasets
 
-# 2 metrics from SD calc: by genus and by instcode (genebank)
-# by_genus_genesys
-# by_genebank_genesys
+source(Functions/SD_duplicates_out_country.R) # source function
 
-# SG: Number of accessions safety duplicated metric (based on combined dataset)
-safetydupl_metric <- combined_allcrops %>%
-  group_by(cropstrategy) %>%
-  summarise(
-    safduplsite_count = sum(!is.na(duplsite), na.rm = TRUE), #duplSite
-    safduplsite_total_records = n(),
-    .groups = "drop" ) %>%
-  mutate(safduplsite_perc = round((safduplsite_count / safduplsite_total_records) * 100, 2)
-  )
+# Read dataset 
+# what file to use? use combined_allcrops and filter out Genesys?
+gen <- read.csv("Genesys_allcrops.csv", header = TRUE )
+
+# Run function to calculate metric, SD by instCode (i.e. genebank)
+sd_by_genebank_genesys <- SD_duplicates_out_country(gen2, groupby = 'instCode')
+
+# Save output to Drive folder
+sd_by_genebank_genesys <- apply(sd_by_genebank_genesys,2,as.character)
+write.csv(sd_by_genebank_genesys, '../../Data_processing/4_Estimate_metrics/Safety_duplication/genesys_sd_results_by_genebanks.csv', row.names = FALSE)
 
 
-# 11. SGSV duplicates (if applicable)
+# 11. SGSV duplicates
+
+# SG note: add step to drop potential double counts using accession number+instcode first?
+
 SGSV_dupl_count <- SGSV_allcrops %>% group_by(Crop_strategy) %>% summarise(sgsvcount = n(), .groups = "drop")
-
 
 # 12. GLIS: # of accessions with DOIs per crop, use data downloaded from GLIS (GLIS_dataset)
 GLIS_dois_count <- GLIS_dataset %>%
   group_by(Crop_strategy) %>%
   summarise(dois = sum(!is.na(DOI) & DOI != ""), .groups = "drop")
 
-# 13: GLIS: # of accessions notified as incuded in MLS (based on GLIS dataset)
+# 13: GLIS: # of accessions notified as include in MLS (based on GLIS dataset)
 GLIS_MLS_count <- GLIS_dataset %>% group_by(Crop_strategy) %>% summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
 
-# 14 needs to be tested and corrected
+# 14. Top institutions holding crop germplasm
+institution_accessions_summary <- combined_allcrops %>%    #note: tested and corrected
+  filter(!is.na(INSTCODE)) %>%
+  group_by(Crop_strategy, INSTCODE) %>%
+  summarise(institution_accessions_count = n(), .groups = "drop_last") %>%
+  group_by(Crop_strategy) %>%
+  mutate(
+    total_accessions = sum(institution_accessions_count, na.rm = TRUE),
+    institution_accessions_perc = round((institution_accessions_count / total_accessions) * 100, 2)
+  ) %>%
+  ungroup()
 
-# 15. SG: Number of unique taxa listed in BGCI data metric (BGCI datset)
-BGCI_taxa_count <- BGCI_allcrops %>%
-  select(Crop_strategy, Standardized_taxa) %>%
+# 15. Number of unique taxa listed in BGCI data metric (BGCI dataset)
+BGCI_taxa_count <- BGCI_allcrops %>%               
+  select(Crop_strategy, Standardized_taxa) %>%    # need to add crop strategy to BGCI_processed
   filter(!is.na(Standardized_taxa)) %>%
   distinct() %>%
   group_by(Crop_strategy) %>%
   summarise(unique_taxa_count = n_distinct(Standardized_taxa), .groups = "drop")
 
-# 16 needs to add Ex_situ_Site_GardenSearch_ID in the variables in the BGCI dataset in script 1 otherwise this won't work
+# 16. Number of unique institutions holding crop germplasm (BGCI dataset)
+BGCI_inst_count <- BGCI_allcrops_SG %>%
+  select(cropstrategy, ex_situ_site_gardenSearch_ID) %>%  # need to add crop strategy to BGCI_processed
+  filter(!is.na(ex_situ_site_gardenSearch_ID)) %>%
+  distinct() %>% # unique institution entries
+  group_by(cropstrategy) %>%
+  summarise(unique_inst_count = n_distinct(ex_situ_site_gardenSearch_ID), .groups = "drop")
 
 # 17. SG: Regeneration metrics (based on WIEWS indicator file)
 # Data read in: Wiews indicator 22 file and croplist
-WIEWS_Indicator22 <- "../../Data/FAO_WIEWS/FAO_WIEWS_Indicator22_regeneration_allcrops.csv"  # this is the right path, this does not goes into support files
-croplist <- read_excel("../../Data_processing/Support_files/GCCS_Selected_Crops/croplist_PG.xlsx")  # Load croplist for genera list
 
 
 ############ works until here, the rest needs to be corrected #########
-
 
 
