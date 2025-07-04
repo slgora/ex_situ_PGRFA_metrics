@@ -160,18 +160,45 @@ storage_term_summary <- combined_allcrops %>%
 # 10. Safety duplication
 ## percentage of accessions duplicated out of the country in other genebanks (excluding SGSV) calculated only using Genesys data. 
 
-source(Functions/SD_duplicates_out_country.R) # source function
+source("Functions/SD_duplicates_out_country.R") # source function
 
+duplicates_out_country <- function(site, pat) {
+  res <- 0
+  for (i in site) {
+    if (is.na(i) || i %in% c('NOR051', '', 'nan') || substr(i, 1, 3) == pat) {
+      next
+    } else {
+      return(1)
+    }
+  }
+  return(res)
+}
 # Filter Genesys dataset 
-gen <- combined_allcrops %>% filter(data_source == "Genesys") %>% 
-                             filter(!(INSTCODE %in% c("NOR051", "BRA003"))) # drop old safety duplicate genebanks
+gen <- combined_allcrops %>% filter(data_source == "Genesys")
 
-# Run function to calculate metric, SD by INSTCODE (i.e. genebank)
-sd_by_genebank_genesys <- SD_duplicates_out_country(gen, groupby = 'INSTCODE')
+# prep duplication sites for function
+gen2 <- gen %>% mutate(duplSite_LIST = strsplit(DUPLSITE, ";"))
+
+# Run function to calculate metric, SD by INSTCODE (i.e. genebank) in DUPLSITE
+gen2 <- gen2 %>%
+  mutate(
+    holding_country = substr(INSTCODE, 1, 3),  # if not done yet
+    sd_out_country = mapply(duplicates_out_country, duplSite_LIST, holding_country)
+  )
+
+# Run summary of metric calculated, SD out of country by genebank
+sd_outcountry_metric <- gen2 %>%
+  group_by(INSTCODE) %>%
+  summarise(
+    sd_out_country_count = sum(sd_out_country, na.rm = TRUE),
+    accessions_total = n()
+  ) %>%
+  arrange(desc(sd_out_country_count)) %>%
+  mutate(sd_out_country_perc = 100 * sd_out_country_count / accessions_total)
 
 # Save output to Drive folder
-sd_by_genebank_genesys <- apply(sd_by_genebank_genesys,2,as.character)
-write.csv(sd_by_genebank_genesys, '../../Data_processing/4_Estimate_metrics/Safety_duplication/genesys_sd_results_by_genebanks.csv', row.names = FALSE)
+sd_outcountry_metric <- apply(sd_outcountry_metric,2,as.character)
+write.csv(sd_outcountry_metric, '../../Data_processing/4_Estimate_metrics/Safety_duplication/gen_sd_outcountry_resultsDATE.csv', row.names = FALSE)
 
 
 # 11. SGSV duplicates
