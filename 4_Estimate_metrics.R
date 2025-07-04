@@ -157,20 +157,17 @@ storage_term_summary <- combined_allcrops %>%
     shortterm_storage_perc  = round(100 * shortterm_storage_count / total_records, 2)
   )
 
-# 10. Safety duplication >>> SG still working
+# 10. Safety duplication
 ## percentage of accessions duplicated out of the country in other genebanks (excluding SGSV) calculated only using Genesys data. 
-
-### note, before running the sd analysis you need to drop genebanks that only old safety duplicates 
-### such as NOR051 and BRA003 from the datasets
 
 source(Functions/SD_duplicates_out_country.R) # source function
 
-# Read dataset 
-# what file to use? use combined_allcrops and filter out Genesys?
-gen <- read.csv("Genesys_allcrops.csv", header = TRUE )
+# Filter Genesys dataset 
+gen <- combined_allcrops %>% filter(data_source == "Genesys") %>% 
+                             filter(!(INSTCODE %in% c("NOR051", "BRA003"))) # drop old safety duplicate genebanks
 
-# Run function to calculate metric, SD by instCode (i.e. genebank)
-sd_by_genebank_genesys <- SD_duplicates_out_country(gen2, groupby = 'instCode')
+# Run function to calculate metric, SD by INSTCODE (i.e. genebank)
+sd_by_genebank_genesys <- SD_duplicates_out_country(gen, groupby = 'INSTCODE')
 
 # Save output to Drive folder
 sd_by_genebank_genesys <- apply(sd_by_genebank_genesys,2,as.character)
