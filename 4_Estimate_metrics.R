@@ -134,13 +134,13 @@ storage_summary <- combined_allcrops %>%
     nostorage_count = sum(is.na(STORAGE))
   ) %>%
   mutate(
-    seed_pct      = round(100 * seed_count / total_records, 2),
-    field_pct     = round(100 * field_count / total_records, 2),
-    invitro_pct   = round(100 * invitro_count / total_records, 2),
-    cryo_pct      = round(100 * cryo_count / total_records, 2),
-    dna_pct       = round(100 * dna_count / total_records, 2),
-    other_pct     = round(100 * other_count / total_records, 2),
-    nostorage_pct = round(100 * nostorage_count / total_records, 2)
+    seed_perc      = round(100 * seed_count / total_records, 2),
+    field_perc     = round(100 * field_count / total_records, 2),
+    invitro_perc   = round(100 * invitro_count / total_records, 2),
+    cryo_perc    = round(100 * cryo_count / total_records, 2),
+    dna_perc       = round(100 * dna_count / total_records, 2),
+    other_perc     = round(100 * other_count / total_records, 2),
+    nostorage_perc = round(100 * nostorage_count / total_records, 2)
   )
 
 storage_term_summary <- combined_allcrops %>%
@@ -159,20 +159,8 @@ storage_term_summary <- combined_allcrops %>%
 
 # 10. Safety duplication
 ## percentage of accessions duplicated out of the country in other genebanks (excluding SGSV) calculated only using Genesys data. 
-
 source("Functions/SD_duplicates_out_country.R") # source function
 
-duplicates_out_country <- function(site, pat) {
-  res <- 0
-  for (i in site) {
-    if (is.na(i) || i %in% c('NOR051', '', 'nan') || substr(i, 1, 3) == pat) {
-      next
-    } else {
-      return(1)
-    }
-  }
-  return(res)
-}
 # Filter Genesys dataset 
 gen <- combined_allcrops %>% filter(data_source == "Genesys")
 
@@ -244,7 +232,7 @@ BGCI_inst_count <- BGCI_allcrops %>%
 
 # 17. SG: Regeneration metrics (based on WIEWS indicator file)
 # Data read in: Wiews indicator 22 file and croplist
-
+# SG note, document and source function to prep WIEWS indicator file 
 
 ############ works until here, the rest needs to be corrected #########
 
