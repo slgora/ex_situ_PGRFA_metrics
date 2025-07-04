@@ -202,7 +202,6 @@ write.csv(sd_outcountry_metric, '../../Data_processing/4_Estimate_metrics/Safety
 
 
 # 11. SGSV duplicates
-
 # SG note: add step to drop potential double counts using accession number+instcode first?
 
 SGSV_dupl_count <- SGSV_allcrops %>% group_by(Crop_strategy) %>% summarise(sgsvcount = n(), .groups = "drop")
@@ -236,11 +235,11 @@ BGCI_taxa_count <- BGCI_allcrops %>%
   summarise(unique_taxa_count = n_distinct(Standardized_taxa), .groups = "drop")
 
 # 16. Number of unique institutions holding crop germplasm (BGCI dataset)
-BGCI_inst_count <- BGCI_allcrops_SG %>%
-  select(cropstrategy, ex_situ_site_gardenSearch_ID) %>%  # need to add crop strategy to BGCI_processed
+BGCI_inst_count <- BGCI_allcrops %>%
+  select(Crop_strategy, ex_situ_site_gardenSearch_ID) %>%
   filter(!is.na(ex_situ_site_gardenSearch_ID)) %>%
   distinct() %>% # unique institution entries
-  group_by(cropstrategy) %>%
+  group_by(Crop_strategy) %>%
   summarise(unique_inst_count = n_distinct(ex_situ_site_gardenSearch_ID), .groups = "drop")
 
 # 17. SG: Regeneration metrics (based on WIEWS indicator file)
