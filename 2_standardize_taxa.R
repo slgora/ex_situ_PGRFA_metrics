@@ -40,7 +40,7 @@ colnames(taxa_standardized_df_GRIN) <- c('input_name', 'matched_name_GRIN', 'mat
 taxa_standardized_df_WFO <- cbind(taxa_standardized_df_WFO, data_source = "WFO")
 taxa_standardized_df_GRIN <- cbind(taxa_standardized_df_GRIN, data_source = "GRIN")
 
-# Join results from GRIN with rersults from WFO
+# Join results from GRIN with results from WFO
 taxa_standardized_df <- taxa_standardized_df_GRIN %>%
   full_join(taxa_standardized_df_WFO, by = c("input_name" = "input_name")) 
 
