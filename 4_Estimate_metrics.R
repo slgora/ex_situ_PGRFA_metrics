@@ -14,10 +14,10 @@ percent_summary <- function(df, group_col, count_expr, total_col, percent_col) {
 }
 
 # --------- DATA IMPORT ---------
-combined_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/combined_df_2025_07_02.csv") 
-SGSV_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/SGSV_processed.csv")
-BGCI_allcrops <- read_csv("../../Data_processing//1_merge_data/2025_07_02//BGCI_processed.csv") # Note: Add BGCI_allcrops import if used, check if need to add Crop_strategy here
-GLIS_dataset  <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/GLIS_processed.csv") # glis_data_processed is the data after adding the cropstrategy variable
+combined_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/combined_df.csv") 
+SGSV_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/SGSV_processed.csv")
+BGCI_allcrops <- read_csv("../../Data_processing//3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/BGCI_processed.csv") # Note: Add BGCI_allcrops import if used, check if need to add Crop_strategy here
+GLIS_dataset  <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/GLIS_processed.csv") # glis_data_processed is the data after adding the cropstrategy variable
 
 # --------- METRICS CALCULATIONS ---------
 
@@ -169,20 +169,17 @@ storage_term_summary <- combined_allcrops %>%
 source("Functions/SD_duplicates_out_country.R") # source function
 
 # Filter Genesys dataset 
-gen <- combined_allcrops %>% filter(data_source == "Genesys")
-
-# prep duplication sites for function
-gen2 <- gen %>% mutate(duplSite_LIST = strsplit(DUPLSITE, ";"))
+genesys <- combined_allcrops %>% filter(data_source == "Genesys")
 
 # Run function to calculate metric, SD by INSTCODE (i.e. genebank) in DUPLSITE
-gen2 <- gen2 %>%
+genesys <- genesys %>%
   mutate(
     holding_country = substr(INSTCODE, 1, 3),  # if not done yet
-    sd_out_country = mapply(duplicates_out_country, duplSite_LIST, holding_country)
+    sd_out_country = mapply(duplicates_out_country, DUPLSITE, holding_country)
   )
 
 # Run summary of metric calculated, SD out of country by genebank
-sd_outcountry_metric <- gen2 %>%
+sd_outcountry_metric <- genesys %>%
   group_by(INSTCODE) %>%
   summarise(
     sd_out_country_count = sum(sd_out_country, na.rm = TRUE),
@@ -191,14 +188,12 @@ sd_outcountry_metric <- gen2 %>%
   arrange(desc(sd_out_country_count)) %>%
   mutate(sd_out_country_perc = 100 * sd_out_country_count / accessions_total)
 
-# Save output to Drive folder
+# Save output to Drive folder, please use subfolder with date of running the script 
 sd_outcountry_metric <- apply(sd_outcountry_metric,2,as.character)
-write.csv(sd_outcountry_metric, '../../Data_processing/4_Estimate_metrics/Safety_duplication/gen_sd_outcountry_resultsDATE.csv', row.names = FALSE)
+write.csv(sd_outcountry_metric, '../../Data_processing/4_Estimate_metrics/Safety_duplication/2025_07_07/genesys_sd_outcountry.csv', row.names = FALSE)
 
 
 # 11. SGSV duplicates
-# SG note: add step to drop potential double counts using accession number+instcode first?
-
 SGSV_dupl_count <- SGSV_allcrops %>% group_by(Crop_strategy) %>% summarise(sgsvcount = n(), .groups = "drop")
 
 # 12. GLIS: # of accessions with DOIs per crop, use data downloaded from GLIS (GLIS_dataset)
@@ -223,7 +218,7 @@ institution_accessions_summary <- combined_allcrops %>%    #note: tested and cor
 
 # 15. Number of unique taxa listed in BGCI data metric (BGCI dataset)
 BGCI_taxa_count <- BGCI_allcrops %>%               
-  select(Crop_strategy, Standardized_taxa) %>%    # need to add crop strategy to BGCI_processed
+  select(Crop_strategy, Standardized_taxa) %>%    
   filter(!is.na(Standardized_taxa)) %>%
   distinct() %>%
   group_by(Crop_strategy) %>%
@@ -242,5 +237,3 @@ BGCI_inst_count <- BGCI_allcrops %>%
 # SG note, document and source function to prep WIEWS indicator file 
 
 ############ works until here, the rest needs to be corrected #########
-
-
