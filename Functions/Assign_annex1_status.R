@@ -4,7 +4,7 @@
 install.packages("tidyverse")
 library(tidyverse)
 library(readxl)
-# one would need to change the path for the file contaiing the list of Petota and Melongena species
+# one would need to change the path for the file containing the list of Petota and Melongena species
 #function taking a dataframe including a column taxa names and returning TRUE/FALSE 
 assign_annex1status = function(df, standardize_taxa = 'Standardized_taxa') {
   df <- df %>%
