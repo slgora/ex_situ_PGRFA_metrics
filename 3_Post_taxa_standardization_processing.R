@@ -1,14 +1,14 @@
 ######## use conversion table with validated taxa for taxa standardisation, 
 ## do the processing that comes after standardization,as these depend on the correct genus and species #########
 
-###### 1. Load datasets with taxa to be stadardized using conversion table  #######################
+###### 1. Load datasets with taxa to be standardized using conversion table  #######################
 crops <- read_excel("../../Data_processing/Support_files/GCCS_selected_crops/croplist_PG.xlsx")
 combined_df <- read_csv("../../Data_processing/1_merge_data/2025_07_07/gen_wiews_df.csv")
 SGSV_allcrops <- read_csv("../../Data_processing/1_merge_data/2025_07_07/SGSV_processed.csv") 
 GLIS_processed <- read_csv('../../Data_processing/1_merge_data/2025_07_07/GLIS_processed.csv')
 BGCI_processed <- read_csv('../../Data_processing/1_merge_data/2025_07_07/BGCI_processed.csv')
 
-# create a copy of fullTaxa without some characters that gave problmems when using the conversion table
+# create a copy of fullTaxa without some characters that gave problems when using the conversion table
 combined_df$fullTaxa2 <- trimws(
   gsub("\\s+", " ",
        gsub("\\?", "",
@@ -19,7 +19,7 @@ combined_df$fullTaxa2 <- trimws(
        )
   )
 
-#### add standardized_taxa column here when the manual vetting is complete and standardization_table becomes available , code to be tested#######
+#### add standardized_taxa column here when the manual vetting is complete and standardization_table becomes available, code to be tested#######
 #load standardization table
 table_standardization <- read_excel("../../Data_processing/Support_files/Taxa_standardization/standardization_table_WFO_GRIN_2025_07_01.xlsx")
 
