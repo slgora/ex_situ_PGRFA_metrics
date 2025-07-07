@@ -47,5 +47,11 @@ assign_diversity_regions = function(df, crops, countries_in_regions) {
       NA
     )) %>%
     ungroup()
+  # exclude breeding/other material from diversity region flags unless sampstat = 999
+  df <- df %>%
+    mutate(across(
+      c(fromPrimary_diversity_region, fromSecondary_diversity_region),
+      ~ if_else(SAMPSTAT > 399 & SAMPSTAT != 999, NA_real_, .)
+    ))
   return(df)
 }

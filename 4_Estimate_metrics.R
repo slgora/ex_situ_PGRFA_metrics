@@ -30,13 +30,20 @@ unique_institutions <- combined_allcrops %>%
   group_by(Crop_strategy) %>% summarise(unique_instcount = n_distinct(INSTCODE), .groups = "drop")
 
 # 3. Wild, Weedy, Landrace, Breeding, Improved, Other, No SAMPSTAT - % summaries
-cwr_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT >= 100 & SAMPSTAT < 200, na.rm = TRUE), cwr_total_records, percent_100SAMPSTAT)
-weedy_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT == 200, na.rm = TRUE), weedy_total_records, percent_200SAMPSTAT)
-landrace_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT == 300, na.rm = TRUE), landrace_total_records, percent_300SAMPSTAT)
-breeding_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT >= 400 & SAMPSTAT < 500, na.rm = TRUE), breedingmat_total_records, percent_400SAMPSTAT)
-improved_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT == 500, na.rm = TRUE), improvedvar_total_records, percent_500SAMPSTAT)
-othervar_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT == 999, na.rm = TRUE), othervar_total_records, percent_999SAMPSTAT)
-no_SAMPSTAT_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(is.na(SAMPSTAT)), noSAMPSTAT_total_records, percent_na_SAMPSTAT)
+cwr_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT >= 100 & SAMPSTAT < 200, na.rm = TRUE), cwr_total_records, SAMPSTAT100_perc) %>%
+  rename(SAMPSTAT100_count = count)
+weedy_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT == 200, na.rm = TRUE), weedy_total_records, SAMPSTAT200_perc) %>%
+  rename(SAMPSTAT200_count = count)
+landrace_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT == 300, na.rm = TRUE), landrace_total_records, SAMPSTAT300_perc)%>%
+  rename(SAMPSTAT300_count = count)
+breeding_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT >= 400 & SAMPSTAT < 500, na.rm = TRUE), breedingmat_total_records, SAMPSTAT400s_perc)%>%
+  rename(SAMPSTAT400s_count = count)
+improved_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT == 500, na.rm = TRUE), improvedvar_total_records, SAMPSTAT500_perc)%>%
+  rename(SAMPSTAT500_count = count)
+othervar_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(SAMPSTAT == 999, na.rm = TRUE), othervar_total_records, SAMPSTAT999_perc)%>%
+  rename(SAMPSTAT999_count = count)
+no_SAMPSTAT_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(is.na(SAMPSTAT)), noSAMPSTAT_total_records, SAMPSTATna_perc)%>%
+  rename(SAMPSTATna_count = count)
 
 # 4. Unique taxa per crop
 unique_taxa <- combined_allcrops %>%
@@ -57,7 +64,7 @@ country_count <- combined_allcrops %>%
 
 # 6.a and 6.b Accessions from primary & secondary regions of diversity
 primary_region_metric <- combined_allcrops %>%
-  filter(SAMPSTAT <= 399 | is.na(SAMPSTAT)) %>%
+  filter(SAMPSTAT <= 399 | SAMPSTAT == 999 | is.na(SAMPSTAT)) %>%
   percent_summary(
     Crop_strategy,
     sum(fromPrimary_diversity_region, na.rm = TRUE),
@@ -65,13 +72,13 @@ primary_region_metric <- combined_allcrops %>%
     isinprimaryregion_perc
   )
 
-# 6.c and 6.d Diversity_regions_metric (includes accessions from primary and secondary regions of diversity)
+# 6.c and 6.d Diversity_regions_metric (primary + secondary regions)
 diversity_regions_metric <- combined_allcrops %>%
-  filter(SAMPSTAT <= 399 | is.na(SAMPSTAT)) %>%
+  filter(SAMPSTAT <= 399 | SAMPSTAT == 999 | is.na(SAMPSTAT)) %>%
   group_by(Crop_strategy) %>%
   summarise(
-    isindiversityregions_count = sum(fromPrimary_diversity_region, na.rm = TRUE) + 
-                             sum(fromSecondary_diversity_region, na.rm = TRUE),
+    isindiversityregions_count = sum(fromPrimary_diversity_region, na.rm = TRUE) +
+                                 sum(fromSecondary_diversity_region, na.rm = TRUE),
     total_accessions = n(),
     isindiversityregions_perc = round(100 * isindiversityregions_count / total_accessions, 2),
     .groups = "drop"
@@ -134,13 +141,13 @@ storage_summary <- combined_allcrops %>%
     nostorage_count = sum(is.na(STORAGE))
   ) %>%
   mutate(
-    seed_pct      = round(100 * seed_count / total_records, 2),
-    field_pct     = round(100 * field_count / total_records, 2),
-    invitro_pct   = round(100 * invitro_count / total_records, 2),
-    cryo_pct      = round(100 * cryo_count / total_records, 2),
-    dna_pct       = round(100 * dna_count / total_records, 2),
-    other_pct     = round(100 * other_count / total_records, 2),
-    nostorage_pct = round(100 * nostorage_count / total_records, 2)
+    seed_perc      = round(100 * seed_count / total_records, 2),
+    field_perc     = round(100 * field_count / total_records, 2),
+    invitro_perc   = round(100 * invitro_count / total_records, 2),
+    cryo_perc    = round(100 * cryo_count / total_records, 2),
+    dna_perc       = round(100 * dna_count / total_records, 2),
+    other_perc     = round(100 * other_count / total_records, 2),
+    nostorage_perc = round(100 * nostorage_count / total_records, 2)
   )
 
 storage_term_summary <- combined_allcrops %>%
@@ -157,28 +164,39 @@ storage_term_summary <- combined_allcrops %>%
     shortterm_storage_perc  = round(100 * shortterm_storage_count / total_records, 2)
   )
 
-# 10. Safety duplication >>> SG still working
+# 10. Safety duplication
 ## percentage of accessions duplicated out of the country in other genebanks (excluding SGSV) calculated only using Genesys data. 
+source("Functions/SD_duplicates_out_country.R") # source function
 
-### note, before running the sd analysis you need to drop genebanks that only old safety duplicates 
-### such as NOR051 and BRA003 from the datasets
+# Filter Genesys dataset 
+gen <- combined_allcrops %>% filter(data_source == "Genesys")
 
-source(Functions/SD_duplicates_out_country.R) # source function
+# prep duplication sites for function
+gen2 <- gen %>% mutate(duplSite_LIST = strsplit(DUPLSITE, ";"))
 
-# Read dataset 
-# what file to use? use combined_allcrops and filter out Genesys?
-gen <- read.csv("Genesys_allcrops.csv", header = TRUE )
+# Run function to calculate metric, SD by INSTCODE (i.e. genebank) in DUPLSITE
+gen2 <- gen2 %>%
+  mutate(
+    holding_country = substr(INSTCODE, 1, 3),  # if not done yet
+    sd_out_country = mapply(duplicates_out_country, duplSite_LIST, holding_country)
+  )
 
-# Run function to calculate metric, SD by instCode (i.e. genebank)
-sd_by_genebank_genesys <- SD_duplicates_out_country(gen2, groupby = 'instCode')
+# Run summary of metric calculated, SD out of country by genebank
+sd_outcountry_metric <- gen2 %>%
+  group_by(INSTCODE) %>%
+  summarise(
+    sd_out_country_count = sum(sd_out_country, na.rm = TRUE),
+    accessions_total = n()
+  ) %>%
+  arrange(desc(sd_out_country_count)) %>%
+  mutate(sd_out_country_perc = 100 * sd_out_country_count / accessions_total)
 
 # Save output to Drive folder
-sd_by_genebank_genesys <- apply(sd_by_genebank_genesys,2,as.character)
-write.csv(sd_by_genebank_genesys, '../../Data_processing/4_Estimate_metrics/Safety_duplication/genesys_sd_results_by_genebanks.csv', row.names = FALSE)
+sd_outcountry_metric <- apply(sd_outcountry_metric,2,as.character)
+write.csv(sd_outcountry_metric, '../../Data_processing/4_Estimate_metrics/Safety_duplication/gen_sd_outcountry_resultsDATE.csv', row.names = FALSE)
 
 
 # 11. SGSV duplicates
-
 # SG note: add step to drop potential double counts using accession number+instcode first?
 
 SGSV_dupl_count <- SGSV_allcrops %>% group_by(Crop_strategy) %>% summarise(sgsvcount = n(), .groups = "drop")
@@ -212,16 +230,16 @@ BGCI_taxa_count <- BGCI_allcrops %>%
   summarise(unique_taxa_count = n_distinct(Standardized_taxa), .groups = "drop")
 
 # 16. Number of unique institutions holding crop germplasm (BGCI dataset)
-BGCI_inst_count <- BGCI_allcrops_SG %>%
-  select(cropstrategy, ex_situ_site_gardenSearch_ID) %>%  # need to add crop strategy to BGCI_processed
+BGCI_inst_count <- BGCI_allcrops %>%
+  select(Crop_strategy, ex_situ_site_gardenSearch_ID) %>%
   filter(!is.na(ex_situ_site_gardenSearch_ID)) %>%
   distinct() %>% # unique institution entries
-  group_by(cropstrategy) %>%
+  group_by(Crop_strategy) %>%
   summarise(unique_inst_count = n_distinct(ex_situ_site_gardenSearch_ID), .groups = "drop")
 
 # 17. SG: Regeneration metrics (based on WIEWS indicator file)
 # Data read in: Wiews indicator 22 file and croplist
-
+# SG note, document and source function to prep WIEWS indicator file 
 
 ############ works until here, the rest needs to be corrected #########
 
