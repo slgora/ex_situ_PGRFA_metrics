@@ -1,6 +1,11 @@
-
 # Safety duplication function to detect if any duplication site falls outside the holding country's 3-letter code
 duplicates_out_country <- function(site, pat) {
+  # If site is a character string with ';', split it into a vector
+  if (is.character(site) && length(site) == 1 && grepl(";", site)) {
+    site <- unlist(strsplit(site, ";"))
+    site <- trimws(site) # remove leading/trailing spaces
+  }
+  
   res <- 0  # default result: no out-of-country duplicates found
   
   for (i in site) {
@@ -14,3 +19,4 @@ duplicates_out_country <- function(site, pat) {
   
   return(res)  # return 0 if no out-of-country duplicates were found
 }
+
