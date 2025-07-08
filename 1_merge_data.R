@@ -126,7 +126,7 @@ WIEWS_allcrops <- WIEWS_allcrops %>% mutate(MLSSTAT = as.logical(MLSSTAT))
 Genesys_allcrops <- subset(Genesys_allcrops, select = c(INSTCODE, ACCENUMB, 
                                                         GENUS, SPECIES, SPAUTHOR, SUBTAXA, SUBTAUTHOR, 
                                                         GRIN_NAME, CROPNAME, ACQDATE, ACCENAME, SAMPSTAT, 
-                                                        DONORCODE, DONORNAME, OTHERNUMB,
+                                                        DONORCODE, DONORNAME, OTHERNUMB, DONORNUMB, # added for PDCI calc
                                                         ORIGCTY, DECLATITUDE,DECLONGITUDE, ELEVATION,
                                                         BREDCODE, ANCEST, DUPLSITE, STORAGE, 
                                                         COLLDATE, COLLSITE, COLLSRC, COLLNUMB, COLLCODE,
