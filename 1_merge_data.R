@@ -208,3 +208,16 @@ sgsv$ID <- paste0(sgsv$ACCENUMB, sgsv$INSTCODE)
 sgsv <- sgsv[!duplicated(sgsv$ID), ]  
 # save results
 write.csv(sgsv, '../../Data_processing/1_merge_data/2025_07_07/SGSV_processed.csv')
+
+
+################# FAO WIEWS Indicator data ########################################################################## 
+# read in FAO WIEWS indicator file and croplist_PG within function 
+source("Functions/Load_WIEWS_indicator_data.R") # source function
+WIEWS_indicator_proccessed <- process_wiews_indicator_data(
+  wiews_path = "../../Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_Indicator22.xlsx",
+  croplist_path = "../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx"
+)
+# save results
+write.csv(WIEWS_indicator_proccessed, '../../Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv', row.names = FALSE)
+
+
