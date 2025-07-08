@@ -2,7 +2,7 @@
 # read in paths to WIEWS indicator 22 file and croplist_PG
 process_wiews_indicator_data <- function(
     # update file paths as needed
-    wiews_path = "../../Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_Indicator22.xlsx",
+    wiews_path = "../../Data/FAO_WIEWS/Indicator_22_data/FAO_WIEWS_Indicator22.xlsx",
     # update file paths as needed
     croplist_path = "../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx"
 ) {
