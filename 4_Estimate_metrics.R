@@ -192,7 +192,6 @@ sd_outcountry_metric <- genesys %>%
 sd_outcountry_metric <- apply(sd_outcountry_metric,2,as.character)
 write.csv(sd_outcountry_metric, '../../Data_processing/4_Estimate_metrics/Safety_duplication/2025_07_07/genesys_sd_outcountry.csv', row.names = FALSE)
 
-
 # 11. SGSV duplicates
 SGSV_dupl_count <- SGSV_allcrops %>% group_by(Crop_strategy) %>% summarise(sgsvcount = n(), .groups = "drop")
 
@@ -232,8 +231,9 @@ BGCI_inst_count <- BGCI_allcrops %>%
   group_by(Crop_strategy) %>%
   summarise(unique_inst_count = n_distinct(ex_situ_site_gardenSearch_ID), .groups = "drop")
 
-# 17. SG: Regeneration metrics (based on WIEWS indicator file)
-# Data read in: Wiews indicator 22 file and croplist
-# SG note, document and source function to prep WIEWS indicator file 
+# 17. Regeneration metrics (based on WIEWS indicator file)
+# read in processed WIEWS indicator file, metrics already extracted
+WIEWS_regeneration_summary <- read_csv("../../Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv")
+
 
 ############ works until here, the rest needs to be corrected #########
