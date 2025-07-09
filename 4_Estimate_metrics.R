@@ -18,6 +18,7 @@ combined_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization
 SGSV_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/SGSV_processed.csv")
 BGCI_allcrops <- read_csv("../../Data_processing//3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/BGCI_processed.csv") # Note: Add BGCI_allcrops import if used, check if need to add Crop_strategy here
 GLIS_dataset  <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/GLIS_processed.csv") # glis_data_processed is the data after adding the cropstrategy variable
+croplist <- read_excel("../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx")
 
 # --------- METRICS CALCULATIONS ---------
 
@@ -238,7 +239,7 @@ WIEWS_regeneration_summary <- read_csv("../../Data_processing/1_merge_data/2025_
 # 18. PDCI metric
 # Source and Run function to calculate PDCI
 source("Functions/Get_PDCI.R")
-df <- combined_allcrops
+df <- genesys  # change to genesys only ***
 df <- get_PDCI(df)
 
 # Extract median PDCI
@@ -251,8 +252,6 @@ summary_pdci <- df %>%
 # 19.- 20. PTFTW Metrics; Note SG working on implementing in individual script 5 
 
 # 21. Count of records in GBIF
-# load list of crops
-croplist <- read_excel("../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx")
 source('Functions/Call_gbif_API.R')  # Import function get_gbif_count
 
 # Run GBIF count of occurrences for each genus and synonyms; summarize by CropStrategy
