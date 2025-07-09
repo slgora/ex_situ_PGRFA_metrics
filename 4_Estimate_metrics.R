@@ -272,5 +272,9 @@ summary_gbif_count <- croplist %>%
     .groups = "drop"
   )
 
+# 22. Characterization and Evaluation datasets
+source("Functions/Process_char_eval.R")
+# call location of folders with char and eval datasets extracted from Genesys
+char_eval_summary <- summarize_char_eval('../../Data/Genesys/Characterization_and_evaluation_datasets')
 
 ############ works until here, the rest needs to be corrected #########
