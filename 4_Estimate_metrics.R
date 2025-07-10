@@ -85,9 +85,12 @@ diversity_regions_metric <- combined_allcrops %>%
     .groups = "drop"
   )
 
-# 7. accessions by org type,  and MLS accessions for organization type
+# 7. accessions by org type,  and MLS accessions for organization type (A15 collection versus non-A15)
+combined_allcrops <- combined_allcrops %>% 
+  mutate( A15_collection = ifelse(ORGANIZATIONTYPE %in% c("CGIAR", "International"), TRUE, FALSE) )
+
 accessions_by_org_type <- combined_allcrops %>%
-  group_by(Crop_strategy, ORGANIZATIONTYPE) %>%
+  group_by(Crop_strategy, A15_collection) %>%
   summarise(
     n_records = n(),
     .groups = "drop"
@@ -97,7 +100,7 @@ accessions_by_org_type <- combined_allcrops %>%
   )
 
 mls_by_orgtype <- combined_allcrops %>%
-  group_by(Crop_strategy, ORGANIZATIONTYPE) %>%
+  group_by(Crop_strategy, A15_collection) %>%
   summarise(
     count_includedmls = sum(MLSSTAT, na.rm = TRUE),
     count_notincludedmls = sum(!MLSSTAT, na.rm = TRUE),
