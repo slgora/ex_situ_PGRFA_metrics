@@ -1,85 +1,119 @@
-#' Create Plants That Feed the World indicator file with relevant fields
+# Load required libraries
+library(dplyr)
+library(readr)
+library(readxl)
+library(writexl)
+
+#' Process PTFTW indicator metrics for our crops
 #'
-#' This function reads input data, performs standardization, joins, selects relevant columns,
-#' and writes the final output to an Excel file.
+#' Aggregates digital, trade, food supply, and research indicators for selected crops.
+#' Metrics include sum, average, and max values, grouped by Crop_strategy.
 #'
-#' @param ptftw_csv Path to the Plants That Feed the World indicator average CSV file.
-#' @param crop_list_xlsx Path to the crop list Excel file.
-#' @param output_xlsx Path for the output Excel file.
-#' @return Invisibly, the final processed dataframe.
-#' required packages: readr,  readxl, dplyr,  writexl
-process_ptftw_indicator_data <- function(
-  ptftw_csv = "../../Data/Plants_that_feed_the_world/Indicators/indicator_average.csv",
-  crop_list_xlsx = "../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx",
-  output_xlsx = "../../Data/Plants_that_feed_the_world/Indicators/PTFTW_indicator_avg.xlsx"
-) {
-  
-  # Read datasets
-  PTFTW_indicator_average <- read_csv(ptftw_csv)
-  croplist <- read_excel(crop_list_xlsx)
+#' @param indicator_file Path to PTFTW indicator CSV
+#' @param croplist Path to croplist Excel file
+#' @param out_path Optional path to save the output Excel file
+#' @return A data frame of aggregated indicators grouped by Crop_strategy
+process_PTFTW_metrics <- function(indicator_file, croplist, out_path = NULL) {
+  # Read inputs
+  PTFTW_indicator <- read_csv(indicator_file)
+  croplist_df <- read_excel(croplist)
   
   # Standardize crop names
-  PTFTW_indicator_average$crop[PTFTW_indicator_average$crop == "Rice (Asian)"] <- "Rice"
-  PTFTW_indicator_average$crop[PTFTW_indicator_average$crop == "Chickpeas"] <- "Chickpea"
+  PTFTW_indicator$crop[PTFTW_indicator$crop == "Rice (Asian)"] <- "Rice"
+  PTFTW_indicator$crop[PTFTW_indicator$crop == "Chickpeas"] <- "Chickpea"
+  PTFTW_indicator <- PTFTW_indicator %>% rename(PlantsthatFeedtheWorld_name = crop)
   
-  # Subset relevant columns and drop rows with NA in PlantsthatFeedtheWorld_name
-  PlantsthatFeedtheWorld_ourcrops <- croplist %>%
-    select(PlantsthatFeedtheWorld_name, CropStrategy, Genera_primary, Taxa_main) %>%
-    filter(!is.na(PlantsthatFeedtheWorld_name) & PlantsthatFeedtheWorld_name != "NA")
+  # Join and clean
+  PTFTW_clean <- croplist_df %>%
+    filter(PlantsthatFeedtheWorld_name != "NA") %>%
+    left_join(PTFTW_indicator, by = "PlantsthatFeedtheWorld_name") %>%
+    rename(cropstrategy = CropStrategy,
+           PTFTW_name   = PlantsthatFeedtheWorld_name,
+           genus        = Genera_primary,
+           fullTaxa     = Taxa_main)
   
-  # Rename crop field in PTFTW dataset
-  PTFTW_indicator_average <- PTFTW_indicator_average %>%
-    rename(PlantsthatFeedtheWorld_name = crop)
-  
-  # Join our crops to PTFTW data
-  PTFTW_indicator_average <- PlantsthatFeedtheWorld_ourcrops %>%
-    left_join(PTFTW_indicator_average, by = "PlantsthatFeedtheWorld_name")
-  
-  # Select relevant fields for the indicator file
-  relevant_fields <- c(
-    "PlantsthatFeedtheWorld_name",
-    "CropStrategy",
-    "Genera_primary",
-    "Taxa_main", 
-    "crop_use-faostat-food_supply-fat_supply_quantity_g",
-    "crop_use-faostat-food_supply-food_supply_kcal",
-    "crop_use-faostat-food_supply-food_supply_quantity_g",
-    "crop_use-faostat-food_supply-protein_supply_quantity_g",
+  # Define columns
+  sum_cols <- c(
+    "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_gene",
+    "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_genome",
+    "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_nucleotide",
+    "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_protein",
+    "supply-research_supply-research_supply_gbif-research_supply_gbif_taxon",
+    "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_accessions",
+    "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_samples",
+    "demand-varietal_release_fao_wiews-varietal_release_fao_wiews-varietal_release_fao_wiews_taxon",
+    "demand-varietal_registrations_upov-varietal_registrations_upov-varietal_registrations_upov_taxon",
     "crop_use-faostat-production-area_harvested_ha",
     "crop_use-faostat-production-gross_production_value_us",
     "crop_use-faostat-production-production_quantity_tonnes",
     "crop_use-faostat-trade-export_quantity_tonnes",
     "crop_use-faostat-trade-export_value_tonnes",
-    "crop_use-faostat_count_countries-count_countries_food_supply-fat_supply_quantity_g",
+    "crop_use-faostat-trade-import_quantity_tonnes",
+    "crop_use-faostat-trade-import_value_tonnes",
+    "crop_use-faostat-food_supply-fat_supply_quantity_g",
+    "crop_use-faostat-food_supply-food_supply_kcal",
+    "crop_use-faostat-food_supply-food_supply_quantity_g",
+    "crop_use-faostat-food_supply-protein_supply_quantity_g",
+    "crop_use-public_interest-wikipedia_pageviews-taxon",
+    "crop_use-research_significance-google_scholar-taxon",
+    "crop_use-research_significance-pubmed_central-taxon"
+  )
+  
+  avg_cols <- c(
+    "crop_use-faostat_equality_of_use-gini_food_supply-food_supply_kcal",
+    "crop_use-faostat_equality_of_use-gini_food_supply-protein_supply_quantity_g",
+    "crop_use-faostat_equality_of_use-gini_food_supply-fat_supply_quantity_g",
+    "crop_use-faostat_equality_of_use-gini_food_supply-food_supply_quantity_g",
+    "crop_use-faostat_equality_of_use-gini_production-area_harvested_ha",
+    "crop_use-faostat_equality_of_use-gini_production-production_quantity_tonnes",
+    "crop_use-faostat_equality_of_use-gini_production-gross_production_value_us",
+    "crop_use-faostat_equality_of_use-gini_trade-export_quantity_tonnes",
+    "crop_use-faostat_equality_of_use-gini_trade-export_value_tonnes",
+    "crop_use-faostat_equality_of_use-gini_trade-import_quantity_tonnes",
+    "crop_use-faostat_equality_of_use-gini_trade-import_value_tonnes",
+    "interdependence-faostat-food_supply-food_supply_kcal",
+    "interdependence-faostat-food_supply-protein_supply_quantity_g",
+    "interdependence-faostat-food_supply-fat_supply_quantity_g",
+    "interdependence-faostat-food_supply-food_supply_quantity_g",
+    "interdependence-faostat-production-area_harvested_ha",
+    "interdependence-faostat-production-production_quantity_tonnes",
+    "interdependence-faostat-production-gross_production_value_us",
+    "interdependence-faostat-trade-export_quantity_tonnes",
+    "interdependence-faostat-trade-export_value_tonnes",
+    "interdependence-faostat-trade-import_quantity_tonnes",
+    "interdependence-faostat-trade-import_value_tonnes"
+  )
+  
+  max_cols <- c(
     "crop_use-faostat_count_countries-count_countries_food_supply-food_supply_kcal",
-    "crop_use-faostat_count_countries-count_countries_food_supply-food_supply_quantity_g",
     "crop_use-faostat_count_countries-count_countries_food_supply-protein_supply_quantity_g",
+    "crop_use-faostat_count_countries-count_countries_food_supply-fat_supply_quantity_g",
+    "crop_use-faostat_count_countries-count_countries_food_supply-food_supply_quantity_g",
     "crop_use-faostat_count_countries-count_countries_production-area_harvested_ha",
-    "crop_use-faostat_count_countries-count_countries_production-gross_production_value_us",
     "crop_use-faostat_count_countries-count_countries_production-production_quantity_tonnes",
+    "crop_use-faostat_count_countries-count_countries_production-gross_production_value_us",
     "crop_use-faostat_count_countries-count_countries_trade-export_quantity_tonnes",
     "crop_use-faostat_count_countries-count_countries_trade-export_value_tonnes",
     "crop_use-faostat_count_countries-count_countries_trade-import_quantity_tonnes",
-    "crop_use-faostat_count_countries-count_countries_trade-import_value_tonnes",
-    "crop_use-public_interest-wikipedia_pageviews-taxon",
-    "crop_use-research_significance-google_scholar-taxon",
-    "crop_use-research_significance-pubmed_central-taxon",
-    "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_accessions",
-    "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_samples",
-    "demand-germplasm_distributions_treaty-germplasm_distributions_treaty-count_of_countries_recipients_distributions_treaty",
-    "demand-germplasm_distributions_treaty-germplasm_distributions_treaty-germplasm_distributions_treaty",
-    "demand-varietal_registrations_upov-varietal_registrations_upov-varietal_registrations_upov_taxon",
-    "demand-varietal_release_fao_wiews-varietal_release_fao_wiews-varietal_release_fao_wiews_taxon",
-    "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_gene",
-    "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_genome",
-    "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_nucleotide",
-    "supply-digital_sequence_supply-digital_sequence_supply-digital_sequence_supply_protein"
+    "crop_use-faostat_count_countries-count_countries_trade-import_value_tonnes"
   )
-  PlantsThatFeedTheWorld_indicator_relevantfields <- PTFTW_indicator_average %>%
-    select(all_of(relevant_fields))
   
-  # Write to Excel
-  write_xlsx(PlantsThatFeedTheWorld_indicator_relevantfields, output_xlsx)
+  # Summarise safely and rename final output column
+  PTFTW_metrics <- PTFTW_clean %>%
+    group_by(cropstrategy) %>%
+    summarise(
+      across(all_of(sum_cols), ~sum(.x, na.rm = TRUE)),
+      across(all_of(avg_cols), ~mean(.x, na.rm = TRUE)),
+      across(all_of(max_cols), ~if (all(is.na(.x))) NA else max(.x, na.rm = TRUE)),
+      .groups = "drop"
+    ) %>%
+    mutate(across(everything(), ~ifelse(is.infinite(.x), NA, .x))) %>%
+    rename(Crop_strategy = cropstrategy)
   
-  invisible(PlantsThatFeedTheWorld_indicator_relevantfields)
+  if (!is.null(out_path)) {
+    write_xlsx(PTFTW_metrics, out_path)
+  }
+  
+  return(PTFTW_metrics)
 }
+
