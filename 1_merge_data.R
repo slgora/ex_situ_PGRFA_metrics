@@ -21,7 +21,7 @@ GBIF_allcrops <- read_csv("../../Data/GBIF/Living_records_all_genus_aggregated/G
 geo_names <- read_csv("../../Data_processing/Support_files/Geographical/geo_names.csv" , na = c("", "-"))
 ## subset only the relevant column to join- 2 letter country code and the 3 letter abbreviation
 geo_names <- subset(geo_names, select = c(country2, country3))
-#####  file with institute names and FAO INSTCODE, some synonims were added to the list 
+#####  file with institute names and FAO INSTCODE, some synonyms were added to the list 
 institute_names <- read_excel("../../Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_organizations_PG_with_synonyms.xlsx")
 names(institute_names)[names(institute_names) == 'WIEWS instcode'] <- 'INSTCODE'
 names(institute_names)[names(institute_names) == 'Name of organization'] <- 'Name_of_organization'
@@ -73,7 +73,8 @@ BGCI_allcrops <- select(BGCI_allcrops, -c('Germplasm, seed', "Germplasm, plant",
 
 # Fields we want to keep
 BGCI_allcrops <- subset(BGCI_allcrops, select = c(data_source, fullTaxa, ex_situ_site_gardenSearch_ID, GENUS, SPECIES, STORAGE ))
-write.csv(BGCI_allcrops, '../../Data_processing/1_merge_data/2025_07_07/BGCI_processed.csv')
+# Note: you need to create folder DATE_OF_RUN before running the following line of code
+write.csv(BGCI_allcrops, '../../Data_processing/1_merge_data/2025_07_07/BGCI_processed.csv', row.names = FALSE)
 ############### WIEWS: Data Cleaning ####################
 #rename all columns according to MCPD naming style, and select columns that are needed
 WIEWS_allcrops <- WIEWS_allcrops %>%
@@ -125,7 +126,7 @@ WIEWS_allcrops <- WIEWS_allcrops %>% mutate(MLSSTAT = as.logical(MLSSTAT))
 Genesys_allcrops <- subset(Genesys_allcrops, select = c(INSTCODE, ACCENUMB, 
                                                         GENUS, SPECIES, SPAUTHOR, SUBTAXA, SUBTAUTHOR, 
                                                         GRIN_NAME, CROPNAME, ACQDATE, ACCENAME, SAMPSTAT, 
-                                                        DONORCODE, DONORNAME, OTHERNUMB,
+                                                        DONORCODE, DONORNAME, OTHERNUMB, DONORNUMB, # added for PDCI calc
                                                         ORIGCTY, DECLATITUDE,DECLONGITUDE, ELEVATION,
                                                         BREDCODE, ANCEST, DUPLSITE, STORAGE, 
                                                         COLLDATE, COLLSITE, COLLSRC, COLLNUMB, COLLCODE,
@@ -157,8 +158,6 @@ gen_wiews_df$ACCENUMB <- trimws(gen_wiews_df$ACCENUMB)
 gen_wiews_df$INSTCODE <- trimws(gen_wiews_df$INSTCODE)
 gen_wiews_df$ID <- paste0(gen_wiews_df$ACCENUMB, gen_wiews_df$INSTCODE)
 gen_wiews_df <- gen_wiews_df[!duplicated(gen_wiews_df$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
-# add the other dataset (BGCI)
-
 
 ####### correct country codes iso-codes
 source("Functions/Correct_country_codes.R")
@@ -171,11 +170,11 @@ gen_wiews_df = assign_org_type(gen_wiews_df, institute_names_no_syn)
 # added to drop all Pisum accessions
 gen_wiews_df <-gen_wiews_df %>% filter(!grepl("Pisum", fullTaxa))                               
 
-# Note: you need to create folder DATE_OF_RUN before running the following line of code                               
-write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_07/gen_wiews_df.csv')
+# save results
+write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_07/gen_wiews_df.csv', row.names = FALSE)
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
-# create a list of file paths (each one is a Json file dowloaded from GLIS)
+# create a list of file paths (each one is a Json file downloaded from GLIS)
 install.packages("jsonlite")
 library("jsonlite")
 source("Functions/Extract_results_GLIS_API.R") # added 30May 2025 corrected                              
@@ -196,7 +195,7 @@ all_glis_data$MLSSTAT = NA
 all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(1, 11, 12, 13, 14, 15), TRUE, all_glis_data$MLSSTAT)
 all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(0), FALSE, all_glis_data$MLSSTAT)
 # save results
-write.csv(all_glis_data, '../../Data_processing/1_merge_data/2025_07_07/GLIS_processed.csv')
+write.csv(all_glis_data, '../../Data_processing/1_merge_data/2025_07_07/GLIS_processed.csv', row.names = FALSE)
 
 ################# SGSV data ########################################################################## 
 source("Functions/Load_SGSV_data.R")
@@ -208,8 +207,17 @@ sgsv$INSTCODE <- trimws(sgsv$INSTCODE)
 sgsv$ID <- paste0(sgsv$ACCENUMB, sgsv$INSTCODE)
 sgsv <- sgsv[!duplicated(sgsv$ID), ]  
 # save results
-write.csv(sgsv, '../../Data_processing/1_merge_data/2025_07_07/sgsv_processed.csv')
+write.csv(sgsv, '../../Data_processing/1_merge_data/2025_07_07/SGSV_processed.csv', row.names = FALSE)
 
-################ PTFTW data ############################################################################
-source("Functions/load_PTFTW_dataset.R")
-PTFTW = process_ptftw_indicator_data(output_xlsx = "../../Data_processing/1_merge_data/2025_07_07/PTFTW_processed.xlsx")
+
+################# FAO WIEWS Indicator data ########################################################################## 
+# read in FAO WIEWS indicator file and croplist_PG within function 
+source("Functions/Load_WIEWS_indicator_data.R") # source function
+WIEWS_indicator_proccessed <- process_wiews_indicator_data(
+  wiews_path = "../../Data/FAO_WIEWS/Indicator_22_data/FAO_WIEWS_Indicator22.xlsx",
+  croplist_path = "../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx"
+)
+# save results
+write.csv(WIEWS_indicator_proccessed, '../../Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv', row.names = FALSE)
+
+
