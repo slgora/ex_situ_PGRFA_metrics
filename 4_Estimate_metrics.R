@@ -165,17 +165,13 @@ storage_term_summary <- combined_allcrops %>%
     shortterm_storage_perc  = round(100 * shortterm_storage_count / total_records, 2)
   )
 
-# 10. Safety duplication
-## percentage of accessions duplicated out of the country in other genebanks (excluding SGSV) calculated only using Genesys data. 
+# 10. Safety duplication percentage of accessions duplicated out of the country in other genebanks (excluding SGSV) calculated only using Genesys data. 
 source("Functions/SD_duplicates_out_country.R") # source function
 
-# Filter Genesys dataset 
-genesys <- combined_allcrops %>% filter(data_source == "Genesys")
-
-# Run function to calculate metric, SD by INSTCODE (i.e. genebank) in DUPLSITE
-genesys <- genesys %>%
+genesys <- combined_allcrops %>%
+  filter(data_source == "Genesys") %>%
   mutate(
-    holding_country = substr(INSTCODE, 1, 3),  # if not done yet
+    holding_country = substr(INSTCODE, 1, 3),
     sd_out_country = mapply(duplicates_out_country, DUPLSITE, holding_country)
   )
 
@@ -217,20 +213,16 @@ institution_accessions_summary <- combined_allcrops %>%    #note: tested and cor
   ungroup()
 
 # 15. Number of unique taxa listed in BGCI data metric (BGCI dataset)
-BGCI_taxa_count <- BGCI_allcrops %>%               
-  select(Crop_strategy, Standardized_taxa) %>%    
+BGCI_taxa_count <- BGCI_allcrops %>%
   filter(!is.na(Standardized_taxa)) %>%
-  distinct() %>%
-  group_by(Crop_strategy) %>%
-  summarise(unique_taxa_count = n_distinct(Standardized_taxa), .groups = "drop")
+  distinct(Crop_strategy, Standardized_taxa) %>%
+  count(Crop_strategy, name = "unique_taxa_count")
 
 # 16. Number of unique institutions holding crop germplasm (BGCI dataset)
 BGCI_inst_count <- BGCI_allcrops %>%
-  select(Crop_strategy, ex_situ_site_gardenSearch_ID) %>%
   filter(!is.na(ex_situ_site_gardenSearch_ID)) %>%
-  distinct() %>% # unique institution entries
-  group_by(Crop_strategy) %>%
-  summarise(unique_inst_count = n_distinct(ex_situ_site_gardenSearch_ID), .groups = "drop")
+  distinct(Crop_strategy, ex_situ_site_gardenSearch_ID) %>%
+  count(Crop_strategy, name = "unique_inst_count")
 
 # 17. Regeneration metrics (based on WIEWS indicator file)
 # read in processed WIEWS indicator file, metrics already extracted
