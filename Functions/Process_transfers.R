@@ -4,6 +4,7 @@ library(readxl)
 library(stringr)
 library(tidyr)
 library(writexl)
+install.packages("ineq")
 library(ineq)
 
 #' Calculate Treaty germplasm distribution metrics for selected crops
