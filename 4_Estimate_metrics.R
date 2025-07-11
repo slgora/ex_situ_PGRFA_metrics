@@ -193,7 +193,14 @@ sd_outcountry_metric <- apply(sd_outcountry_metric,2,as.character)
 write.csv(sd_outcountry_metric, '../../Data_processing/4_Estimate_metrics/Safety_duplication/2025_07_07/genesys_sd_outcountry.csv', row.names = FALSE)
 
 # 11. SGSV duplicates
-SGSV_dupl_count <- SGSV_allcrops %>% group_by(Crop_strategy) %>% summarise(sgsvcount = n(), .groups = "drop")
+SGSV_dupl_metric <- SGSV_allcrops %>%
+  count(Crop_strategy, name = "sgsv_dupl_count") %>%
+  left_join(
+    combined_allcrops %>% count(Crop_strategy, name = "total_count"),
+    by = "Crop_strategy"
+  ) %>%
+  mutate(sgsv_dupl_perc = round((sgsv_dupl_count / total_count) * 100, 2)) %>%
+  select(Crop_strategy, sgsv_dupl_count, total_count, sgsv_dupl_perc)
 
 # 12. GLIS: # of accessions with DOIs per crop, use data downloaded from GLIS (GLIS_dataset)
 GLIS_dois_count <- GLIS_dataset %>%
@@ -249,7 +256,7 @@ summary_pdci <- df %>%
     median_PDCI = median(PDCI, na.rm = TRUE) #median PDCI
   )
 
-# 19.- 20. PTFTW Metrics; Note SG working on implementing in individual script 5 
+# 19.- 20. PTFTW Metrics; Note implemented in individual script 5_PTFTW_processing_and_metrics.R
 
 # 21. Count of records in GBIF
 source('Functions/Call_gbif_API.R')  # Import function get_gbif_count
