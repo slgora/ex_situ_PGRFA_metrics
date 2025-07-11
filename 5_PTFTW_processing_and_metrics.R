@@ -40,6 +40,6 @@ countries_regions <- read_excel("../../Data_processing/Support_files/Geographica
 # Run function, specify croplist and output file is saved
 # add folder with date of ouput run
 transfer_metrics <- transfers_metrics(
-  croplist_file = "../../Support_files/GCCS_Selected_crops/croplist_PG.xlsx",
+  croplist_file = "../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx",
   out_path = "../../Data_processing/5_PTFTW_processing_and_metrics/DATE/transfers_metrics_2015_2021.xlsx"
 )
