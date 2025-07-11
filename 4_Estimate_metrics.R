@@ -216,10 +216,12 @@ institution_accessions_summary <- combined_allcrops %>%    #note: tested and cor
   ungroup()
 
 # 15. Number of unique taxa listed in BGCI data metric (BGCI dataset)
-BGCI_taxa_count <- BGCI_allcrops %>%
+BGCI_taxa_count <- BGCI_allcrops %>%               
+  select(Crop_strategy, Standardized_taxa) %>%    
   filter(!is.na(Standardized_taxa)) %>%
-  distinct(Crop_strategy, Standardized_taxa) %>%
-  count(Crop_strategy, name = "unique_taxa_count")
+  distinct() %>%
+  group_by(Crop_strategy) %>%
+  summarise(bgci_unique_taxa_count = n_distinct(Standardized_taxa), .groups = "drop")
 
 # 16. Number of unique institutions holding crop germplasm (BGCI dataset)
 BGCI_inst_count <- BGCI_allcrops %>%
