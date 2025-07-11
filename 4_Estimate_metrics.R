@@ -236,8 +236,6 @@ BGCI_inst_count <- BGCI_allcrops %>%
 WIEWS_regeneration_summary <- read_csv("../../Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv")
 
 # 18. PDCI metric
-# filter only Genesys processed data
-
 # Source and Run function to calculate PDCI
 source("Functions/Get_PDCI.R")
 df <- combined_allcrops %>% 
