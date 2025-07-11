@@ -225,9 +225,11 @@ BGCI_taxa_count <- BGCI_allcrops %>%
 
 # 16. Number of unique institutions holding crop germplasm (BGCI dataset)
 BGCI_inst_count <- BGCI_allcrops %>%
+  select(Crop_strategy, ex_situ_site_gardenSearch_ID) %>%
   filter(!is.na(ex_situ_site_gardenSearch_ID)) %>%
-  distinct(Crop_strategy, ex_situ_site_gardenSearch_ID) %>%
-  count(Crop_strategy, name = "unique_inst_count")
+  distinct() %>% # unique institution entries
+  group_by(Crop_strategy) %>%
+  summarise(unique_inst_count = n_distinct(ex_situ_site_gardenSearch_ID), .groups = "drop")
 
 # 17. Regeneration metrics (based on WIEWS indicator file)
 # read in processed WIEWS indicator file, metrics already extracted
