@@ -259,10 +259,9 @@ summary_pdci <- df %>%
 # 19.- 20. PTFTW Metrics; Note implemented in individual script 5_PTFTW_processing_and_metrics.R
 
 # 21. Count of records in GBIF
-source('Functions/Call_gbif_API.R')  # Import function get_gbif_count
-
-# Run GBIF count of occurrences for each genus and synonyms; summarize by CropStrategy
+source("Functions/Call_gbif_API.R")  # Import function get_gbif_count
 summary_gbif_count <- croplist %>%
+  rename(Crop_strategy = CropStrategy) %>%
   rowwise() %>%
   mutate(
     count_primary = get_gbif_count(Genera_primary),
@@ -270,7 +269,7 @@ summary_gbif_count <- croplist %>%
     GBIF_count_total = sum(count_primary, count_synonym, na.rm = TRUE)
   ) %>%
   ungroup() %>%
-  group_by(CropStrategy) %>%
+  group_by(Crop_strategy) %>%
   summarise(
     total_GBIF_count = sum(GBIF_count_total, na.rm = TRUE),
     .groups = "drop"
