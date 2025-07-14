@@ -29,7 +29,7 @@ croplist <- read_excel("../../Data_processing/Support_files/GCCS_Selected_crops/
 PTFTW_metrics_processed <- process_PTFTW_metrics(
   indicator_file = "../../Data/Plants_that_feed_the_world/Indicators/indicator_average.csv",
   croplist = "../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx",
-  out_path = "../../Data_processing/5_PTFTW_processing_and_metrics/DATE/PTFTW_metrics.xlsx"
+  out_path = "../../Data_processing/5_PTFTW_processing_and_metrics/2025_07_14/PTFTW_metrics.xlsx"
 )
 
 
@@ -47,6 +47,6 @@ countries_regions <- read_excel("../../Data_processing/Support_files/Geographica
 # add folder with date of ouput run
 transfer_metrics <- transfers_metrics(
   croplist_file = "../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx",
-  out_path = "../../Data_processing/5_PTFTW_processing_and_metrics/DATE/transfers_metrics_2015_2021.xlsx"
+  out_path = "../../Data_processing/5_PTFTW_processing_and_metrics/2025_07_14/transfers_metrics_2015_2021.xlsx"
 )
 
