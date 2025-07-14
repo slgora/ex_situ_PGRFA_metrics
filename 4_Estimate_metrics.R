@@ -299,6 +299,8 @@ write.csv(BGCI_inst_count, "../../Data_processing/4_Estimate_metrics/2025_07_14/
 # 17. Regeneration metrics (based on WIEWS indicator file)
 # read in processed WIEWS indicator file, metrics already extracted
 WIEWS_regeneration_summary <- read_csv("../../Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv")
+# save results to Drive location
+write.csv(WIEWS_regeneration_summary, "../../Data_processing/4_Estimate_metrics/2025_07_14/WIEWS_regeneration_summary.csv", row.names = FALSE)
 
 # 18. PDCI metric
 # Source and Run function to calculate PDCI
@@ -344,4 +346,4 @@ char_eval_summary <- summarize_char_eval('../../Data/Genesys/Characterization_an
 # save results
 write.csv(char_eval_summary, "../../Data_processing/4_Estimate_metrics/2025_07_14/char_eval_summary.csv", row.names = FALSE)
 
-############ works until here, the rest needs to be corrected #########
+############ End of Script ############
