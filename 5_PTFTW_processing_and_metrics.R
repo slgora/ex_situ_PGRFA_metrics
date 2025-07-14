@@ -10,10 +10,15 @@
 ####  working directory: working directory should be Code/R_code , following shared folder structure ####
 # -------------------------------------------------------------------------------------------
 
+# load libraries
+install.packages("writexl")
+library(writexl)
+
+
 ### 19. PTFTW metrics (56 metrics)
 # source function to process PTFTW dataset and metrics
 # note: will need to update local paths within function to work properly
-source("Functions/load_PTFTW_dataset.R") # source function to process PTFTW dataset and metrics
+source("Functions/Load_PTFTW_dataset.R")
 
 ## Data read in: Plants That Feed the World dataset and croplist
 indicator_file <- read_csv("../../Data/Plants_that_feed_the_world/Indicators/indicator_average.csv")
@@ -30,6 +35,7 @@ PTFTW_metrics_processed <- process_PTFTW_metrics(
 
 ## 20. Transfer metrics calculations (3 metrics)
 # source function to process transfers datasets
+# note: will need to update local paths within function to work properly
 source("Functions/Process_transfers.R")
 
 # Data read in, transfers (2012-2015), transfers (2019-2021), country regions, croplist already read in above
@@ -43,3 +49,4 @@ transfer_metrics <- transfers_metrics(
   croplist_file = "../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx",
   out_path = "../../Data_processing/5_PTFTW_processing_and_metrics/DATE/transfers_metrics_2015_2021.xlsx"
 )
+
