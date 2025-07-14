@@ -19,6 +19,7 @@ SGSV_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization_pro
 BGCI_allcrops <- read_csv("../../Data_processing//3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/BGCI_processed.csv") # Note: Add BGCI_allcrops import if used, check if need to add Crop_strategy here
 GLIS_dataset  <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/GLIS_processed.csv") # glis_data_processed is the data after adding the cropstrategy variable
 croplist <- read_excel("../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx")
+institute_names_no_syn <- read_excel("../../Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_organizations_PG.xlsx")
 
 # --------- METRICS CALCULATIONS ---------
 
@@ -223,6 +224,19 @@ institution_accessions_summary <- combined_allcrops %>%    #note: tested and cor
     institution_accessions_perc = round((institution_accessions_count / total_accessions) * 100, 2)
   ) %>%
   ungroup()
+
+# add organization name to metric 14 table
+table_INSTCODE_to_name <- setNames(
+  institute_names_no_syn[["Name of organization"]],
+  institute_names_no_syn[["WIEWS instcode"]])
+
+institution_accessions_summary$Institute_name = NA
+institution_accessions_summary <- institution_accessions_summary %>%
+  mutate(
+    Institute_name = ifelse(
+      is.na(Institute_name),
+      table_INSTCODE_to_name[INSTCODE],
+      Institute_name))
 
 # 15. Number of unique taxa listed in BGCI data metric (BGCI dataset)
 BGCI_taxa_count <- BGCI_allcrops %>%
