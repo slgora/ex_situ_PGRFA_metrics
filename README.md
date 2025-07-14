@@ -10,12 +10,14 @@ Only GLIS data downloaded through API.
 
 2)Standardising taxa
 
-Post taxa standardization processing of datasets
+3)Post taxa standardization processing of datasets
 
 4)Computing the metrics
-This work is currently on-going. Clarify and clean code for PTFTW metrics
+This work is currently on-going.
 
-5)Produce tables
+5)Processing Plants That Feed the World data and computing relevant metrics
+
+6)Produce tables
 Code for tables goes here
 
 

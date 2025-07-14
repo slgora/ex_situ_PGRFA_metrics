@@ -193,7 +193,14 @@ sd_outcountry_metric <- apply(sd_outcountry_metric,2,as.character)
 write.csv(sd_outcountry_metric, '../../Data_processing/4_Estimate_metrics/Safety_duplication/2025_07_07/genesys_sd_outcountry.csv', row.names = FALSE)
 
 # 11. SGSV duplicates
-SGSV_dupl_count <- SGSV_allcrops %>% group_by(Crop_strategy) %>% summarise(sgsvcount = n(), .groups = "drop")
+SGSV_dupl_metric <- SGSV_allcrops %>%
+  count(Crop_strategy, name = "sgsv_dupl_count") %>%
+  left_join(
+    combined_allcrops %>% count(Crop_strategy, name = "total_count"),
+    by = "Crop_strategy"
+  ) %>%
+  mutate(sgsv_dupl_perc = round((sgsv_dupl_count / total_count) * 100, 2)) %>%
+  select(Crop_strategy, sgsv_dupl_count, total_count, sgsv_dupl_perc)
 
 # 12. GLIS: # of accessions with DOIs per crop, use data downloaded from GLIS (GLIS_dataset)
 GLIS_dois_count <- GLIS_dataset %>%
@@ -216,24 +223,26 @@ institution_accessions_summary <- combined_allcrops %>%    #note: tested and cor
   ungroup()
 
 # 15. Number of unique taxa listed in BGCI data metric (BGCI dataset)
-BGCI_taxa_count <- BGCI_allcrops %>%
+BGCI_taxa_count <- BGCI_allcrops %>%               
+  select(Crop_strategy, Standardized_taxa) %>%    
   filter(!is.na(Standardized_taxa)) %>%
-  distinct(Crop_strategy, Standardized_taxa) %>%
-  count(Crop_strategy, name = "unique_taxa_count")
+  distinct() %>%
+  group_by(Crop_strategy) %>%
+  summarise(bgci_unique_taxa_count = n_distinct(Standardized_taxa), .groups = "drop")
 
 # 16. Number of unique institutions holding crop germplasm (BGCI dataset)
 BGCI_inst_count <- BGCI_allcrops %>%
+  select(Crop_strategy, ex_situ_site_gardenSearch_ID) %>%
   filter(!is.na(ex_situ_site_gardenSearch_ID)) %>%
-  distinct(Crop_strategy, ex_situ_site_gardenSearch_ID) %>%
-  count(Crop_strategy, name = "unique_inst_count")
+  distinct() %>% # unique institution entries
+  group_by(Crop_strategy) %>%
+  summarise(unique_inst_count = n_distinct(ex_situ_site_gardenSearch_ID), .groups = "drop")
 
 # 17. Regeneration metrics (based on WIEWS indicator file)
 # read in processed WIEWS indicator file, metrics already extracted
 WIEWS_regeneration_summary <- read_csv("../../Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv")
 
 # 18. PDCI metric
-# filter only Genesys processed data
-
 # Source and Run function to calculate PDCI
 source("Functions/Get_PDCI.R")
 df <- combined_allcrops %>% 
@@ -247,13 +256,12 @@ summary_pdci <- df %>%
     median_PDCI = median(PDCI, na.rm = TRUE) #median PDCI
   )
 
-# 19.- 20. PTFTW Metrics; Note SG working on implementing in individual script 5 
+# 19.- 20. PTFTW Metrics; Note implemented in individual script 5_PTFTW_processing_and_metrics.R
 
 # 21. Count of records in GBIF
-source('Functions/Call_gbif_API.R')  # Import function get_gbif_count
-
-# Run GBIF count of occurrences for each genus and synonyms; summarize by CropStrategy
+source("Functions/Call_gbif_API.R")  # Import function get_gbif_count
 summary_gbif_count <- croplist %>%
+  rename(Crop_strategy = CropStrategy) %>%
   rowwise() %>%
   mutate(
     count_primary = get_gbif_count(Genera_primary),
@@ -261,7 +269,7 @@ summary_gbif_count <- croplist %>%
     GBIF_count_total = sum(count_primary, count_synonym, na.rm = TRUE)
   ) %>%
   ungroup() %>%
-  group_by(CropStrategy) %>%
+  group_by(Crop_strategy) %>%
   summarise(
     total_GBIF_count = sum(GBIF_count_total, na.rm = TRUE),
     .groups = "drop"
