@@ -6,8 +6,8 @@
 #    and use indicators for selected crops.
 # 2. Germplasm transfer metrics under the ITPGRFA Treaty — calculating distribution statistics
 #    and equity indicators (sample averages, country counts, and Gini inequality).
-#
 # Outputs: Two Excel files with crop strategy-level metrics, ready for reporting.
+####  working directory: working directory should be Code/R_code , following shared folder structure ####
 # -------------------------------------------------------------------------------------------
 
 ### 19. PTFTW metrics (56 metrics)
