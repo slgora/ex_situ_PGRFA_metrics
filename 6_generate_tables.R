@@ -1,4 +1,5 @@
-#Script for building out results tables 
+####  Script for building out results tables
+####  working directory: working directory should be Code/R_code , following shared folder structure ####
 
 # Read in Metrics and data descriptions table as guide file for table set up
 metrics_guide <- read_excel("../../Data_processing/Metrics_and_data_descriptions_table.xlsx")
