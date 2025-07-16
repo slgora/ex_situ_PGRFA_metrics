@@ -329,10 +329,6 @@ metrics_list <- list(
   gbif_count_summary               = gbif_count_summary,
   char_eval_summary                = char_eval_summary
 )
-
-# remove list of taxa, causes file save issues; 'unique_taxa' column from uniqe_taxa summary
-metrics_list$unique_taxa <- metrics_list$unique_taxa %>% select(-unique_taxa)
-
 # Save all metrics to excel file with each sheet as different metric
 write.xlsx(metrics_list, file = "../../Data_processing/4_Estimate_metrics/2025_07_15/all_metrics_summary.xlsx")
 
