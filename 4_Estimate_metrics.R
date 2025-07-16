@@ -25,7 +25,7 @@ institute_names_no_syn <- read_excel("../../Data_processing/Support_files/FAO_WI
 
 # 1. Total number of accessions by crop strategy
 accession_by_crop_strategy <- combined_allcrops %>% count(Crop_strategy, name = "accessions_count")
-accession_by_source_crop_strategy <- combined_allcrops %>% count(data_source, Crop_strategy, name = "accessions_count")
+accession_by_source <- combined_allcrops %>% count(data_source, Crop_strategy, name = "accessions_count")
 
 # 2. Unique institutions per crop strategy
 unique_institutions <- combined_allcrops %>%
@@ -159,13 +159,13 @@ storage_term_summary <- combined_allcrops %>%
   group_by(Crop_strategy) %>%
   summarise(
     total_records = n(),
-    not_specified_seed_storage     = sum(str_detect(STORAGE, "^10$"), na.rm = TRUE),
+    not_specified_seed_storage_count = sum(str_detect(STORAGE, "^10$"), na.rm = TRUE),
     longterm_storage_count  = sum(str_detect(STORAGE, "^13$"), na.rm = TRUE),
     medterm_storage_count   = sum(str_detect(STORAGE, "^12$"), na.rm = TRUE),
     shortterm_storage_count = sum(str_detect(STORAGE, "^11$"), na.rm = TRUE)
   ) %>%
   mutate(
-    not_specified_seed_storage_perc =  round(100 * not_specified_seed_storage / total_records, 2),
+    not_specified_seed_storage_perc =  round(100 * not_specified_seed_storage_count / total_records, 2),
     longterm_storage_perc   = round(100 * longterm_storage_count / total_records, 2),
     medterm_storage_perc    = round(100 * medterm_storage_count / total_records, 2),
     shortterm_storage_perc  = round(100 * shortterm_storage_count / total_records, 2)
@@ -190,10 +190,7 @@ sd_outcountry_metric <- genesys %>%
   ) %>%
   arrange(desc(sd_out_country_count)) %>%
   mutate(sd_out_country_perc = 100 * sd_out_country_count / accessions_total)
-
-# Save output to Drive folder, please use subfolder with date of running the script 
 sd_outcountry_metric <- apply(sd_outcountry_metric,2,as.character)
-write.csv(sd_outcountry_metric, '../../Data_processing/4_Estimate_metrics/Safety_duplication/2025_07_07/genesys_sd_outcountry.csv', row.names = FALSE)
 
 # 11. SGSV duplicates
 SGSV_dupl_metric <- SGSV_allcrops %>%
@@ -211,10 +208,12 @@ GLIS_dois_count <- GLIS_dataset %>%
   summarise(dois = sum(!is.na(DOI) & DOI != ""), .groups = "drop")
 
 # 13: GLIS: # of accessions notified as include in MLS (based on GLIS dataset)
-GLIS_MLS_count <- GLIS_dataset %>% group_by(Crop_strategy) %>% summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
+GLIS_MLS_count <- GLIS_dataset %>% 
+  group_by(Crop_strategy) %>% 
+  summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
 
 # 14. Top institutions holding crop germplasm
-institution_accessions_summary <- combined_allcrops %>%    #note: tested and corrected
+institution_accessions_summary <- combined_allcrops %>%
   filter(!is.na(INSTCODE)) %>%
   group_by(Crop_strategy, INSTCODE) %>%
   summarise(institution_accessions_count = n(), .groups = "drop_last") %>%
@@ -262,7 +261,7 @@ df <- combined_allcrops %>%
 df <- get_PDCI(df)
 
 # Extract median PDCI
-summary_pdci <- df %>% 
+pdci_summary <- df %>% 
   group_by(Crop_strategy) %>%
   summarise(
     median_PDCI = median(PDCI, na.rm = TRUE) #median PDCI
@@ -272,7 +271,7 @@ summary_pdci <- df %>%
 
 # 21. Count of records in GBIF
 source("Functions/Call_gbif_API.R")  # Import function get_gbif_count
-summary_gbif_count <- croplist %>%
+gbif_count_summary <- croplist %>%
   rename(Crop_strategy = CropStrategy) %>%
   rowwise() %>%
   mutate(
@@ -292,4 +291,49 @@ source("Functions/Process_char_eval.R")
 # call location of folders with char and eval datasets extracted from Genesys
 char_eval_summary <- summarize_char_eval('../../Data/Genesys/Characterization_and_evaluation_datasets')
 
-############ works until here, the rest needs to be corrected #########
+
+# --------- COMPILE ALL METRICS INTO ONE LIST ---------
+library(openxlsx)
+
+# Collect all metrics into a list
+metrics_list <- list(
+  accession_by_crop_strategy       = accession_by_crop_strategy,
+  accession_by_source              = accession_by_source,
+  unique_institutions              = unique_institutions,
+  cwr_metric                       = cwr_metric,
+  weedy_metric                     = weedy_metric,
+  landrace_metric                  = landrace_metric,
+  breeding_metric                  = breeding_metric,
+  improved_metric                  = improved_metric,
+  othervar_metric                  = othervar_metric,
+  no_SAMPSTAT_metric               = no_SAMPSTAT_metric,
+  unique_taxa                      = unique_taxa,
+  country_count                    = country_count,
+  primary_region_metric            = primary_region_metric,
+  diversity_regions_metric         = diversity_regions_metric,
+  accessions_by_org_type           = accessions_by_org_type,
+  mls_by_orgtype                   = mls_by_orgtype,
+  annex1_count                     = annex1_count,
+  annex1_perc                      = annex1_perc,
+  storage_summary                  = storage_summary,
+  storage_term_summary             = storage_term_summary,
+  sd_outcountry_metric             = sd_outcountry_metric,
+  SGSV_dupl_metric                 = SGSV_dupl_metric,
+  GLIS_dois_count                  = GLIS_dois_count,
+  GLIS_MLS_count                   = GLIS_MLS_count,
+  institution_accessions_summary  = institution_accessions_summary,
+  BGCI_taxa_count                  = BGCI_taxa_count,
+  BGCI_inst_count                  = BGCI_inst_count,
+  WIEWS_regeneration_summary       = WIEWS_regeneration_summary,
+  pdci_summary                     = pdci_summary,
+  gbif_count_summary               = gbif_count_summary,
+  char_eval_summary                = char_eval_summary
+)
+
+# remove list of taxa, causes file save issues; 'unique_taxa' column from uniqe_taxa summary
+metrics_list$unique_taxa <- metrics_list$unique_taxa %>% select(-unique_taxa)
+
+# Save all metrics to excel file with each sheet as different metric
+write.xlsx(metrics_list, file = "../../Data_processing/4_Estimate_metrics/2025_07_15/all_metrics_summary.xlsx")
+
+############ End of Script ############
