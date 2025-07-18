@@ -159,7 +159,7 @@ storage_term_summary <- combined_allcrops %>%
   group_by(Crop_strategy) %>%
   summarise(
     total_records = n(),
-    not_specified_seed_storage = sum(
+    not_specified_seed_storage_count = sum(
       str_detect(STORAGE, "(^|;)10(;|$)") & 
         !str_detect(STORAGE, "(^|;)(11|12|13)(;|$)"),
       na.rm = TRUE
@@ -169,7 +169,7 @@ storage_term_summary <- combined_allcrops %>%
     shortterm_storage_count = sum(str_detect(STORAGE, "^11$"), na.rm = TRUE)
   ) %>%
   mutate(
-    not_specified_seed_storage_perc =  round(100 * not_specified_seed_storage / total_records, 2),
+    not_specified_seed_storage_perc =  round(100 * not_specified_seed_storage_count / total_records, 2),
     longterm_storage_perc   = round(100 * longterm_storage_count / total_records, 2),
     medterm_storage_perc    = round(100 * medterm_storage_count / total_records, 2),
     shortterm_storage_perc  = round(100 * shortterm_storage_count / total_records, 2)
