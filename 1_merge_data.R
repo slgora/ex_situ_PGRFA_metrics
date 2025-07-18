@@ -172,7 +172,7 @@ gen_wiews_df <-gen_wiews_df %>% filter(!grepl("Pisum", fullTaxa))
 
 # save results
 gen_wiews_df$STORAGE <- as.character(gen_wiews_df$STORAGE)
-write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_07/gen_wiews_df.csv', row.names = FALSE)
+write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_18/gen_wiews_df.csv', row.names = FALSE)
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
 # create a list of file paths (each one is a Json file downloaded from GLIS)
