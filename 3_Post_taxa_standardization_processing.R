@@ -3,7 +3,7 @@
 
 ###### 1. Load datasets with taxa to be standardized using conversion table  #######################
 crops <- read_excel("../../Data_processing/Support_files/GCCS_selected_crops/croplist_PG.xlsx")
-combined_df <- read_csv("../../Data_processing/1_merge_data/2025_07_08/gen_wiews_df.csv")
+combined_df <- read_csv("../../Data_processing/1_merge_data/2025_07_18/gen_wiews_df.csv")
 SGSV_allcrops <- read_csv("../../Data_processing/1_merge_data/2025_07_07/SGSV_processed.csv") 
 GLIS_processed <- read_csv('../../Data_processing/1_merge_data/2025_07_07/GLIS_processed.csv')
 BGCI_processed <- read_csv('../../Data_processing/1_merge_data/2025_07_07/BGCI_processed.csv')
