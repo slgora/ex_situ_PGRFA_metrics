@@ -171,6 +171,7 @@ gen_wiews_df = assign_org_type(gen_wiews_df, institute_names_no_syn)
 gen_wiews_df <-gen_wiews_df %>% filter(!grepl("Pisum", fullTaxa))                               
 
 # save results
+gen_wiews_df$STORAGE <- as.character(gen_wiews_df$STORAGE)
 write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_07/gen_wiews_df.csv', row.names = FALSE)
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
