@@ -3,7 +3,7 @@
 
 ###### 1. Load datasets with taxa to be standardized using conversion table  #######################
 crops <- read_excel("../../Data_processing/Support_files/GCCS_selected_crops/croplist_PG.xlsx")
-combined_df <- read_csv("../../Data_processing/1_merge_data/2025_07_08/gen_wiews_df.csv")
+combined_df <- read_csv("../../Data_processing/1_merge_data/2025_07_18/gen_wiews_df.csv")
 SGSV_allcrops <- read_csv("../../Data_processing/1_merge_data/2025_07_07/SGSV_processed.csv") 
 GLIS_processed <- read_csv('../../Data_processing/1_merge_data/2025_07_07/GLIS_processed.csv')
 BGCI_processed <- read_csv('../../Data_processing/1_merge_data/2025_07_07/BGCI_processed.csv')
@@ -78,7 +78,7 @@ combined_df = assign_annex1status(combined_df, standardize_taxa = 'Standardized_
 
 
 ##### save resulting datasets in folder: ../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/
-write.csv(combined_df, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_08/combined_df.csv', row.names = FALSE)
+write.csv(combined_df, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_18/combined_df.csv', row.names = FALSE)
 write.csv(SGSV_allcrops, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/SGSV_processed.csv', row.names = FALSE)
 write.csv(GLIS_processed, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/GLIS_processed.csv', row.names = FALSE)
 write.csv(BGCI_processed, '../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/BGCI_processed.csv', row.names = FALSE)
