@@ -360,7 +360,7 @@ metrics_list <- list(
   annex1_perc                      = annex1_perc,
   storage_summary                  = storage_summary,
   storage_term_summary             = storage_term_summary,
-  sd_outcountry_metric             = sd_outcountry_metric,
+  sd_outcountry_metric_by_crop     = sd_outcountry_metric_by_crop,
   SGSV_dupl_metric                 = SGSV_dupl_metric,
   GLIS_dois_count                  = GLIS_dois_count,
   GLIS_MLS_count                   = GLIS_MLS_count,
