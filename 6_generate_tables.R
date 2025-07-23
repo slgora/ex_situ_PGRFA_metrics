@@ -62,11 +62,11 @@ write_xlsx(table4_by_crop, path = "../../Data_processing/6_generate_tables/2025_
 # ---------- Table 5 ------------
 # Create list of metrics for table 5
 metric_dfs <- list(
-  storage_summary            = all_metrics$storage_summary,
-  storage_term_summary       = all_metrics$storage_term_summary,
-  WIEWS_regeneration_summary = all_metrics$WIEWS_regeneration_summary,
-  # sd_outcountry_metric     = sd_outcountry_metric,              #see issue
-  SGSV_dupl_metric           = all_metrics$SGSV_dupl_metric)
+  storage_summary               = all_metrics$storage_summary,
+  storage_term_summary          = all_metrics$storage_term_summary,
+  WIEWS_regeneration_summary    = all_metrics$WIEWS_regeneration_summary,
+  sd_outcountry_metric_by_crop  = sd_outcountry_metric_by_crop,
+  SGSV_dupl_metric              = all_metrics$SGSV_dupl_metric)
 # Run function to generate table 5
 table5_by_crop <- generate_table5(metrics_guide, metric_dfs)
 # Export all crop tables into one Excel file with each crop as a tab
