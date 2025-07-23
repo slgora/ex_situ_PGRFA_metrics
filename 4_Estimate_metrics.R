@@ -196,6 +196,16 @@ sd_outcountry_metric <- genesys %>%
   mutate(sd_out_country_perc = 100 * sd_out_country_count / accessions_total)
 sd_outcountry_metric <- apply(sd_outcountry_metric,2,as.character)
 
+sd_outcountry_metric_by_crop <- genesys %>%
+  group_by(Crop_strategy) %>%
+  summarise(
+    sd_out_country_count = sum(sd_out_country, na.rm = TRUE),
+    accessions_total = n()
+  ) %>%
+  arrange(desc(sd_out_country_count)) %>%
+  mutate(sd_out_country_perc = 100 * sd_out_country_count / accessions_total)
+sd_outcountry_metric_by_crop <- apply(sd_outcountry_metric_by_crop,2,as.character)
+
 # 11. SGSV duplicates
 SGSV_dupl_metric <- SGSV_allcrops %>%
   count(Crop_strategy, name = "sgsv_dupl_count") %>%
