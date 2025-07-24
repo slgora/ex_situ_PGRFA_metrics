@@ -18,10 +18,9 @@ process_PTFTW_metrics <- function(indicator_file, croplist, out_path = NULL) {
   PTFTW_indicator <- read_csv(indicator_file)
   croplist_df <- read_excel(croplist)
   
-  # Standardize crop names
-  PTFTW_indicator$crop[PTFTW_indicator$crop == "Rice (Asian)"] <- "Rice"
-  PTFTW_indicator$crop[PTFTW_indicator$crop == "Chickpeas"] <- "Chickpea"
-  PTFTW_indicator <- PTFTW_indicator %>% rename(PlantsthatFeedtheWorld_name = crop)
+  PTFTW_indicator <- PTFTW_indicator %>%
+    rename(PlantsthatFeedtheWorld_name = crop) %>%
+    mutate(PlantsthatFeedtheWorld_name = trimws(PlantsthatFeedtheWorld_name))
   
   # Join and clean
   PTFTW_clean <- croplist_df %>%
