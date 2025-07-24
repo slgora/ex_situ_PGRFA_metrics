@@ -98,14 +98,18 @@ accessions_by_org_type <- combined_allcrops %>%
   ungroup()
 
 mls_by_orgtype <- combined_allcrops %>%
-  group_by(Crop_strategy, A15_collection) %>%
+  mutate(A15_collection = ORGANIZATIONTYPE %in% c("CGIAR", "International")) %>%
+  group_by(Crop_strategy) %>%
+  mutate(total_crop_records = n()) %>%
+  group_by(Crop_strategy, A15_collection, total_crop_records) %>%
   summarise(
-    count_includedmls = sum(MLSSTAT, na.rm = TRUE),
-    count_notincludedmls = sum(!MLSSTAT, na.rm = TRUE),
-    total = n(),
-    percent_includedmls = round(100 * count_includedmls / total, 2),
-    percent_notincludedmls = round(100 * count_notincludedmls / total, 2),
+    count_includedmls = sum(MLSSTAT == TRUE, na.rm = TRUE),
+    count_notincludedmls = sum(MLSSTAT == FALSE, na.rm = TRUE),
     .groups = "drop"
+  ) %>%
+  mutate(
+    percent_includedmls = round(100 * count_includedmls / total_crop_records, 2),
+    percent_notincludedmls = round(100 * count_notincludedmls / total_crop_records, 2)
   )
 
 # 8. Accessions in Annex I
