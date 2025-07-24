@@ -56,6 +56,7 @@ write_xlsx(table2_by_crop, path = "../../GCCS metrics project shared folder/Data
 
 
 # ---------- Table 3 ------------
+# Create list of metrics for table 3
 metric_dfs <- all_metrics %>%
    keep(~ "Crop_strategy" %in% names(.x)) %>%
    bind_rows()
@@ -99,8 +100,7 @@ write_xlsx(table5_by_crop, path = "../../GCCS metrics project shared folder/Data
 metric_dfs_table6 <- list(
   pdci_summary        = all_metrics$pdci_summary,
   gbif_count_summary  = all_metrics$gbif_count_summary,
-  PTFTW_metrics       = PTFTW_metrics
-)
+  PTFTW_metrics       = PTFTW_metrics)
 # Run function to generate table 6
 table6_by_crop <- generate_table6(metrics_guide, metric_dfs_table6)
 # Export all crop tables into one Excel file with each crop as a tab
