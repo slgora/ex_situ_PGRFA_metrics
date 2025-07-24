@@ -38,7 +38,9 @@ PTFTW_metrics_processed <- process_PTFTW_metrics(
 # note: will need to update local paths within function to work properly
 source("Functions/Process_transfers.R")
 
-# Data read in, transfers (2012-2015), transfers (2019-2021), country regions, croplist already read in above
+# Data read in, transfers (2012-2019), transfers (2019-2021), country regions, croplist already read in above
+# note: function filters the older transfers dataset to include only records from 2015–2018, 
+#       excluding earlier years and post-2019 entries to avoid duplication with newer 2019–2021 dataset
 transfers_2012_2019 <- read_excel("../../Data/Plant_Treaty/Data_store/ITPGRFA_MLSDataStore2022_7_1.xlsx")
 transfers_2019_2021 <- read_excel("../../Data/Plant_Treaty/Data_store/Transfers_ourcrops_2019-2021.xlsx")
 countries_regions <- read_excel("../../Data_processing/Support_files/Geographical/countries_in_regions.xlsx")
