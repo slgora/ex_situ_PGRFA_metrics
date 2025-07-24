@@ -92,13 +92,10 @@ combined_allcrops <- combined_allcrops %>%
 
 accessions_by_org_type <- combined_allcrops %>%
   group_by(Crop_strategy, A15_collection) %>%
-  summarise(
-    n_records = n(),
-    .groups = "drop"
-  ) %>%
-  mutate(
-    percent = round(100 * n_records / sum(n_records), 2)
-  )
+  summarise(n_records = n(), .groups = "drop") %>%
+  group_by(Crop_strategy) %>%
+  mutate(percent = round(100 * n_records / sum(n_records), 2)) %>%
+  ungroup()
 
 mls_by_orgtype <- combined_allcrops %>%
   group_by(Crop_strategy, A15_collection) %>%
