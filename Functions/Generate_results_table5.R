@@ -79,7 +79,7 @@ generate_table5 <- function(metrics_guide, metric_dfs) {
           df <- metric_dfs[[df_name]]
           if (!var_name %in% names(df)) return(" ")
           val <- df %>% filter(!!sym(crop_column) == crop) %>% pull(var_name)
-          if (length(val) && !is.na(val)) paste0(format(val, digits = 2), "%") else " "
+         if (length(val) && !is.na(val)) paste0(format(round(val, 2), nsmall = 2), "%") else " "
         })
       ) %>%
       select(Metric, Number, Percentage)
