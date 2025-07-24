@@ -1,4 +1,5 @@
 library(readr)
+library(tibble)
 
 # Read in Metrics_and_data_descriptions_table as guide file for table set up
 metrics_guide <- read_excel("../../Data_processing/Metrics_and_data_descriptions_table.xlsx")
@@ -28,8 +29,22 @@ source("Functions/Generate_results_table7.R")
 filtered_guide <- metrics_guide %>% filter(`Pertains to Table` == 1)
 # Fun function to generate table 1
 table1_by_crop <- generate_table1(1, PTFTW_metrics, filtered_guide)
+# Correct dashes added to Wikipedia row
+# Note: could not implement cleanly in function yet
+wiki_lbl <- "Number of public pageviews on Wikipedia over one year"
+table1_by_crop <- map(
+  table1_by_crop,
+  ~ .x %>%
+    mutate(
+      across(
+        -Metric,
+        ~ if_else(Metric == wiki_lbl & . == "—", "", .)
+      )
+    )
+)
 # Export all crop tables into one Excel file with each crop as a tab
-write_xlsx(table1_by_crop, path = "../../Data_processing/6_generate_tables/2025_07_18/Table1_all_crops.xlsx")
+write_xlsx(table1_by_crop, path = "../../GCCS metrics project shared folder/Data_processing/6_generate_tables/2025_07_24/Table1_all_crops.xlsx")
+
 
 # ---------- Table 2 ------------
 # Extract metric needed for Table 2
@@ -37,13 +52,18 @@ institution_accessions_summary <- all_metrics$institution_accessions_summary
 # Run function to generate table 2
 table2_by_crop <- generate_table2(institution_accessions_summary)
 # Export all crop tables into one Excel file with each crop as a tab
-write_xlsx(table2_by_crop, path = "../../Data_processing/6_generate_tables/2025_07_18/Table2_all_crops.xlsx")
+write_xlsx(table2_by_crop, path = "../../GCCS metrics project shared folder/Data_processing/6_generate_tables/2025_07_24/Table2_all_crops.xlsx")
+
 
 # ---------- Table 3 ------------
+metric_dfs <- all_metrics %>%
+   keep(~ "Crop_strategy" %in% names(.x)) %>%
+   bind_rows()
 # Run function to generate table 3
-table3_by_crop <- generate_table3(tbl_number = 3, metrics_guide = metrics_guide, all_metrics_df = all_metrics_df)
+table3_by_crop <- generate_table3(tbl_number = 3, metrics_guide = metrics_guide, all_metrics = metric_dfs)
 # Export all crop tables into one Excel file with each crop as a tab
-write_xlsx(table3_by_crop, path = "../../Data_processing/6_generate_tables/2025_07_18/Table3_all_crops.xlsx")
+write_xlsx(table3_by_crop, path = "../../GCCS metrics project shared folder/Data_processing/6_generate_tables/2025_07_24/Table3_all_crops.xlsx")
+
 
 # ---------- Table 4 ------------
 # Create list of metrics for table 4
@@ -57,31 +77,35 @@ metric_dfs <- list(
 # Run function to generate table 4
 table4_by_crop <- generate_table4(metrics_guide, metric_dfs)
 # Export all crop tables into one Excel file with each crop as a tab
-write_xlsx(table4_by_crop, path = "../../Data_processing/6_generate_tables/2025_07_18/Table4_all_crops.xlsx")
+write_xlsx(table4_by_crop, path = "../../GCCS metrics project shared folder/Data_processing/6_generate_tables/2025_07_24/Table4_all_crops.xlsx")
+
 
 # ---------- Table 5 ------------
 # Create list of metrics for table 5
 metric_dfs <- list(
-  storage_summary               = all_metrics$storage_summary,
-  storage_term_summary          = all_metrics$storage_term_summary,
-  WIEWS_regeneration_summary    = all_metrics$WIEWS_regeneration_summary,
-  sd_outcountry_metric_by_crop  = sd_outcountry_metric_by_crop,
-  SGSV_dupl_metric              = all_metrics$SGSV_dupl_metric)
+  storage_summary                = all_metrics$storage_summary,
+  storage_term_summary           = all_metrics$storage_term_summary,
+  WIEWS_regeneration_summary     = all_metrics$WIEWS_regeneration_summary,
+  sd_outcountry_metric_by_crop   = as_tibble(all_metrics$sd_outcountry_metric_by_crop),
+  SGSV_dupl_metric               = all_metrics$SGSV_dupl_metric)
 # Run function to generate table 5
 table5_by_crop <- generate_table5(metrics_guide, metric_dfs)
 # Export all crop tables into one Excel file with each crop as a tab
-write_xlsx(table5_by_crop, path = "../../Data_processing/6_generate_tables/2025_07_18/Table5_all_crops.xlsx")
+write_xlsx(table5_by_crop, path = "../../GCCS metrics project shared folder/Data_processing/6_generate_tables/2025_07_24/Table5_all_crops.xlsx")
+
 
 # ---------- Table 6 ------------
 # Create list of metrics for table 6
 metric_dfs_table6 <- list(
   pdci_summary        = all_metrics$pdci_summary,
   gbif_count_summary  = all_metrics$gbif_count_summary,
-  PTFTW_metrics       = PTFTW_metrics)
+  PTFTW_metrics       = PTFTW_metrics
+)
 # Run function to generate table 6
 table6_by_crop <- generate_table6(metrics_guide, metric_dfs_table6)
 # Export all crop tables into one Excel file with each crop as a tab
-write_xlsx(table6_by_crop, path = "../../Data_processing/6_generate_tables/2025_07_18/Table6_all_crops.xlsx")
+write_xlsx(table6_by_crop, path = "../../GCCS metrics project shared folder/Data_processing/6_generate_tables/2025_07_24/Table6_all_crops.xlsx")
+
 
 # ---------- Table 7 ------------
 # Create list of metrics for table 7
@@ -91,4 +115,4 @@ metric_dfs <- list(
 # Run function to generate table 7
 table7_by_crop <- generate_table7(metrics_guide, metric_dfs)
 # Export all crop tables into one Excel file with each crop as a tab
-write_xlsx(table7_by_crop, path = "../../Data_processing/6_generate_tables/2025_07_18/Table7_all_crops.xlsx")
+write_xlsx(table7_by_crop, path = "../../GCCS metrics project shared folder/Data_processing/6_generate_tables/2025_07_24/Table7_all_crops.xlsx")
