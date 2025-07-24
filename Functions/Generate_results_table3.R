@@ -105,7 +105,7 @@ generate_table3 <- function(tbl_number, metrics_guide, all_metrics_df) {
               pull(varname) %>%
               discard(is.na) %>%
               first()
-            if (!is.null(val) && !is.na(val)) paste0(format(val, digits = 3), "%") else ""
+             if (!is.null(val) && !is.na(val)) paste0(format(round(val, 2), nsmall = 2), "%") else ""
           })
         ) %>%
         arrange(`Row in Table`) %>%
