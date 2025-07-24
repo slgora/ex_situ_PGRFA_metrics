@@ -3,7 +3,7 @@ library(readr)
 # Read in Metrics_and_data_descriptions_table as guide file for table set up
 metrics_guide <- read_excel("../../Data_processing/Metrics_and_data_descriptions_table.xlsx")
 # Read in PTFTW and transfer metrics calculated
-PTFTW_metrics <- read_excel("../../Data_processing/5_PTFTW_processing_and_metrics/2025_07_14/PTFTW_metrics.xlsx")
+PTFTW_metrics <- read_excel("../../Data_processing/5_PTFTW_processing_and_metrics/2025_07_24/PTFTW_metrics.xlsx")
 transfer_metrics <- read_excel("../../Data_processing/5_PTFTW_processing_and_metrics/2025_07_14/transfers_metrics_2015_2021.xlsx")
 # Read in all other metrics file
 all_metrics <- "../../Data_processing/4_estimate_metrics/2025_07_23/all_metrics_summary.xlsx"
