@@ -126,54 +126,108 @@ annex1_perc <- combined_allcrops %>%
   mutate(annex1_perc = round((count_includedannex1 / annex1_total_records) * 100, 2))
 
 # 9. Storage type metrics (all, and by term)
+accession_base <- combined_allcrops %>%
+  mutate(Accession_ID = row_number()) %>%
+  select(Accession_ID, Crop_strategy)
+
 storage_types <- list(
-  seed      = "10|11|12|13",
+  seed      = c("10", "11", "12", "13"),
   field     = "20",
   invitro   = "30",
   cryo      = "40",
   dna       = "50",
   other     = "99"
 )
-storage_summary <- combined_allcrops %>%
+
+storage_long <- combined_allcrops %>%
+  mutate(
+    STORAGE = as.character(STORAGE),
+    Accession_ID = row_number()
+  ) %>%
+  filter(!is.na(STORAGE)) %>%
+  separate_rows(STORAGE, sep = ";") %>%
+  mutate(STORAGE = str_trim(STORAGE))
+
+nostorage_counts <- combined_allcrops %>%
+  mutate(Accession_ID = row_number()) %>%
+  filter(is.na(STORAGE)) %>%
+  count(Crop_strategy, name = "nostorage_count")
+
+# Storage type summary
+storage_term_summary <- storage_long %>%
+  filter(STORAGE %in% storage_types$seed) %>%
+  group_by(Accession_ID, Crop_strategy) %>%
+  summarise(
+    has_10 = any(STORAGE == "10"),
+    has_11 = any(STORAGE == "11"),
+    has_12 = any(STORAGE == "12"),
+    has_13 = any(STORAGE == "13"),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    seed_storage_category = case_when(
+      has_13 ~ "long_term",
+      has_12 ~ "medium_term",
+      has_11 ~ "short_term",
+      has_10 & !has_11 & !has_12 & !has_13 ~ "not_specified",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(seed_storage_category)) %>%  # Remove NA categories
+  left_join(accession_base, by = c("Accession_ID", "Crop_strategy")) %>%
   group_by(Crop_strategy) %>%
   summarise(
     total_records = n(),
-    seed_count   = sum(str_detect(STORAGE, storage_types$seed), na.rm = TRUE),
-    field_count  = sum(str_detect(STORAGE, storage_types$field), na.rm = TRUE),
-    invitro_count = sum(str_detect(STORAGE, storage_types$invitro), na.rm = TRUE),
-    cryo_count   = sum(str_detect(STORAGE, storage_types$cryo), na.rm = TRUE),
-    dna_count    = sum(str_detect(STORAGE, storage_types$dna), na.rm = TRUE),
-    other_count  = sum(str_detect(STORAGE, storage_types$other), na.rm = TRUE),
-    nostorage_count = sum(is.na(STORAGE))
+    seed_count = sum(!is.na(seed_storage_category)),
+    longterm_storage_count = sum(seed_storage_category == "long_term", na.rm = TRUE),
+    medterm_storage_count  = sum(seed_storage_category == "medium_term", na.rm = TRUE),
+    shortterm_storage_count = sum(seed_storage_category == "short_term", na.rm = TRUE),
+    not_specified_seed_storage_count = sum(seed_storage_category == "not_specified", na.rm = TRUE)
   ) %>%
   mutate(
-    seed_perc      = round(100 * seed_count / total_records, 2),
-    field_perc     = round(100 * field_count / total_records, 2),
-    invitro_perc   = round(100 * invitro_count / total_records, 2),
-    cryo_perc    = round(100 * cryo_count / total_records, 2),
-    dna_perc       = round(100 * dna_count / total_records, 2),
-    other_perc     = round(100 * other_count / total_records, 2),
-    nostorage_perc = round(100 * nostorage_count / total_records, 2)
+    seed_perc = round(100 * seed_count / total_records, 2),
+    longterm_storage_perc = round(100 * longterm_storage_count / total_records, 2),
+    medterm_storage_perc = round(100 * medterm_storage_count / total_records, 2),
+    shortterm_storage_perc = round(100 * shortterm_storage_count / total_records, 2),
+    not_specified_seed_storage_perc = round(100 * not_specified_seed_storage_count / total_records, 2)
   )
 
-storage_term_summary <- combined_allcrops %>%
+# Seed storage term summary
+storage_term_summary <- storage_long %>%
+  filter(STORAGE %in% storage_types$seed) %>%
+  group_by(Accession_ID, Crop_strategy) %>%
+  summarise(
+    has_10 = any(STORAGE == "10"),
+    has_11 = any(STORAGE == "11"),
+    has_12 = any(STORAGE == "12"),
+    has_13 = any(STORAGE == "13"),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    seed_storage_category = case_when(
+      has_13 ~ "long_term",
+      has_12 ~ "medium_term",
+      has_11 ~ "short_term",
+      has_10 & !has_11 & !has_12 & !has_13 ~ "not_specified",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  left_join(accession_base, by = c("Accession_ID", "Crop_strategy")) %>%
   group_by(Crop_strategy) %>%
   summarise(
     total_records = n(),
-    not_specified_seed_storage_count = sum(
-      str_detect(STORAGE, "(^|;)10(;|$)") & 
-        !str_detect(STORAGE, "(^|;)(11|12|13)(;|$)"),
-      na.rm = TRUE
-    ),
-    longterm_storage_count  = sum(str_detect(STORAGE, "^13$"), na.rm = TRUE),
-    medterm_storage_count   = sum(str_detect(STORAGE, "^12$"), na.rm = TRUE),
-    shortterm_storage_count = sum(str_detect(STORAGE, "^11$"), na.rm = TRUE)
+    seed_count = sum(!is.na(seed_storage_category)),
+    longterm_storage_count = sum(seed_storage_category == "long_term", na.rm = TRUE),
+    medterm_storage_count  = sum(seed_storage_category == "medium_term", na.rm = TRUE),
+    shortterm_storage_count = sum(seed_storage_category == "short_term", na.rm = TRUE),
+    not_specified_seed_storage_count = sum(seed_storage_category == "not_specified", na.rm = TRUE)
   ) %>%
   mutate(
-    not_specified_seed_storage_perc =  round(100 * not_specified_seed_storage_count / total_records, 2),
-    longterm_storage_perc   = round(100 * longterm_storage_count / total_records, 2),
-    medterm_storage_perc    = round(100 * medterm_storage_count / total_records, 2),
-    shortterm_storage_perc  = round(100 * shortterm_storage_count / total_records, 2)
+    seed_perc = round(100 * seed_count / total_records, 2),
+    longterm_storage_perc = round(100 * longterm_storage_count / total_records, 2),
+    medterm_storage_perc = round(100 * medterm_storage_count / total_records, 2),
+    shortterm_storage_perc = round(100 * shortterm_storage_count / total_records, 2),
+    not_specified_seed_storage_perc = round(100 * not_specified_seed_storage_count / total_records, 2)
   )
 
 # 10. Safety duplication percentage of accessions duplicated out of the country in other genebanks (excluding SGSV) calculated only using Genesys data. 
@@ -374,7 +428,7 @@ metrics_list <- list(
   char_eval_summary                = char_eval_summary
 )
 # Save all metrics to excel file with each sheet as different metric
-write.xlsx(metrics_list, file = "../../Data_processing/4_Estimate_metrics/2025_07_24/all_metrics_summary.xlsx")
+write.xlsx(metrics_list, file = "../../Data_processing/4_Estimate_metrics/2025_07_25/all_metrics_summary.xlsx")
 
 
 # --------- Export Taxa  ---------
