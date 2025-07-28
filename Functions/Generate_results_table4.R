@@ -2,7 +2,8 @@
 #' Generate Table 4: Crop‐Specific Metrics Summary
 #'
 #' Builds Table 4 (8 rows × 3 columns) for each crop, pulling Number and
-#' Percentage values and ensuring that Number is exported as numeric.
+#' Percentage values. The Number column is exported as numeric where possible,
+#' and values above 10,000 are formatted with commas for readability.
 #' All percentages are shown to two decimal places with a % symbol.
 #'
 #' @param metrics_guide Data frame with your metrics guide (must include
@@ -20,11 +21,12 @@
 #'       percent_includedmls, percent_notincludedmls, A15_collection
 #'
 #' @return Named list of tibbles (one per crop) with columns:
-#'   Metric | Number (as numeric) | Percentage (as string with %)
+#'   Metric | Number (formatted with commas if >10,000) | Percentage (as string with %)
 #' @export
 # -------------------------------------------------------------------------------------------
 generate_table4 <- function(metrics_guide, metric_dfs) {
   library(dplyr); library(purrr); library(stringr); library(tidyr)
+  
   crop_column <- "Crop_strategy"
   
   guide_tbl <- metrics_guide %>%
@@ -52,26 +54,18 @@ generate_table4 <- function(metrics_guide, metric_dfs) {
         TRUE ~ NA_character_
       ),
       var_name = case_when(
-        # international
         Metric == "Number of accessions in genebank collections in international institutions" & Role == "Number"     ~ "n_records",
         Metric == "Number of accessions in genebank collections in international institutions" & Role == "Percentage" ~ "percent",
-        # national
         Metric == "Number of accessions in genebank collections in national or other institutions" & Role == "Number"     ~ "n_records",
         Metric == "Number of accessions in genebank collections in national or other institutions" & Role == "Percentage" ~ "percent",
-        # Annex I
         Metric == "Number of accessions in genebank collections in Annex I" & Role == "Number"     ~ "count_includedannex1",
         Metric == "Number of accessions in genebank collections in Annex I" & Role == "Percentage" ~ "annex1_perc",
-        # DOIs
         Metric == "Number of accessions with DOI (Plant Treaty GLIS 2024)"                         ~ "dois",
-        # MLS notified
         Metric == "Number of accessions included in the Multilateral System (MLS) (Plant Treaty GLIS 2025)" ~ "MLS_notified",
-        # MLS databases
         Metric == "Number of accessions included in the Multilateral System (MLS) (genebank collections databases)" & Role == "Number"     ~ "count_includedmls",
         Metric == "Number of accessions included in the Multilateral System (MLS) (genebank collections databases)" & Role == "Percentage" ~ "percent_includedmls",
-        # MLS international
         Metric == "Number of accessions included in the Multilateral System (MLS) that are in international collections (genebank collections databases)" & Role == "Number"     ~ "count_includedmls",
         Metric == "Number of accessions included in the Multilateral System (MLS) that are in international collections (genebank collections databases)" & Role == "Percentage" ~ "percent_includedmls",
-        # MLS not included
         Metric == "Number of accessions not included in the Multilateral System (MLS) (genebank collections databases)" & Role == "Number"     ~ "count_notincludedmls",
         Metric == "Number of accessions not included in the Multilateral System (MLS) (genebank collections databases)" & Role == "Percentage" ~ "percent_notincludedmls",
         TRUE ~ NA_character_
@@ -116,7 +110,10 @@ generate_table4 <- function(metrics_guide, metric_dfs) {
     tbl <- vals %>%
       pivot_wider(names_from = Role, values_from = Value, values_fill = "") %>%
       mutate(
-        Number     = suppressWarnings(as.numeric(Number)),  # Ensures numeric type for Excel
+        Number_raw = suppressWarnings(as.numeric(Number)),
+        Number = ifelse(Number_raw > 10000,
+                        format(Number_raw, big.mark = ",", scientific = FALSE),
+                        as.character(Number_raw)),
         Percentage = coalesce(Percentage, "")
       ) %>%
       select(Metric, Number, Percentage) %>%
