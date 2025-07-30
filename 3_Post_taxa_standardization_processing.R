@@ -21,13 +21,16 @@ combined_df$fullTaxa2 <- trimws(
 
 #### add standardized_taxa column here when the manual vetting is complete and standardization_table becomes available, code to be tested#######
 #load standardization table
-table_standardization <- read_excel("../../Data_processing/Support_files/Taxa_standardization/standardization_table_WFO_GRIN_2025_07_01.xlsx")
+table_standardization <- read_excel("../../Data_processing/Support_files/Taxa_standardization/SG_standardization_table_WFO_GRIN_2025_07_01.xlsx")
 
 # Replace tabs with space in input_name
 table_standardization$input_name <- gsub("\t", " ", table_standardization$input_name)
 
-#replace multiple spaces with one space 
+#Replace multiple spaces with one space 
 table_standardization$input_name <- gsub("\\s+", " ", table_standardization$input_name)
+
+#Add a space after period, "." between words in PG_recommendation
+table_standardization$PG_recommendation <- gsub("(?<=[a-zA-Z])\\.(?=[a-zA-Z])", ". ", table_standardization$PG_recommendation, perl = TRUE)
 
 # Create named vector: input_name -> PG_recommendation
 standardization_table <- setNames(table_standardization$PG_recommendation, table_standardization$input_name)
