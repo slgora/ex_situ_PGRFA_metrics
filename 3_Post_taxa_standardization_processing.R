@@ -21,13 +21,16 @@ combined_df$fullTaxa2 <- trimws(
 
 #### add standardized_taxa column here when the manual vetting is complete and standardization_table becomes available, code to be tested#######
 #load standardization table
-table_standardization <- read_excel("../../Data_processing/Support_files/Taxa_standardization/standardization_table_WFO_GRIN_2025_07_01.xlsx")
+table_standardization <- read_excel("../../Data_processing/Support_files/Taxa_standardization/SG_standardization_table_WFO_GRIN_2025_07_01.xlsx")
 
 # Replace tabs with space in input_name
 table_standardization$input_name <- gsub("\t", " ", table_standardization$input_name)
 
-#replace multiple spaces with one space 
+#Replace multiple spaces with one space 
 table_standardization$input_name <- gsub("\\s+", " ", table_standardization$input_name)
+
+#Add a space after period, "." between words in PG_recommendation
+table_standardization$PG_recommendation <- gsub("(?<=[a-zA-Z])\\.(?=[a-zA-Z])", ". ", table_standardization$PG_recommendation, perl = TRUE)
 
 # Create named vector: input_name -> PG_recommendation
 standardization_table <- setNames(table_standardization$PG_recommendation, table_standardization$input_name)
@@ -64,13 +67,41 @@ BGCI_processed <- BGCI_processed %>%
   assign_crop_strategy(crops = crops, col_name = "GENUS_standardized") %>%
   filter(!is.na(Crop_strategy))  # remove records where Crop_strategy is NA
 
-###### 3. Assign diversity region               ######################
+###### 3. Remove food crops from Forages          ######################
+# Define the list of species to remove from forages
+species_to_remove <- c(
+  "Glycine max (L.) Merr.",
+  "Vigna unguiculata (L.) Walp.",
+  "Cenchrus americanus (L.) Morrone",
+  "Cajanus cajan (L.) Millsp.",
+  "Vigna radiata var. radiata",
+  "Vigna radiata (L.) R. Wilczek",
+  "Panicum miliaceum L.",
+  "Panicum miliaceum subsp. miliaceum",
+  "Eragrostis tef (Zuccagni) Trotter",
+  "Vigna angularis (Willd.) Ohwi & H. Ohashi",
+  "Vigna mungo (L.) Hepper",
+  "Vigna subterranea (L.) Verdc.",
+  "Lablab purpureus (L.) Sweet",
+  "Vigna umbellata (Thunb.) Ohwi & H. Ohashi",
+  "Vigna unguiculata subsp. unguiculata",
+  "Trigonella foenum-graecum L.",
+  "Paspalum scrobiculatum L.",
+  "Panicum sumatrense Roth",
+  "Vigna aconitifolia (Jacq.) Maréchal",
+  "Vigna unguiculata group sesquipedalis" 
+  )
+# Filter out food crop species from forages
+combined_df <- combined_df %>%
+  filter(!(Crop_strategy == "Tropical and subtropical forages" & Standardized_taxa %in% species_to_remove))
+
+###### 4. Assign diversity region               ######################
 # It requires crops dataframe (croplist_PG.xlsx) and countries in regions (countries_in_regions.xlsx)
 source("Functions/Assign_diversity_regions.R")
 countries_in_regions <- read_excel("../../Data_processing/Support_files/Geographical/countries_in_regions.xlsx")
 combined_df = assign_diversity_regions(combined_df, crops = crops, countries_in_regions = countries_in_regions)
 
-###### 4. Assign Annex 1 status                 ######################
+###### 5. Assign Annex 1 status                 ######################
 # in the function assign_annex1status one needs to change the path for the file containing the list of Petota and Melongena species
 # function taking a dataframe including a column taxa names and returning TRUE/FALSE , 
 source("Functions/Assign_annex1_status.R")

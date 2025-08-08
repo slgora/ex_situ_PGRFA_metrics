@@ -16,14 +16,14 @@
 #'        - "Metric Name in Results Table (or summaries text)"
 #'        - "Row in Table"
 #'        - Either "Name of Summary Variable (if summarized)" or "Name of Individual Metric Variable"
-#' @param all_metrics_df Data frame. A unified data frame containing all crop strategy metrics.
+#' @param all_metrics Data frame. A unified data frame containing all crop strategy metrics.
 #'        Must include a column named "Crop_strategy" and relevant metric columns.
 #'
 #' @return A named list of data frames, one per crop strategy, each with columns:
 #'         - Metric: Label used in reporting
 #'         - Number: Extracted metric value (formatted with comma if over 10,000)
 #'         - Percentage: Formatted percentage value with `%` symbol
-generate_table3 <- function(tbl_number, metrics_guide, all_metrics_df) {
+generate_table3 <- function(tbl_number, metrics_guide, all_metrics) {
   library(dplyr)
   library(tidyr)
   library(purrr)
@@ -77,8 +77,8 @@ generate_table3 <- function(tbl_number, metrics_guide, all_metrics_df) {
     pivot_wider(names_from = `Metric Role`, values_from = role_variable) %>%
     ungroup()
   
-  # Step 3: Get crop list from all_metrics_df
-  all_crops <- unique(as.character(all_metrics_df[[crop_column]]))
+  # Step 3: Get crop list from all_metrics
+  all_crops <- unique(as.character(all_metrics[[crop_column]]))
   
   # Step 4: Build output for each crop
   crop_tables <- all_crops %>%
@@ -87,8 +87,8 @@ generate_table3 <- function(tbl_number, metrics_guide, all_metrics_df) {
       guide_wide %>%
         mutate(
           Number = map_chr(Number, function(varname) {
-            if (!varname %in% names(all_metrics_df)) return("")
-            val <- all_metrics_df %>%
+            if (!varname %in% names(all_metrics)) return("")
+            val <- all_metrics %>%
               filter(!!sym(crop_column) == crop) %>%
               pull(varname) %>%
               discard(is.na) %>%
@@ -99,13 +99,13 @@ generate_table3 <- function(tbl_number, metrics_guide, all_metrics_df) {
             } else ""
           }),
           Percentage = map_chr(Percentage, function(varname) {
-            if (!varname %in% names(all_metrics_df)) return("")
-            val <- all_metrics_df %>%
+            if (!varname %in% names(all_metrics)) return("")
+            val <- all_metrics %>%
               filter(!!sym(crop_column) == crop) %>%
               pull(varname) %>%
               discard(is.na) %>%
               first()
-            if (!is.null(val) && !is.na(val)) paste0(format(val, digits = 3), "%") else ""
+            if (!is.null(val) && !is.na(val)) paste0(format(round(val, 2), nsmall = 2), "%") else ""
           })
         ) %>%
         arrange(`Row in Table`) %>%

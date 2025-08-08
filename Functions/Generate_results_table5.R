@@ -14,76 +14,107 @@
 #'   - Metric
 #'   - Number (formatted)
 #'   - Percentage (formatted or blank if not mapped)
-generate_table5 <- function(metrics_guide, metric_dfs) {
-  library(dplyr)
-  library(purrr)
-  library(stringr)
-  
-  crop_column <- "Crop_strategy"
-  
-  # 1) Filter only Table 5 and keep Number vs Percentage
-  g5 <- metrics_guide %>%
-    filter(`Pertains to Table` == 5,
-           `Metric Role` %in% c("Number", "Percentage")) %>%
-    mutate(
-      MetricLabel = `Metric Name in Results Table (or summaries text)`,
-      base_key    = str_to_lower(
-        str_remove(MetricLabel,
-                   regex("^(Number of |Percent of )", ignore_case = TRUE))
-      )
-    )
-  
-  # 2) Build a small table for Number‐rows
-  num_tbl <- g5 %>%
-    filter(`Metric Role` == "Number") %>%
-    transmute(
-      base_key,
-      Metric    = MetricLabel,
-      count_df  = `Name of Summary Variable (if summarized)`,
-      count_var = `Name of Individual Metric Variable`
-    )
-  
-  # 3) Build a small table for Percentage‐rows
-  perc_tbl <- g5 %>%
-    filter(`Metric Role` == "Percentage") %>%
-    transmute(
-      base_key,
-      perc_df  = `Name of Summary Variable (if summarized)`,
-      perc_var = `Name of Individual Metric Variable`
-    )
-  
-  # 4) Join them so each base_key has both count + perc (or NA)
-  guide_full <- full_join(num_tbl, perc_tbl, by = "base_key")
-  
-  # 5) Get the full list of crops
-  all_crops <- metric_dfs %>%
-    reduce(full_join, by = crop_column) %>%
-    pull(!!sym(crop_column)) %>%
-    unique()
-  
-  # 6) Build one data.frame per crop
-  crop_tables <- map(set_names(all_crops), function(crop) {
-    guide_full %>%
+--------------------------------------------------------------------------------
+  generate_table5 <- function(metrics_guide, metric_dfs) {
+    library(dplyr)
+    library(purrr)
+    library(stringr)
+    
+    crop_column <- "Crop_strategy"
+    
+    format_int <- function(x) {
+      num <- suppressWarnings(as.numeric(x))
+      out <- as.character(x)
+      ok  <- !is.na(num) & num > 1e4
+      out[ok] <- format(num[ok], big.mark = ",", scientific = FALSE, trim = TRUE)
+      out
+    }
+    
+    safe_percent <- function(x) {
+      num <- suppressWarnings(as.numeric(x))
+      if (length(num) != 1 || is.na(num)) return("")
+      paste0(format(round(num, 2), nsmall = 2), "%")
+    }
+    
+    pull_one <- function(df, var_name, crop) {
+      vals <- df %>% filter(!!sym(crop_column) == crop) %>% pull(var_name)
+      if (length(vals) > 1) {
+        warning(
+          "Multiple values for ", var_name,
+          " in data frame for crop '", crop, "'. Using the first."
+        )
+      }
+      if (length(vals) < 1) return(NA)
+      vals[[1]]
+    }
+    
+    # 1) filter & prep the guide
+    g5 <- metrics_guide %>%
+      filter(`Pertains to Table` == 5,
+             `Metric Role`   %in% c("Number", "Percentage")) %>%
       mutate(
-        Number = map2_chr(count_df, count_var, function(df_name, var_name) {
-          if (is.na(df_name) || is.na(var_name) || !df_name %in% names(metric_dfs))
-            return(" ")
-          df <- metric_dfs[[df_name]]
-          if (!var_name %in% names(df)) return(" ")
-          val <- df %>% filter(!!sym(crop_column) == crop) %>% pull(var_name)
-          if (length(val) && !is.na(val)) format(val, big.mark = ",") else " "
-        }),
-        Percentage = map2_chr(perc_df, perc_var, function(df_name, var_name) {
-          if (is.na(df_name) || is.na(var_name) || !df_name %in% names(metric_dfs))
-            return(" ")
-          df <- metric_dfs[[df_name]]
-          if (!var_name %in% names(df)) return(" ")
-          val <- df %>% filter(!!sym(crop_column) == crop) %>% pull(var_name)
-          if (length(val) && !is.na(val)) paste0(format(val, digits = 2), "%") else " "
-        })
-      ) %>%
-      select(Metric, Number, Percentage)
-  })
+        MetricLabel = `Metric Name in Results Table (or summaries text)`,
+        base_key    = str_to_lower(
+          str_remove(MetricLabel,
+                     regex("^(Number of |Percent of )", ignore_case = TRUE))
+        )
+      )
+    
+    num_tbl <- g5 %>%
+      filter(`Metric Role` == "Number") %>%
+      transmute(
+        base_key,
+        Metric    = MetricLabel,
+        count_df  = `Name of Summary Variable (if summarized)`,
+        count_var = `Name of Individual Metric Variable`
+      )
+    
+    perc_tbl <- g5 %>%
+      filter(`Metric Role` == "Percentage") %>%
+      transmute(
+        base_key,
+        perc_df  = `Name of Summary Variable (if summarized)`,
+        perc_var = `Name of Individual Metric Variable`
+      )
+    
+    guide_full <- full_join(num_tbl, perc_tbl, by = "base_key")
+    
+    # 2) extract all crop names, correctly
+    all_crops <- metric_dfs %>%
+      map(~ .x[[crop_column]]) %>%
+      flatten_chr() %>%
+      unique()
+    
+    # 3) build one table per crop
+    map(set_names(all_crops), function(crop) {
+      guide_full %>%
+        mutate(
+          Number = map2_chr(count_df, count_var, function(df_name, var_name) {
+            if (is.na(df_name) || is.na(var_name) || !(df_name %in% names(metric_dfs)))
+              return("")
+            val <- pull_one(metric_dfs[[df_name]], var_name, crop)
+            if (!is.na(val)) format_int(val) else ""
+          }),
+          Percentage = map2_chr(perc_df, perc_var, function(df_name, var_name) {
+            if (is.na(df_name) || is.na(var_name) || !(df_name %in% names(metric_dfs)))
+              return("")
+            val <- pull_one(metric_dfs[[df_name]], var_name, crop)
+            safe_percent(val)
+          })
+        ) %>%
+        select(Metric, Number, Percentage) %>%
+        mutate(
+          Number = ifelse(
+            Metric == "Number of accessions in genebank collections safety duplicated in Svalbard" & Number == "",
+            "–",
+            Number
+          ),
+          Percentage = ifelse(
+            Metric == "Number of accessions in genebank collections safety duplicated in Svalbard" & Percentage == "",
+            "–",
+            Percentage
+          )
+        )
+    })
+  }
   
-  return(crop_tables)
-}
