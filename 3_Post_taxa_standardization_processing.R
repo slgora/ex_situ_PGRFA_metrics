@@ -69,28 +69,8 @@ BGCI_processed <- BGCI_processed %>%
 
 ###### 3. Remove food crops from Forages          ######################
 # Define the list of species to remove from forages
-species_to_remove <- c(
-  "Glycine max (L.) Merr.",
-  "Vigna unguiculata (L.) Walp.",
-  "Cenchrus americanus (L.) Morrone",
-  "Cajanus cajan (L.) Millsp.",
-  "Vigna radiata var. radiata",
-  "Vigna radiata (L.) R. Wilczek",
-  "Panicum miliaceum L.",
-  "Panicum miliaceum subsp. miliaceum",
-  "Eragrostis tef (Zuccagni) Trotter",
-  "Vigna angularis (Willd.) Ohwi & H. Ohashi",
-  "Vigna mungo (L.) Hepper",
-  "Vigna subterranea (L.) Verdc.",
-  "Lablab purpureus (L.) Sweet",
-  "Vigna umbellata (Thunb.) Ohwi & H. Ohashi",
-  "Vigna unguiculata subsp. unguiculata",
-  "Trigonella foenum-graecum L.",
-  "Paspalum scrobiculatum L.",
-  "Panicum sumatrense Roth",
-  "Vigna aconitifolia (Jacq.) Maréchal",
-  "Vigna unguiculata group sesquipedalis" 
-  )
+species_to_remove <- read_excel("../../Data_processing/Support_files/Taxa_standardization/species_to_remove.xlsx") %>% pull(species)
+
 # Filter out food crop species from forages
 combined_df <- combined_df %>%
   filter(!(Crop_strategy == "Tropical and subtropical forages" & Standardized_taxa %in% species_to_remove))
