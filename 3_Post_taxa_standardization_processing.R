@@ -21,7 +21,7 @@ combined_df$fullTaxa2 <- trimws(
 
 #### add standardized_taxa column here when the manual vetting is complete and standardization_table becomes available, code to be tested#######
 #load standardization table
-table_standardization <- read_excel("../../Data_processing/Support_files/Taxa_standardization/SG_standardization_table_WFO_GRIN_2025_07_01.xlsx")
+table_standardization <- read_excel("../../Data_processing/Support_files/Taxa_standardization/standardization_table_WFO_GRIN_2025_07_01.xlsx")
 
 # Replace tabs with space in input_name
 table_standardization$input_name <- gsub("\t", " ", table_standardization$input_name)
