@@ -69,7 +69,7 @@ BGCI_processed <- BGCI_processed %>%
 
 ###### 3. Remove food crops from Forages          ######################
 # Define the list of species to remove from forages
-species_to_remove <- read_excel("../../Data_processing/Support_files/Taxa_standardization/species_to_remove.xlsx") %>% pull(species)
+species_to_remove <- read_excel("../../Data_processing/Support_files/GCCS_Selected_crops/species_to_remove.xlsx") %>% pull(species)
 
 # Filter out food crop species from forages
 combined_df <- combined_df %>%
