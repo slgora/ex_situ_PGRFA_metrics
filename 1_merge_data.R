@@ -157,6 +157,15 @@ gen_wiews_df <- bind_rows(Genesys_allcrops, WIEWS_allcrops)
 gen_wiews_df$ACCENUMB <- trimws(gen_wiews_df$ACCENUMB)
 gen_wiews_df$INSTCODE <- trimws(gen_wiews_df$INSTCODE)
 gen_wiews_df$ID <- paste0(gen_wiews_df$ACCENUMB, gen_wiews_df$INSTCODE)
+
+# Remove WIEWS rows where a Genesys row exists with the same (non-missing) DOI
+gen_wiews_df <- gen_wiews_df %>%
+  filter(
+    !(data_source == "WIEWS" &
+        !is.na(DOI) &
+        DOI %in% gen_wiews_df$DOI[gen_wiews_df$data_source == "Genesys" & !is.na(gen_wiews_df$DOI)]))
+
+# Remove duplicates based on ID number
 gen_wiews_df <- gen_wiews_df[!duplicated(gen_wiews_df$ID), ]  # drop duplicates but keep the first occurrence, in this case Genesys
 
 ####### correct country codes iso-codes
