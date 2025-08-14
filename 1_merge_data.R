@@ -87,7 +87,7 @@ WIEWS_allcrops <- WIEWS_allcrops %>%
          SPECIES, CROPNAME, ORIGCTY, 
          SAMPSTAT, DUPLSITE, DUPLINSTNAME, DECLATITUDE, DECLONGITUDE, 
          STORAGE, MLSSTAT, 
-         ACQDATE, COLLSRC)
+         ACQDATE, COLLSRC, DOI)
 
 # Add field: data source
 WIEWS_allcrops <- cbind(WIEWS_allcrops, data_source = "WIEWS")
@@ -130,7 +130,7 @@ Genesys_allcrops <- subset(Genesys_allcrops, select = c(INSTCODE, ACCENUMB,
                                                         ORIGCTY, DECLATITUDE,DECLONGITUDE, ELEVATION,
                                                         BREDCODE, ANCEST, DUPLSITE, STORAGE, 
                                                         COLLDATE, COLLSITE, COLLSRC, COLLNUMB, COLLCODE,
-                                                        MLSSTAT, ACCEURL))
+                                                        MLSSTAT, ACCEURL, DOI))
 
 # Add field: data source 
 Genesys_allcrops <- cbind(Genesys_allcrops, data_source = "Genesys")
