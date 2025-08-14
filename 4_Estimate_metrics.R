@@ -49,14 +49,14 @@ no_SAMPSTAT_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(is.n
 
 # 4. Unique taxa per crop
 unique_taxa <- combined_allcrops %>%
+  mutate(Standardized_taxa = ifelse(
+    Standardized_taxa %in% c("Hordeum vulgare subsp. vulgare (6-rows)", "Hordeum vulgare subsp. vulgare (2-rows)"),"Hordeum vulgare subsp. vulgare", Standardized_taxa )) %>%
   select(Crop_strategy, Standardized_taxa) %>%
   distinct() %>%
   group_by(Crop_strategy) %>%
-  summarise(
-    unique_taxa = list(unique(Standardized_taxa)),
-    unique_taxa_count = n_distinct(Standardized_taxa),
-    .groups = "drop"
-  )
+  summarise( unique_taxa = list(unique(Standardized_taxa)),
+             unique_taxa_count = n_distinct(Standardized_taxa),
+    .groups = "drop")
 
 # 5. Number of countries where germplasm collected (excluding certain SAMPSTAT)
 country_count <- combined_allcrops %>%
