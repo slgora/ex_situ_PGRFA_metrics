@@ -158,6 +158,13 @@ gen_wiews_df$ACCENUMB <- trimws(gen_wiews_df$ACCENUMB)
 gen_wiews_df$INSTCODE <- trimws(gen_wiews_df$INSTCODE)
 gen_wiews_df$ID <- paste0(gen_wiews_df$ACCENUMB, gen_wiews_df$INSTCODE)
 
+# create table with by GENUS and INSTCODE and data_source before dropping duplicates
+gen_wiews_counts <- gen_wiews_df %>%
+  group_by(INSTCODE, GENUS, data_source) %>%
+  summarize(n = n()) %>%
+  arrange(desc(n))
+write.csv(gen_wiews_counts, '../../Data_processing/1_merge_data/2025_08_15/gen_wiews_counts_before_dropping_duplicates.csv', row.names = FALSE)
+
 # Remove WIEWS rows where a Genesys row exists with the same (non-missing) DOI
 gen_wiews_df <- gen_wiews_df %>%
   filter(
