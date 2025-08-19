@@ -120,10 +120,6 @@ WIEWS_allcrops <- WIEWS_allcrops %>%
 WIEWS_allcrops$MLSSTAT[WIEWS_allcrops$MLSSTAT == "I"] <-  TRUE
 WIEWS_allcrops$MLSSTAT[WIEWS_allcrops$MLSSTAT == "N"] <-  FALSE
 WIEWS_allcrops <- WIEWS_allcrops %>% mutate(MLSSTAT = as.logical(MLSSTAT))
-
-# remove duplicated instcodes from WIEWS before merge
-instcodes_to_remove <- read_excel("../../Data_processing/Support_files/Institutes_duplication/INSTCODEs_to_remove.xlsx")  %>% pull(INSTCODE)
-WIEWS_allcrops <- WIEWS_allcrops %>% filter(!(INSTCODE %in% instcodes_to_remove))
                                
 ############### Genesys PGR: Data Read in and Cleaning ####################
 # select columns to keep
