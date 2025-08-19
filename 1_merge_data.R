@@ -121,6 +121,10 @@ WIEWS_allcrops$MLSSTAT[WIEWS_allcrops$MLSSTAT == "I"] <-  TRUE
 WIEWS_allcrops$MLSSTAT[WIEWS_allcrops$MLSSTAT == "N"] <-  FALSE
 WIEWS_allcrops <- WIEWS_allcrops %>% mutate(MLSSTAT = as.logical(MLSSTAT))
 
+# remove duplicated instcodes from WIEWS before merge
+instcodes_to_remove <- read_excel("../../Data_processing/Support_files/Institutes_duplication/INSTCODEs_to_remove.xlsx")  %>% pull(INSTCODE)
+WIEWS_allcrops <- WIEWS_allcrops %>% filter(!(INSTCODE %in% instcodes_to_remove))
+                               
 ############### Genesys PGR: Data Read in and Cleaning ####################
 # select columns to keep
 Genesys_allcrops <- subset(Genesys_allcrops, select = c(INSTCODE, ACCENUMB, 
@@ -164,7 +168,7 @@ gen_wiews_counts <- gen_wiews_df %>%
   summarize(n = n()) %>%
   arrange(desc(n))
 write.csv(gen_wiews_counts, '../../Data_processing/1_merge_data/2025_08_15/gen_wiews_counts_before_dropping_duplicates.csv', row.names = FALSE)
-
+                               
 # Remove WIEWS rows where a Genesys row exists with the same (non-missing) DOI
 gen_wiews_df <- gen_wiews_df %>%
   filter(
@@ -236,5 +240,4 @@ WIEWS_indicator_proccessed <- process_wiews_indicator_data(
 )
 # save results
 write.csv(WIEWS_indicator_proccessed, '../../Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv', row.names = FALSE)
-
 
