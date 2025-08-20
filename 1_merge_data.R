@@ -163,7 +163,7 @@ gen_wiews_counts <- gen_wiews_df %>%
   group_by(INSTCODE, GENUS, data_source) %>%
   summarize(n = n()) %>%
   arrange(desc(n))
-write.csv(gen_wiews_counts, '../../Data_processing/1_merge_data/2025_08_15/gen_wiews_counts_before_dropping_duplicates.csv', row.names = FALSE)
+write.csv(gen_wiews_counts, '../../Data_processing/1_merge_data/2025_08_19/gen_wiews_counts_before_dropping_duplicates.csv', row.names = FALSE)
 
 # Load instcodes to be removed by data source
 instcodes_to_remove <- read_excel("../../Data_processing/Support_files/Inconsistent_accession_numbers/INSTCODEs_to_remove.xlsx") %>%
@@ -195,7 +195,7 @@ gen_wiews_df <-gen_wiews_df %>% filter(!grepl("Pisum", fullTaxa))
 
 # save results
 gen_wiews_df$STORAGE <- as.character(gen_wiews_df$STORAGE)
-write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_18/gen_wiews_df.csv', row.names = FALSE)
+write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_19/gen_wiews_df.csv', row.names = FALSE)
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
 # create a list of file paths (each one is a Json file downloaded from GLIS)
