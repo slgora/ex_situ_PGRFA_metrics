@@ -166,7 +166,7 @@ gen_wiews_counts <- gen_wiews_df %>%
 write.csv(gen_wiews_counts, '../../Data_processing/1_merge_data/2025_08_15/gen_wiews_counts_before_dropping_duplicates.csv', row.names = FALSE)
 
 # Load instcodes to be removed by data source
-instcodes_to_remove <- read_excel("../../Data_processing/Support_files/Institutes_duplication/INSTCODEs_to_remove.xlsx") %>%
+instcodes_to_remove <- read_excel("../../Data_processing/Support_files/Inconsistent_accession_numbers/INSTCODEs_to_remove.xlsx") %>%
   rename(data_source = source_to_be_dropped) %>%
   select(INSTCODE, data_source)
 gen_wiews_df <- gen_wiews_df %>%
