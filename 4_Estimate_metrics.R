@@ -49,14 +49,14 @@ no_SAMPSTAT_metric <- percent_summary(combined_allcrops, Crop_strategy, sum(is.n
 
 # 4. Unique taxa per crop
 unique_taxa <- combined_allcrops %>%
+  mutate(Standardized_taxa = ifelse(
+    Standardized_taxa %in% c("Hordeum vulgare subsp. vulgare (6-rows)", "Hordeum vulgare subsp. vulgare (2-rows)"),"Hordeum vulgare subsp. vulgare", Standardized_taxa )) %>%
   select(Crop_strategy, Standardized_taxa) %>%
   distinct() %>%
   group_by(Crop_strategy) %>%
-  summarise(
-    unique_taxa = list(unique(Standardized_taxa)),
-    unique_taxa_count = n_distinct(Standardized_taxa),
-    .groups = "drop"
-  )
+  summarise( unique_taxa = list(unique(Standardized_taxa)),
+             unique_taxa_count = n_distinct(Standardized_taxa),
+    .groups = "drop")
 
 # 5. Number of countries where germplasm collected (excluding certain SAMPSTAT)
 country_count <- combined_allcrops %>%
@@ -136,8 +136,28 @@ storage_types <- list(
   invitro   = "30",
   cryo      = "40",
   dna       = "50",
-  other     = "99"
-)
+  other     = "99" )
+
+storage_summary <- combined_allcrops %>%
+  group_by(Crop_strategy) %>%
+  summarise(
+    total_records = n(),
+    seed_count    = sum(str_detect(STORAGE, str_c(storage_types$seed, collapse = "|")), na.rm = TRUE),
+    field_count   = sum(str_detect(STORAGE, str_c(storage_types$field, collapse = "|")), na.rm = TRUE),
+    invitro_count = sum(str_detect(STORAGE, str_c(storage_types$invitro, collapse = "|")), na.rm = TRUE),
+    cryo_count    = sum(str_detect(STORAGE, str_c(storage_types$cryo, collapse = "|")), na.rm = TRUE),
+    dna_count     = sum(str_detect(STORAGE, str_c(storage_types$dna, collapse = "|")), na.rm = TRUE),
+    other_count   = sum(str_detect(STORAGE, str_c(storage_types$other, collapse = "|")), na.rm = TRUE),
+    nostorage_count = sum(is.na(STORAGE))
+  ) %>%
+  mutate(
+    seed_perc      = round(100 * seed_count / total_records, 2),
+    field_perc     = round(100 * field_count / total_records, 2),
+    invitro_perc   = round(100 * invitro_count / total_records, 2),
+    cryo_perc      = round(100 * cryo_count / total_records, 2),
+    dna_perc       = round(100 * dna_count / total_records, 2),
+    other_perc     = round(100 * other_count / total_records, 2),
+    nostorage_perc = round(100 * nostorage_count / total_records, 2) )
 
 storage_long <- combined_allcrops %>%
   mutate(

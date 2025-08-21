@@ -32,6 +32,12 @@ names(institute_names_no_syn)[names(institute_names_no_syn) == 'Organization aut
 institute_names_no_syn <- subset(institute_names_no_syn, select = c(`INSTCODE`, `ORGANIZATIONTYPE`))  %>% drop_na()
 WIEWS_institute_IDs <- read_excel("../../Data_processing/Support_files/FAO_WIEWS/WIEWS_instIDs.xlsx")
 WIEWS_institute_IDs = subset(WIEWS_institute_IDs, select = c('ID' , 'WIEWS_INSTCODE'))
+#read file to select institution and data source
+data_source <- read_csv("../../Data_processing/Support_files/Source_selection/selection_sources.csv")
+#Get lists of INSTCODEs to keep for each data source
+instcode_list_genesys <- data_source %>% filter(keep == 'Genesys') %>% pull(INSTCODE) %>% unique()
+instcode_list_wiews  <- data_source %>% filter(keep == 'WIEWS') %>% pull(INSTCODE) %>% unique()
+
 ####################################################################################################
 ########## Change field names to follow MCPD standard see https://www.fao.org/plant-treaty/tools/toolbox-for-sustainable-use/details/en/c/1367915/ ############################################
 
@@ -92,6 +98,9 @@ WIEWS_allcrops <- WIEWS_allcrops %>%
 # Add field: data source
 WIEWS_allcrops <- cbind(WIEWS_allcrops, data_source = "WIEWS")
 
+# Drop unwanted data sources before merging dataset with Genesys
+WIEWS_allcrops   <- WIEWS_allcrops   %>% filter(INSTCODE %in% instcode_list_wiews)
+                                                             
 ## Standardize ACCENUMB field: remove blank/space between institute abbreviation and number
 WIEWS_allcrops  <- WIEWS_allcrops  %>%
   mutate(ACCENUMB = str_replace_all(ACCENUMB, " ", ""))
@@ -120,7 +129,7 @@ WIEWS_allcrops <- WIEWS_allcrops %>%
 WIEWS_allcrops$MLSSTAT[WIEWS_allcrops$MLSSTAT == "I"] <-  TRUE
 WIEWS_allcrops$MLSSTAT[WIEWS_allcrops$MLSSTAT == "N"] <-  FALSE
 WIEWS_allcrops <- WIEWS_allcrops %>% mutate(MLSSTAT = as.logical(MLSSTAT))
-
+                               
 ############### Genesys PGR: Data Read in and Cleaning ####################
 # select columns to keep
 Genesys_allcrops <- subset(Genesys_allcrops, select = c(INSTCODE, ACCENUMB, 
@@ -135,6 +144,9 @@ Genesys_allcrops <- subset(Genesys_allcrops, select = c(INSTCODE, ACCENUMB,
 # Add field: data source 
 Genesys_allcrops <- cbind(Genesys_allcrops, data_source = "Genesys")
 
+# Drop unwanted data sources before merging dataset with WIEWS
+Genesys_allcrops <- Genesys_allcrops %>% filter(INSTCODE %in% instcode_list_genesys)                                                             
+                               
 ##### correcting manually these species names as they occur in a lot of accessions
 Genesys_allcrops$SPECIES <- gsub('z.mays', 'mays', Genesys_allcrops$SPECIES)
 Genesys_allcrops$SPECIES <- gsub('o.sativa', 'sativa', Genesys_allcrops$SPECIES)
@@ -163,8 +175,8 @@ gen_wiews_counts <- gen_wiews_df %>%
   group_by(INSTCODE, GENUS, data_source) %>%
   summarize(n = n()) %>%
   arrange(desc(n))
-write.csv(gen_wiews_counts, '../../Data_processing/1_merge_data/2025_08_15/gen_wiews_counts_before_dropping_duplicates.csv', row.names = FALSE)
-
+write.csv(gen_wiews_counts, '../../Data_processing/1_merge_data/2025_08_19/gen_wiews_counts_before_dropping_duplicates.csv', row.names = FALSE)
+                               
 # Remove WIEWS rows where a Genesys row exists with the same (non-missing) DOI
 gen_wiews_df <- gen_wiews_df %>%
   filter(
@@ -188,7 +200,7 @@ gen_wiews_df <-gen_wiews_df %>% filter(!grepl("Pisum", fullTaxa))
 
 # save results
 gen_wiews_df$STORAGE <- as.character(gen_wiews_df$STORAGE)
-write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_18/gen_wiews_df.csv', row.names = FALSE)
+write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_19/gen_wiews_df.csv', row.names = FALSE)
 ################## GLIS data ########################################################################
 ##### read all JSON files downloaded from GLIS and extract data 
 # create a list of file paths (each one is a Json file downloaded from GLIS)
@@ -236,5 +248,4 @@ WIEWS_indicator_proccessed <- process_wiews_indicator_data(
 )
 # save results
 write.csv(WIEWS_indicator_proccessed, '../../Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv', row.names = FALSE)
-
 
