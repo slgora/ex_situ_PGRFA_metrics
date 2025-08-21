@@ -34,9 +34,6 @@ WIEWS_institute_IDs <- read_excel("../../Data_processing/Support_files/FAO_WIEWS
 WIEWS_institute_IDs = subset(WIEWS_institute_IDs, select = c('ID' , 'WIEWS_INSTCODE'))
 #read file to select institution and data source
 data_source <- read_csv("../../Data_processing/Support_files/Source_selection/selection_sources.csv")
-#Get lists of INSTCODEs to keep for each data source
-instcode_list_genesys <- data_source %>% filter(keep == 'Genesys') %>% pull(INSTCODE) %>% unique()
-instcode_list_wiews  <- data_source %>% filter(keep == 'WIEWS') %>% pull(INSTCODE) %>% unique()
 
 ####################################################################################################
 ########## Change field names to follow MCPD standard see https://www.fao.org/plant-treaty/tools/toolbox-for-sustainable-use/details/en/c/1367915/ ############################################
@@ -81,6 +78,7 @@ BGCI_allcrops <- select(BGCI_allcrops, -c('Germplasm, seed', "Germplasm, plant",
 BGCI_allcrops <- subset(BGCI_allcrops, select = c(data_source, fullTaxa, ex_situ_site_gardenSearch_ID, GENUS, SPECIES, STORAGE ))
 # Note: you need to create folder DATE_OF_RUN before running the following line of code
 write.csv(BGCI_allcrops, '../../Data_processing/1_merge_data/2025_07_07/BGCI_processed.csv', row.names = FALSE)
+
 ############### WIEWS: Data Cleaning ####################
 #rename all columns according to MCPD naming style, and select columns that are needed
 WIEWS_allcrops <- WIEWS_allcrops %>%
@@ -98,6 +96,9 @@ WIEWS_allcrops <- WIEWS_allcrops %>%
 # Add field: data source
 WIEWS_allcrops <- cbind(WIEWS_allcrops, data_source = "WIEWS")
 
+# Get lists of INSTCODEs to keep for each data source
+instcode_list_wiews  <- data_source %>% filter(keep == 'WIEWS') %>% pull(INSTCODE) %>% unique()
+                               
 # Drop unwanted data sources before merging dataset with Genesys
 WIEWS_allcrops   <- WIEWS_allcrops   %>% filter(INSTCODE %in% instcode_list_wiews)
                                                              
@@ -143,6 +144,9 @@ Genesys_allcrops <- subset(Genesys_allcrops, select = c(INSTCODE, ACCENUMB,
 
 # Add field: data source 
 Genesys_allcrops <- cbind(Genesys_allcrops, data_source = "Genesys")
+                               
+# Get lists of INSTCODEs to keep for each data source
+instcode_list_genesys <- data_source %>% filter(keep == 'Genesys') %>% pull(INSTCODE) %>% unique()
 
 # Drop unwanted data sources before merging dataset with WIEWS
 Genesys_allcrops <- Genesys_allcrops %>% filter(INSTCODE %in% instcode_list_genesys)                                                             
