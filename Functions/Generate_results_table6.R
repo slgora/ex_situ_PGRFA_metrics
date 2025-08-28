@@ -1,12 +1,15 @@
 # -------------------------------------------------------------------------------------------
-#' Generate Table 6: Crop-Specific Number Metrics
+#' Generate Table 6: Crop-Specific Number Metrics (custom decimal places, no unnecessary .0)
 #'
 #' Builds Table 6 for each crop. This function:
 #'   1. Reads your `metrics_guide` to identify metrics flagged for Table 6
 #'      where Role = "Number"
 #'   2. Joins each metric to its corresponding summary data frame in `metric_dfs`
 #'   3. Extracts the numeric value for the current crop
-#'   4. Formats large numbers with commas (e.g. 12,345) and small ones normally
+#'   4. Formats numbers:
+#'       - Passport data completeness index: always 2 decimals
+#'       - All others: no decimals for integers, 1 decimal for non-integers
+#'       - Always use comma as thousands separator, never scientific notation
 #'   5. Returns a named list of tibbles, one per Crop_strategy, each with:
 #'      - Metric: the label for the row
 #'      - Number: the formatted value for that crop (or blank if missing)
@@ -67,6 +70,7 @@ generate_table6 <- function(metrics_guide, metric_dfs) {
         mutate(Number = map_chr(seq_along(df_name), function(i) {
           df_name_i  <- df_name[i]
           varname_i  <- var_name[i]
+          metric_label <- Metric[i]
           
           # Missing data-frame or column check
           if (!df_name_i %in% names(metric_dfs)) {
@@ -86,11 +90,21 @@ generate_table6 <- function(metrics_guide, metric_dfs) {
             discard(is.na) %>%
             first()
           
-          # Format: commas for >10k, else plain
+          # Format value
           if (!is.null(val)) {
-            if (is.numeric(val)) {
-              if (val > 10000) format(val, big.mark = ",", digits = 3)
-              else format(val, digits = 3)
+            if (is.numeric(val) || (is.character(val) && grepl("e[\\+\\-]", val, ignore.case = TRUE))) {
+              num_val <- as.numeric(val)
+              if (grepl("^Passport data completeness index \\(range 0-10\\) as a median value across accessions in genebank collections", metric_label)) {
+                # Always 2 decimals for passport index
+                formatC(num_val, format = "f", digits = 2, big.mark = ",")
+              } else {
+                # Integer: no decimals, otherwise 1 decimal
+                if (!is.na(num_val) && num_val == floor(num_val)) {
+                  formatC(num_val, format = "f", digits = 0, big.mark = ",")
+                } else {
+                  formatC(num_val, format = "f", digits = 1, big.mark = ",")
+                }
+              }
             } else {
               as.character(val)
             }
