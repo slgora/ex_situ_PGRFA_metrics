@@ -1,30 +1,35 @@
-# -------------------------------------------------------------------------------------------
-#' Generate Table 1: Crop-Specific Summary Metrics Table
+#' Generate Table 1
 #'
-#' Generates a list of crop-specific summary tables for a specified PTFTW results table.
-#' Each table is structured using a metrics guide that maps rows, labels, roles, and variables.
-#' Metric roles (e.g. Value, Number of countries, Evenness, Interdependence) are pivoted into columns,
-#' and indicators are extracted from the summary dataset for each crop strategy.
+#' This function creates a list of tables, one for each crop, summarizing key metrics for publication-ready output.
+#' It applies custom formatting and exception logic to handle missing data and special cases.
 #'
-#' Special formatting is applied to the "Value" column: numeric zeros and missing values are replaced with "—"
-#' to match the formatting of other columns.
+#' @param df A data.frame containing crop metrics, with columns matching the FAOSTAT and Wikipedia metric naming scheme.
 #'
-#' @param tbl_number Integer specifying which metrics guide table to process (e.g. 1 for Table 1)
-#' @param summary_df Data frame of aggregated metrics (e.g. output from process_PTFTW_metrics)
-#' @param metrics_guide Data frame mapping variable names to labels, roles, and row order
+#' @details
+#' The function produces, for each crop in the data, a table with the following columns:
+#'   - Metric
+#'   - Value (formatted with two decimal places, commas for thousands)
+#'   - Number of countries where significant contributor
+#'   - Evenness of contribution across world regions
+#'   - Estimated international interdependence
 #'
-#' @return Named list of data frames, one per crop strategy, formatted for reporting Table 1
+#' Special cases and formatting:
+#'   - All missing or empty values are replaced with a dash ("—").
+#'   - For "Number of public pageviews on Wikipedia over one year", the last three columns are always blank ("").
+#'   - For crops "Aroids" and "Grasspea", all columns in the rows for
+#'       "Export quantity worldwide (tonnes)",
+#'       "Export value worldwide (current thousand USD)",
+#'       "Import quantity worldwide (tonnes)",
+#'       "Import value worldwide (current thousand USD)"
+#'     are set to dashes ("—"), regardless of actual data.
 #'
-#' @import dplyr purrr tidyr
-#' @export
-# -------------------------------------------------------------------------------------------
-generate_table1 <- function(tbl_number, summary_df, metrics_guide) {
-  library(dplyr)
-  library(purrr)
-  library(tidyr)
-  
-  # Desired metric order for Table 1
-  desired_order <- c(
+#' @return A named list of data.frames, one per crop, with formatted metrics.
+#'
+#' @examples
+#' table1_by_crop <- get_table1_all_crops_formatted(PTFTW_metrics)
+# ------------------------------------------------------------------------------
+generate_table1 <- function(df) {
+  metric_names <- c(
     "Harvested area worldwide (ha)",
     "Total production worldwide (tonnes)",
     "Gross production value worldwide (current thousand USD)",
@@ -38,69 +43,113 @@ generate_table1 <- function(tbl_number, summary_df, metrics_guide) {
     "Contribution to food weight in global food supplies (g/capita/day)",
     "Number of public pageviews on Wikipedia over one year"
   )
+  metric_cols <- c(
+    "crop_use-faostat-production-area_harvested_ha",
+    "crop_use-faostat-production-production_quantity_tonnes",
+    "crop_use-faostat-production-gross_production_value_us",
+    "crop_use-faostat-trade-export_quantity_tonnes",
+    "crop_use-faostat-trade-export_value_tonnes",
+    "crop_use-faostat-trade-import_quantity_tonnes",
+    "crop_use-faostat-trade-import_value_tonnes",
+    "crop_use-faostat-food_supply-food_supply_kcal",
+    "crop_use-faostat-food_supply-protein_supply_quantity_g",
+    "crop_use-faostat-food_supply-fat_supply_quantity_g",
+    "crop_use-faostat-food_supply-food_supply_quantity_g",
+    "crop_use-public_interest-wikipedia_pageviews-taxon"
+  )
+  num_countries_cols <- c(
+    "crop_use-faostat_count_countries-count_countries_production-area_harvested_ha",
+    "crop_use-faostat_count_countries-count_countries_production-production_quantity_tonnes",
+    "crop_use-faostat_count_countries-count_countries_production-gross_production_value_us",
+    "crop_use-faostat_count_countries-count_countries_trade-export_quantity_tonnes",
+    "crop_use-faostat_count_countries-count_countries_trade-export_value_tonnes",
+    "crop_use-faostat_count_countries-count_countries_trade-import_quantity_tonnes",
+    "crop_use-faostat_count_countries-count_countries_trade-import_value_tonnes",
+    "crop_use-faostat_count_countries-count_countries_food_supply-food_supply_kcal",
+    "crop_use-faostat_count_countries-count_countries_food_supply-protein_supply_quantity_g",
+    "crop_use-faostat_count_countries-count_countries_food_supply-fat_supply_quantity_g",
+    "crop_use-faostat_count_countries-count_countries_food_supply-food_supply_quantity_g",
+    NA
+  )
+  evenness_cols <- c(
+    "crop_use-faostat_equality_of_use-gini_production-area_harvested_ha",
+    "crop_use-faostat_equality_of_use-gini_production-production_quantity_tonnes",
+    "crop_use-faostat_equality_of_use-gini_production-gross_production_value_us",
+    "crop_use-faostat_equality_of_use-gini_trade-export_quantity_tonnes",
+    "crop_use-faostat_equality_of_use-gini_trade-export_value_tonnes",
+    "crop_use-faostat_equality_of_use-gini_trade-import_quantity_tonnes",
+    "crop_use-faostat_equality_of_use-gini_trade-import_value_tonnes",
+    "crop_use-faostat_equality_of_use-gini_food_supply-food_supply_kcal",
+    "crop_use-faostat_equality_of_use-gini_food_supply-protein_supply_quantity_g",
+    "crop_use-faostat_equality_of_use-gini_food_supply-fat_supply_quantity_g",
+    "crop_use-faostat_equality_of_use-gini_food_supply-food_supply_quantity_g",
+    NA
+  )
+  interdependence_cols <- c(
+    "interdependence-faostat-production-area_harvested_ha",
+    "interdependence-faostat-production-production_quantity_tonnes",
+    "interdependence-faostat-production-gross_production_value_us",
+    "interdependence-faostat-trade-export_quantity_tonnes",
+    "interdependence-faostat-trade-export_value_tonnes",
+    "interdependence-faostat-trade-import_quantity_tonnes",
+    "interdependence-faostat-trade-import_value_tonnes",
+    "interdependence-faostat-food_supply-food_supply_kcal",
+    "interdependence-faostat-food_supply-protein_supply_quantity_g",
+    "interdependence-faostat-food_supply-fat_supply_quantity_g",
+    "interdependence-faostat-food_supply-food_supply_quantity_g",
+    NA
+  )
   
-  crop_column <- names(summary_df)[1]  # e.g. "Crop_strategy"
+  dash_metrics <- c(
+    "Export quantity worldwide (tonnes)",
+    "Export value worldwide (current thousand USD)",
+    "Import quantity worldwide (tonnes)",
+    "Import value worldwide (current thousand USD)"
+  )
   
-  crop_tables <- summary_df[[crop_column]] %>%
-    unique() %>%
-    set_names() %>%
-    map(function(crop) {
-      
-      table1_guide <- metrics_guide %>%
-        filter(`Pertains to Table` == tbl_number)
-      
-      long_metrics <- table1_guide %>%
-        select(
-          `Row in Table`,
-          `Metric Name in Results Table (or summaries text)`,
-          `Name of Individual Metric Variable`,
-          `Metric Role`
-        ) %>%
-        mutate(
-          Metric = `Metric Name in Results Table (or summaries text)`,
-          raw_value = purrr::map_chr(`Name of Individual Metric Variable`, function(colname) {
-            if (!is.na(colname) && colname %in% names(summary_df)) {
-              val <- summary_df %>%
-                filter(!!sym(crop_column) == crop) %>%
-                pull(colname) %>%
-                first()
-              if (!is.na(val)) {
-                if (is.numeric(val) && val == 0) {
-                  "—"
-                } else {
-                  format(val, digits = 3)
-                }
-              } else {
-                "—"
-              }
-            } else {
-              "—"
-            }
-          })
-        ) %>%
-        mutate(Metric = factor(Metric, levels = desired_order)) %>%
-        arrange(Metric)
-      
-      wide <- long_metrics %>%
-        pivot_wider(
-          id_cols = Metric,
-          names_from = `Metric Role`,
-          values_from = raw_value,
-          values_fill = list(raw_value = "—")
-        )
-      
-      final <- wide %>%
-        arrange(match(Metric, desired_order)) %>%
-        transmute(
-          Metric,
-          Value,
-          `Number of Countries Where Significant Contributor` = `Number of countries where significant contributor`,
-          `Evenness of Contribution Across World Regions` = `Evenness of contribution across world regions`,
-          `Estimated International Interdependence` = `Estimated international interdependence`
-        )
-      
-      return(final)
-    })
+  format_number <- function(x) {
+    if (is.na(x) || x == "" || is.null(x)) return("—")
+    x_num <- suppressWarnings(as.numeric(x))
+    if (is.na(x_num)) return("—")
+    formatted <- formatC(x_num, format = "f", digits = 2, big.mark = ifelse(abs(x_num) >= 10000, ",", ""))
+    return(formatted)
+  }
   
+  safe_extract_and_format <- function(row, cols) {
+    sapply(cols, function(col) format_number(if (is.na(col) || !(col %in% names(row))) NA else row[[col]]))
+  }
+  
+  all_crops <- unique(df$Crop_strategy)
+  names(all_crops) <- all_crops
+  
+  crop_tables <- lapply(all_crops, function(crop) {
+    row <- df[df$Crop_strategy == crop, ]
+    tab <- data.frame(
+      Metric = metric_names,
+      Value = safe_extract_and_format(row, metric_cols),
+      `Number of countries where significant contributor` = safe_extract_and_format(row, num_countries_cols),
+      `Evenness of contribution across world regions` = safe_extract_and_format(row, evenness_cols),
+      `Estimated international interdependence` = safe_extract_and_format(row, interdependence_cols),
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+    # Remove dashes for Wikipedia row in the last three columns
+    idx_wiki <- which(tab$Metric == "Number of public pageviews on Wikipedia over one year")
+    tab[idx_wiki, "Number of countries where significant contributor"] <- ""
+    tab[idx_wiki, "Evenness of contribution across world regions"] <- ""
+    tab[idx_wiki, "Estimated international interdependence"] <- ""
+    
+    # For Aroids and Grasspea, set dashes for all columns for specific metrics
+    if (crop %in% c("Aroids", "Grasspea")) {
+      for (m in dash_metrics) {
+        idx <- which(tab$Metric == m)
+        if(length(idx) > 0) {
+          tab[idx, 2:ncol(tab)] <- "—"
+        }
+      }
+    }
+    tab
+  })
+  names(crop_tables) <- all_crops
   return(crop_tables)
 }

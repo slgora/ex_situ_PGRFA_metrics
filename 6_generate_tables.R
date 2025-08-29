@@ -56,16 +56,27 @@ write_xlsx(table2_by_crop, path = "../../GCCS metrics project shared folder/Data
 
 
 # ---------- Table 3 ------------
-# Create list of metrics for table 3
-metric_dfs <- all_metrics %>%
-   keep(~ "Crop_strategy" %in% names(.x)) %>%
-   bind_rows()
+# Rename columns for clarity in metrics file
+all_metrics[["primary_region_metric"]] <- all_metrics[["primary_region_metric"]] %>%
+  rename(isinprimaryregion_count = count)
+all_metrics[["BGCI_inst_count"]] <- all_metrics[["BGCI_inst_count"]] %>%
+  rename(bgci_unique_inst_count = unique_inst_count)
+# Merge all sheets with Crop_strategy, column-wise
+sheet_list <- all_metrics %>%
+  keep(~ "Crop_strategy" %in% names(.x))
+metric_dfs <- reduce(sheet_list, full_join, by = "Crop_strategy")
+# Choose correct accessions_count for the table and rename
+metric_dfs <- metric_dfs %>%
+  dplyr::rename(accessions_count = accessions_count.x)
+metric_dfs <- metric_dfs %>% 
+  dplyr::select(-accessions_count.y) # (Optional) Drop the other 
+
 # Run function to generate table 3
 table3_by_crop <- generate_table3(tbl_number = 3, metrics_guide = metrics_guide, all_metrics = metric_dfs)
 # Export all crop tables into one Excel file with each crop as a tab
 write_xlsx(table3_by_crop, path = "../../GCCS metrics project shared folder/Data_processing/6_generate_tables/2025_07_24/Table3_all_crops.xlsx")
 
-
+  
 # ---------- Table 4 ------------
 # Create list of metrics for table 4
 metric_dfs <- list(

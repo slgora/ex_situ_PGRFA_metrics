@@ -16,7 +16,7 @@
 #'   - Number: formatted value from the appropriate data frame
 #'
 #' - Blank strings returned when values are missing or unmatched.
-#' - Metric values are formatted (comma if >10,000, digits = 3).
+#' - Metric values are formatted with 1 decimal place and comma as a thousand separator if >=10,000.
 #' - Fully modular: dynamically responds to guide definitions and data frame input.
 generate_table7 <- function(metrics_guide, metric_dfs) {
   library(dplyr)
@@ -51,8 +51,9 @@ generate_table7 <- function(metrics_guide, metric_dfs) {
             filter(!!sym(crop_column) == crop) %>%
             pull(var_name[i])
           if (length(val) > 0 && !is.na(val)) {
-            if (val > 10000) format(val, big.mark = ",", digits = 3)
-            else format(val, digits = 3)
+            # Always format to 1 decimal place
+            formatted <- formatC(as.numeric(val), format = "f", digits = 1, big.mark = ",")
+            formatted
           } else ""
         })) %>%
         select(Metric, Number)
