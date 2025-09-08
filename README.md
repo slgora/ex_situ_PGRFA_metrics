@@ -1,26 +1,40 @@
-# REPOSITORY FOR EX SITU PGRFA METRICS
-Repository with the methodology to produce a set of metrics on the ex-situ conservation of PGRFA
+# REPOSITORY FOR EX SITU PGRFA METRICS: `new15crops` Branch
 
-It includes: 
+This branch extends the original methodology for computing ex situ conservation metrics of Plant Genetic Resources for Food and Agriculture (PGRFA), with a focused analysis on a subset of 15 priority crops. It introduces modular scripts, reproducible workflows, and outputs tailored to crop-specific conservation insights.
 
-0)Downloading data (Genesys, WIEWS, BGCI, GLIS, SGSV)
-Only GLIS data downloaded through API. 
+## Purpose
 
-1)Loading and merging data from different sources (Genesys, WIEWS, BGCI, GLIS, SGSV)
+To generate and refine conservation metrics for a targeted crop subset using harmonized data from Genesys, WIEWS, BGCI, GLIS, and SGSV. This branch supports:
+- Subset-specific metric computation
+- Enhanced reproducibility and documentation
+- Modular outputs for reporting and review
 
-2)Standardising taxa
+## Workflow Overview
 
-3)Post taxa standardization processing of datasets
+**0. Downloading Data**  
+- Sources: Genesys, WIEWS, BGCI, GLIS (via API), SGSV
 
-4)Computing the metrics
-This work is currently on-going.
+**1. Loading and Merging Datasets**  
 
-5)Processing Plants That Feed the World data and computing relevant metrics
+**2. Standardizing Taxa**  
+- Curated taxon list for 15 crops  
+- MCPD-compliant naming conventions
 
-6)Produce tables
-Code for tables goes here
+**3. Post-Standardization Processing** 
 
+**4. Computing Metrics**  
+  
+**5. Processing Plants That Feed the World Data**  
+- Integrated with crop subset  
+- Relevant metric computation
 
-Names of columns and values: use MCPD standard as much as possible rather than arbitrary labels. MCPD standard can be found here: https://cgspace.cgiar.org/server/api/core/bitstreams/7947d48c-5cf1-4164-8c61-fa276d658463/content![image](https://github.com/user-attachments/assets/b95cc8cb-f982-4a21-ab18-c4e36a6aeeef). 
+**6. Producing Tables**  
+- Modular summary tables  
+- Excel-compatible outputs     
 
+## Standards and Documentation
 
+- Column names and values follow the MCPD standard:  
+  https://cgspace.cgiar.org/server/api/core/bitstreams/7947d48c-5cf1-4164-8c61-fa276d658463/content
+- All scripts are annotated for clarity and reproducibility
+- GitHub branching strategy ensures modular development and version control
