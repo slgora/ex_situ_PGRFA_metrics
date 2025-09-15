@@ -1,27 +1,44 @@
-# Required Libraries
-library(dplyr)
-library(readxl)
-library(stringr)
-library(tidyr)
-library(writexl)
-install.packages("ineq")
-library(ineq)
-
 #' Calculate Treaty germplasm distribution metrics for selected crops
 #'
-#' This function combines ITPGRFA transfer records from 2015–2021 and computes:
-#' - Average number of distributed samples per year
+#' This function processes ITPGRFA transfer records from 2015–2021 and computes:
+#' - Average number of distributed samples per year (mean of yearly totals)
 #' - Average number of recipient countries per year
-#' - Gini index of sample distribution across regions
+#' - Gini index of sample distribution across recipient regions
 #'
-#' @param croplist_file Path to selected crops Excel file
+#' The function merges cleaned transfer records with crop strategy metadata and regional classifications,
+#' then outputs a summary table with key distribution metrics per crop strategy.
+#'
+#' @param croplist_file Path to Excel file containing selected crops and strategy metadata
 #' @param out_path Path where the output Excel file should be saved
-#' @return A data frame with Treaty germplasm distribution metrics per crop strategy
-transfers_metrics <- function(croplist_file, out_path) {
-  # Embedded input files
-  transfers_2012_2019 <- read_excel("../../Data/Plant_Treaty/Data_store/ITPGRFA_MLSDataStore2022_7_1.xlsx")
-  transfers_2019_2021 <- read_excel("../../Data/Plant_Treaty/Data_store/Transfers_ourcrops_2019-2021.xlsx")
-  countries_regions <- read_excel("../../Data_processing/Support_files/Geographical/countries_in_regions.xlsx")
+#' @param transfers_2012_2019 Data frame of ITPGRFA transfer records from 2012–2019
+#' @param transfers_2019_2021 Data frame of ITPGRFA transfer records from 2019–2021
+#' @param countries_regions Data frame mapping ISO3 country codes to recipient regions
+#'
+#' @return A data frame with Treaty germplasm distribution metrics per crop strategy, also written to Excel
+#'
+#' @examples
+#' transfers_metrics(
+#'   croplist_file = "input/crop_list.xlsx",
+#'   out_path = "output/table4_metrics.xlsx",
+#'   transfers_2012_2019 = df_2012_2019,
+#'   transfers_2019_2021 = df_2019_2021,
+#'   countries_regions = region_lookup
+#' )
+#' 
+transfers_metrics <- function(
+    croplist_file,
+    out_path,
+    transfers_2012_2019,
+    transfers_2019_2021,
+    countries_regions
+) {
+  # Load required libraries
+  library(dplyr)
+  library(readxl)
+  library(stringr)
+  library(tidyr)
+  library(writexl)
+  library(ineq)
   
   # Clean 2015–2018 data
   transfers_2015_2018 <- transfers_2012_2019 %>%
@@ -41,7 +58,7 @@ transfers_metrics <- function(croplist_file, out_path) {
   # Load and filter croplist
   croplist <- read_excel(croplist_file) %>%
     select(PlantsthatFeedtheWorld_name, CropStrategy, Genera_primary, Taxa_main) %>%
-    filter(PlantsthatFeedtheWorld_name != "NA") %>%
+    filter(!is.na(PlantsthatFeedtheWorld_name), PlantsthatFeedtheWorld_name != "NA") %>%
     distinct(PlantsthatFeedtheWorld_name, .keep_all = TRUE)
   
   # Join croplist to transfers
@@ -49,7 +66,7 @@ transfers_metrics <- function(croplist_file, out_path) {
     select(CropStrategy, year, provider_ISO3, provider_country_name, recipient_ISO3, recipient_country_name, number_of_samples) %>%
     filter(!is.na(number_of_samples))
   
-  # Rename to ensure consistency in output
+  # Rename for consistency
   transfers_2015_2018 <- transfers_2015_2018 %>%
     rename(Crop_strategy = CropStrategy)
   
@@ -61,19 +78,23 @@ transfers_metrics <- function(croplist_file, out_path) {
   # Combine all transfers
   transfers_all <- bind_rows(transfers_2019_2021, transfers_2015_2018)
   
-  # Metric 1: Average samples per year
+  # Ensure number_of_samples is numeric
+  transfers_all <- transfers_all %>%
+    mutate(number_of_samples = as.numeric(number_of_samples))
+  
+  # Metric 1: Average (mean of yearly sums) samples per year
   avg_samples <- transfers_all %>%
     group_by(Crop_strategy, year) %>%
-    summarise(avg_number_of_samples = mean(number_of_samples), .groups = "drop") %>%
+    summarise(total_samples = sum(number_of_samples, na.rm = TRUE), .groups = "drop") %>%
     group_by(Crop_strategy) %>%
-    summarise(avg_number_of_samples_per_year = mean(avg_number_of_samples), .groups = "drop")
+    summarise(avg_number_of_samples_per_year = mean(total_samples, na.rm = TRUE), .groups = "drop")
   
   # Metric 2: Average recipient country count
   avg_recipients <- transfers_all %>%
     group_by(Crop_strategy, year) %>%
     summarise(recipient_count = n_distinct(recipient_ISO3), .groups = "drop") %>%
     group_by(Crop_strategy) %>%
-    summarise(avg_number_of_recipient_countries = mean(recipient_count), .groups = "drop")
+    summarise(avg_number_of_recipient_countries = mean(recipient_count, na.rm = TRUE), .groups = "drop")
   
   # Metric 3: Gini index for regional distribution
   transfers_with_regions <- left_join(transfers_all, countries_regions, by = c("recipient_ISO3" = "Country_code")) %>%
