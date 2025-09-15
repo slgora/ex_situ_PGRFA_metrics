@@ -1,29 +1,43 @@
-# -------------------------------------------------------------------------------------------
 #' Generate Table 4: Crop‐Specific Metrics Summary
 #'
-#' Builds Table 4 (8 rows × 3 columns) for each crop, pulling Number and
-#' Percentage values. The Number column is exported as numeric where possible,
-#' and values above 10,000 are formatted with commas for readability.
-#' All percentages are shown to two decimal places with a % symbol.
+#' Constructs Table 4 for each crop strategy, summarizing eight key metrics across:
+#' - Genebank holdings (international and national)
+#' - Annex I inclusion
+#' - GLIS DOI and MLS notifications
+#' - MLS status in international and national collections
 #'
-#' @param metrics_guide Data frame with your metrics guide (must include
-#'   columns `Pertains to Table`, `Metric Name in Results Table (or summaries text)`,
-#'   and `Metric Role`).
+#' The function dynamically maps metric roles and sources using a guide table,
+#' applies conditional filters (e.g., `A15_collection`), and aggregates values where needed.
+#' Percentages are recalculated from totals when required, and all outputs are formatted for reporting:
+#' - Numbers are comma-formatted if >10,000
+#' - Percentages are rounded to two decimal places with a "%" symbol
 #'
-#' @param metric_dfs Named list of data frames, each with a `Crop_strategy`
-#'   column and the following data frames:
-#'     - accessions_by_org_type: n_records, percent, A15_collection
-#'     - annex1_count: count_includedannex1
-#'     - annex1_perc: annex1_perc
-#'     - GLIS_dois_count: dois
-#'     - GLIS_MLS_count: MLS_notified
-#'     - mls_by_orgtype: count_includedmls, count_notincludedmls,
-#'       percent_includedmls, percent_notincludedmls, A15_collection
+#' @param metrics_guide A data frame containing metadata for metric mapping.
+#'   Must include columns:
+#'   - `Pertains to Table`
+#'   - `Metric Name in Results Table (or summaries text)`
+#'   - `Metric Role` ("Number" or "Percentage")
 #'
-#' @return Named list of tibbles (one per crop) with columns:
-#'   Metric | Number (formatted with commas if >10,000) | Percentage (as string with %)
+#' @param metric_dfs A named list of data frames, each containing a `Crop_strategy` column.
+#'   Expected names and columns:
+#'   - `accessions_by_org_type`: n_records, percent, A15_collection
+#'   - `annex1_count`: count_includedannex1
+#'   - `annex1_perc`: annex1_perc
+#'   - `GLIS_dois_count`: dois
+#'   - `GLIS_MLS_count`: MLS_notified
+#'   - `mls_by_orgtype`: count_includedmls, count_notincludedmls,
+#'     percent_includedmls, percent_notincludedmls, total_crop_records, A15_collection
+#'
+#' @return A named list of tibbles, one per crop strategy, each with columns:
+#'   - Metric
+#'   - Number (character, formatted)
+#'   - Percentage (character, formatted with %)
+#'
 #' @export
-# -------------------------------------------------------------------------------------------
+#'
+#' @examples
+#' table4_results <- generate_table4(metrics_guide = guide_df, metric_dfs = list_of_metric_dfs)
+
 generate_table4 <- function(metrics_guide, metric_dfs) {
   library(dplyr); library(purrr); library(stringr); library(tidyr)
   
@@ -44,7 +58,7 @@ generate_table4 <- function(metrics_guide, metric_dfs) {
         Metric == "Number of accessions in genebank collections in national or other institutions" ~ "accessions_by_org_type",
         Metric == "Number of accessions in genebank collections in Annex I" & Role == "Number"     ~ "annex1_count",
         Metric == "Number of accessions in genebank collections in Annex I" & Role == "Percentage" ~ "annex1_perc",
-        Metric == "Number of accessions with DOI (Plant Treaty GLIS 2024)"                          ~ "GLIS_dois_count",
+        Metric == "Number of accessions with DOI (Plant Treaty GLIS 2024)"                         ~ "GLIS_dois_count",
         Metric == "Number of accessions included in the Multilateral System (MLS) (Plant Treaty GLIS 2025)" ~ "GLIS_MLS_count",
         Metric %in% c(
           "Number of accessions included in the Multilateral System (MLS) (genebank collections databases)",
@@ -74,7 +88,8 @@ generate_table4 <- function(metrics_guide, metric_dfs) {
         Metric == "Number of accessions in genebank collections in international institutions" ~ "A15_collection == TRUE",
         Metric == "Number of accessions in genebank collections in national or other institutions" ~ "A15_collection == FALSE",
         Metric == "Number of accessions included in the Multilateral System (MLS) that are in international collections (genebank collections databases)" ~ "A15_collection == TRUE",
-        Metric == "Number of accessions not included in the Multilateral System (MLS) (genebank collections databases)" ~ "A15_collection == FALSE",
+        # FIX: remove filter for "not included in MLS" to allow full crop-wide aggregation
+        Metric == "Number of accessions not included in the Multilateral System (MLS) (genebank collections databases)" ~ NA_character_,
         TRUE ~ NA_character_
       )
     ) %>%
@@ -95,12 +110,31 @@ generate_table4 <- function(metrics_guide, metric_dfs) {
           dfc <- df %>% filter(.data[[crop_column]] == crop)
           if (!is.na(filt)) dfc <- dfc %>% filter(eval(parse(text = filt)))
           
-          v <- dfc[[var_nm]][1]
+          # Fix: aggregate counts and recalculate percentages for MLS metrics
+          v <- if (df_nm == "mls_by_orgtype" &&
+                   var_nm == "count_includedmls") {
+            sum(dfc[["count_includedmls"]], na.rm = TRUE)
+          } else if (df_nm == "mls_by_orgtype" &&
+                     var_nm == "percent_includedmls") {
+            total <- unique(dfc$total_crop_records)
+            count <- sum(dfc[["count_includedmls"]], na.rm = TRUE)
+            if (length(total) == 1 && total > 0) round(100 * count / total, 2) else NA
+          } else if (df_nm == "mls_by_orgtype" &&
+                     var_nm == "count_notincludedmls") {
+            sum(dfc[["count_notincludedmls"]], na.rm = TRUE)
+          } else if (df_nm == "mls_by_orgtype" &&
+                     var_nm == "percent_notincludedmls") {
+            total <- unique(dfc$total_crop_records)
+            count <- sum(dfc[["count_notincludedmls"]], na.rm = TRUE)
+            if (length(total) == 1 && total > 0) round(100 * count / total, 2) else NA
+          } else {
+            dfc[[var_nm]][1]
+          }
+          
           if (is.na(v)) return("")
           
           if (role == "Percentage") {
-            if (v <= 1) v <- v * 100
-            sprintf("%.2f%%", round(v, 2))
+            sprintf("%.2f%%", v)
           } else {
             formatC(v, format = "f", digits = 0)
           }
