@@ -38,17 +38,20 @@ PTFTW_metrics_processed <- process_PTFTW_metrics(
 # note: will need to update local paths within function to work properly
 source("Functions/Process_transfers.R")
 
-# Data read in, transfers (2012-2019), transfers (2019-2021), country regions, croplist already read in above
+# Data read in, transfers (2012-2015), transfers (2019-2021), country regions, croplist already read in above
 # note: function filters the older transfers dataset to include only records from 2015–2018, 
 #       excluding earlier years and post-2019 entries to avoid duplication with newer 2019–2021 dataset
-transfers_2012_2019 <- read_excel("../../Data/Plant_Treaty/Data_store/ITPGRFA_MLSDataStore2022_7_1.xlsx")
-transfers_2019_2021 <- read_excel("../../Data/Plant_Treaty/Data_store/Transfers_ourcrops_2019-2021.xlsx")
-countries_regions <- read_excel("../../Data_processing/Support_files/Geographical/countries_in_regions.xlsx")
+transfers_2012_2019 <- read_excel("../../GCCSmetricsI/Data/Plant_Treaty/Data_store/ITPGRFA_MLSDataStore2022_7_1.xlsx")
+transfers_2019_2021  <- read_excel("../../GCCSmetricsI/Data/Plant_Treaty/Data_store/Transfers_ourcrops_2019-2021.xlsx")
+countries_regions <- read_excel("../../GCCSmetricsI/Data_processing/Support_files/Geographical/countries_in_regions.xlsx")
 
 # Run function, specify croplist and output file is saved
 # add folder with date of ouput run
 transfer_metrics <- transfers_metrics(
-  croplist_file = "../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx",
-  out_path = "../../Data_processing/5_PTFTW_processing_and_metrics/2025_07_14/transfers_metrics_2015_2021.xlsx"
+  croplist_file = "../../GCCSmetricsI/Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx",
+  out_path = "../../GCCSmetricsI/Data_processing/5_PTFTW_processing_and_metrics/2025_09_15/transfers_metrics_2015_2021.xlsx",
+  transfers_2012_2019 = transfers_2012_2019,
+  transfers_2019_2021 = transfers_2019_2021,
+  countries_regions = countries_regions
 )
 
