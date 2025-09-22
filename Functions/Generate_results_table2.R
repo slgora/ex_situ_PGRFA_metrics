@@ -51,6 +51,31 @@ generate_table2 <- function(institution_accessions_summary) {
     out
   }
   
+  # Helper: Format storage strings, adding comma to leading number if >10,000
+  format_storage_string <- function(x) {
+    sapply(x, function(val) {
+      if (is.na(val) || val == "") return(NA_character_)
+      m <- regexec("^([0-9,]+)(.*)", val)
+      regmatch <- regmatches(val, m)[[1]]
+      if (length(regmatch) != 3) return(val) # No match, return original
+      num <- suppressWarnings(as.numeric(gsub(",", "", regmatch[2])))
+      rest <- regmatch[3]
+      if (!is.na(num) & num > 1e4) {
+        num_str <- format(num, big.mark = ",", scientific = FALSE, trim = TRUE)
+        paste0(num_str, rest)
+      } else {
+        paste0(regmatch[2], rest)
+      }
+    }, USE.NAMES = FALSE)
+  }
+  
+  # Helper: Extract the numeric part from storage string (e.g. "5652 (storage=13)" -> 5652)
+  extract_storage_count <- function(x) {
+    num <- suppressWarnings(as.numeric(sub("^([0-9,]+).*", "\\1", x)))
+    num[is.na(num)] <- 0
+    num
+  }
+  
   institution_accessions_summary %>%
     arrange(Crop_strategy, desc(institution_accessions_count)) %>%
     group_split(Crop_strategy) %>%
@@ -81,19 +106,28 @@ generate_table2 <- function(institution_accessions_summary) {
       remaining_df <- df %>% slice(-(1:20))
       
       if (nrow(remaining_df) > 0) {
+        # Sum numeric part of storage for "other institutions"
+        total_storage_other <- sum(extract_storage_count(remaining_df$storage_source_raw), na.rm = TRUE)
+        # Always display as "{number} (storage=13)", with comma if needed
+        storage_other_display <- if (total_storage_other > 0) {
+          num_str <- format(total_storage_other, big.mark = ",", scientific = FALSE, trim = TRUE)
+          paste0(num_str, " (storage=13)")
+        } else NA_character_
+        
         other_row <- tibble(
           `Institution Code` = NA_character_,
           `Institution Name` = paste0("Other institutions (n = ", nrow(remaining_df), ")"),
           `Number of accessions` = sum(remaining_df$institution_accessions_count, na.rm = TRUE),
           `Percent of total` = sprintf("%.2f%%", sum(remaining_df$institution_accessions_perc, na.rm = TRUE)),
           `Cumulative percent` = "100.00%",
-          `Number of accessions in long term storage (-18-20 C) and source` = NA_character_,
+          `Number of accessions in long term storage (-18-20 C) and source` = storage_other_display,
           `Number of accessions included in MLS (from GLIS)` = sum(as.numeric(remaining_df$mls_glis_raw), na.rm = TRUE)
         )
         
         top_df <- bind_rows(top_df, other_row)
       }
       
+      # Format necessary columns
       top_df %>%
         mutate(
           across(
@@ -102,7 +136,9 @@ generate_table2 <- function(institution_accessions_summary) {
               `Number of accessions included in MLS (from GLIS)`
             ),
             format_int
-          )
+          ),
+          `Number of accessions in long term storage (-18-20 C) and source` =
+            format_storage_string(`Number of accessions in long term storage (-18-20 C) and source`)
         )
     })
 }
