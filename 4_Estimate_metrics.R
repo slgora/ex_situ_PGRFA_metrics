@@ -470,13 +470,13 @@ write.xlsx(taxa_by_crop, "../../Data_processing/4_estimate_metrics/2025_07_17/ac
 source("Functions/Process_char_eval.R")
 
 # Calculate for Landraces (SAMPSTAT == 300)
-landrace_no_origin <- Calculate_perc_no_origin_cty(
+landrace_no_origin <- calculate_perc_no_origin_cty(
   combined_allcrops,
   "SAMPSTAT == 300",
   "Landrace")
 
 # Calculate for CWR (SAMPSTAT >= 100 & SAMPSTAT < 200)
-cwr_no_origin <- Calculate_perc_no_origin_cty(
+cwr_no_origin <- calculate_perc_no_origin_cty(
   combined_allcrops,
   "SAMPSTAT >= 100 & SAMPSTAT < 200",
   "CWR")
