@@ -1,0 +1,42 @@
+#' Calculate Percentage of Accessions Without Origin Country by Crop and Group
+#'
+#' This function calculates, for each crop, the number and percentage of accessions
+#' in a specified group (e.g., Landrace, CWR) that do not have an origin country.
+#'
+#' @param df Data frame containing at least the columns Crop_strategy, SAMPSTAT, and ORIGCTY.
+#' @param sampstat_filter Character string. A logical condition to filter SAMPSTAT for the group of interest (e.g., "SAMPSTAT == 300").
+#' @param group_label Character string. Name of the group for reporting (e.g., "Landrace", "CWR").
+#'
+#' @return A data frame with columns:
+#'   - Crop_strategy: Crop or crop group.
+#'   - group: Provided group label.
+#'   - accessions_without_origin_country: Number of accessions with missing/empty ORIGCTY.
+#'   - total_accessions: Total number of accessions in the group.
+#'   - percent_without_origin_country: Percentage of group accessions lacking ORIGCTY.
+#'
+#' @examples
+#' # For Landraces
+#' landrace_no_origin <- calculate_pct_no_origin(
+#'   combined_allcrops,
+#'   "SAMPSTAT == 300",
+#'   "Landrace"
+#' )
+#'
+#' # For CWR
+#' cwr_no_origin <- calculate_pct_no_origin(
+#'   combined_allcrops,
+#'   "SAMPSTAT >= 100 & SAMPSTAT < 200",
+#'   "CWR"
+#' )
+calculate_perc_no_origin_cty <- function(df, sampstat_filter, group_label) {
+  df %>%
+    filter(!!rlang::parse_expr(sampstat_filter)) %>%
+    group_by(Crop_strategy) %>%
+    summarise(
+      group = group_label,
+      accessions_without_origin_country = sum(is.na(ORIGCTY) | ORIGCTY == ""),
+      total_accessions = n(),
+      percent_without_origin_country = round(100 * accessions_without_origin_country / total_accessions, 2),
+      .groups = "drop"
+    )
+}
