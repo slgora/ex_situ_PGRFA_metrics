@@ -466,4 +466,25 @@ names(taxa_by_crop) <- substr(names(taxa_by_crop), 1, 31)
 # Write to Excel
 write.xlsx(taxa_by_crop, "../../Data_processing/4_estimate_metrics/2025_07_17/accessions_per_taxa.xlsx")
 
+# --------- Percent of Landraces and CWRs without Origin Country ---------
+source("Functions/Process_char_eval.R")
+
+# Calculate for Landraces (SAMPSTAT == 300)
+landrace_no_origin <- Calculate_perc_no_origin_cty(
+  combined_allcrops,
+  "SAMPSTAT == 300",
+  "Landrace")
+
+# Calculate for CWR (SAMPSTAT >= 100 & SAMPSTAT < 200)
+cwr_no_origin <- Calculate_perc_no_origin_cty(
+  combined_allcrops,
+  "SAMPSTAT >= 100 & SAMPSTAT < 200",
+  "CWR")
+
+# Combine both metrics
+no_origin_summary <- bind_rows(landrace_no_origin, cwr_no_origin)
+
+# Write to Excel
+write.xlsx(no_origin_summary, "../../Data_processing/4_estimate_metrics/2025_09_16/accessions_landrace_CWR_no_origin.xlsx")
+
 ############ End of Script ############
