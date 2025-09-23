@@ -466,7 +466,7 @@ names(taxa_by_crop) <- substr(names(taxa_by_crop), 1, 31)
 # Write to Excel
 write.xlsx(taxa_by_crop, "../../Data_processing/4_estimate_metrics/2025_07_17/accessions_per_taxa.xlsx")
 
-# --------- Percent of Landraces and CWRs without Origin Country ---------
+# --------- ADDED METRIC: Percent of Landraces and CWRs without Origin Country ---------
 source("Functions/Process_char_eval.R")
 
 # Calculate for Landraces (SAMPSTAT == 300)
@@ -481,10 +481,67 @@ cwr_no_origin <- calculate_perc_no_origin_cty(
   "SAMPSTAT >= 100 & SAMPSTAT < 200",
   "CWR")
 
-# Combine both metrics
+# Combine both metrics and write to Excel
 no_origin_summary <- bind_rows(landrace_no_origin, cwr_no_origin)
+write.xlsx(no_origin_summary, "../../Data_processing/4_estimate_metrics/2025_09_16/accessions_landrace_CWR_no_origin.xlsx")
+
+# --------- ADDED METRIC: Entries with STORAGE containing at least one of "30" or "40" ---------
+#### Calculate storage 30 or 40 metric by crop
+storage_30_or_40_metric_bycrop <- combined_allcrops %>%
+  mutate(
+    STORAGE = as.character(STORAGE),
+    has_30_or_40 = str_detect(STORAGE, "\\b30\\b") | str_detect(STORAGE, "\\b40\\b")) %>%
+  group_by(Crop_strategy) %>%
+  summarise(
+    count_with_30_or_40 = sum(has_30_or_40, na.rm = TRUE),
+    total_records = n(),
+    perc_with_30_or_40 = round(100 * count_with_30_or_40 / total_records, 2))
 
 # Write to Excel
-write.xlsx(no_origin_summary, "../../Data_processing/4_estimate_metrics/2025_09_16/accessions_landrace_CWR_no_origin.xlsx")
+#write.xlsx(storage_30_or_40_metric_bycrop, "../../Data_processing/4_estimate_metrics/2025_09_16/storage_30_or_40_metric_bycrop.xlsx")
+
+#### Calculate storage 30 or 40 metric for all institutions
+inst_metric <- combined_allcrops %>%
+  mutate(
+    STORAGE = as.character(STORAGE),
+    has_30_or_40 = str_detect(STORAGE, "\\b30\\b") | str_detect(STORAGE, "\\b40\\b") ) %>%
+  group_by(Crop_strategy, INSTCODE) %>%
+  summarise(
+    count_with_30_or_40 = sum(has_30_or_40, na.rm = TRUE),
+    total_records = n(),
+    .groups = "drop" ) %>%
+  arrange(Crop_strategy, desc(total_records)) %>%
+  group_by(Crop_strategy) %>%
+  mutate(rank = row_number()) %>%
+  ungroup()
+
+# Prepare output: top 20 + Other for each crop, with n for "Other institutions"
+storage_30_or_40_metric_top20_list <- inst_metric %>%
+  group_by(Crop_strategy) %>%
+  group_split() %>%
+  setNames(unique(inst_metric$Crop_strategy)) %>%
+  lapply(function(df) {
+    top20 <- head(df, 20)
+    others <- tail(df, max(0, nrow(df) - 20))
+    if (nrow(others) > 0) {
+      other_row <- data.frame(
+        Crop_strategy = unique(df$Crop_strategy),
+        INSTCODE = paste0("Other institutions (n=", nrow(others), ")"),
+        count_with_30_or_40 = sum(others$count_with_30_or_40),
+        total_records = sum(others$total_records),
+        rank = 21 )
+      top20 <- bind_rows(top20, other_row) }
+    top20 %>%
+      mutate(
+        perc_with_30_or_40 = round(100 * count_with_30_or_40 / total_records, 2)
+      ) %>%
+      select(Crop_strategy, INSTCODE, count_with_30_or_40, total_records, perc_with_30_or_40)
+  })
+
+# Truncate sheet names to 31 characters
+names(storage_30_or_40_metric_top20_list) <- substr(names(storage_30_or_40_metric_top20_list), 1, 31)
+# Write each crop to a different Excel sheet
+write.xlsx(storage_30_or_40_metric_top20_list,"../../Data_processing/4_estimate_metrics/2025_09_16/storage_30_or_40_metric_top20_by_crop.xlsx")
+
 
 ############ End of Script ############
