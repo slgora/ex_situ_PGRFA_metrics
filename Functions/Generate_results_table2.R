@@ -14,6 +14,7 @@
 #'   - Cumulative percent (formatted to two decimals with “%” suffix)
 #'   - Number of accessions in long term storage (-18–20 C) and source
 #'   - Number of accessions included in MLS (from GLIS)
+#'   - Number of accessions included in MLS (from genebank collections databases)
 #'
 #' Adds comma separators for any count > 10,000.
 #'
@@ -26,6 +27,7 @@
 #'   - institution_accessions_perc (num)
 #'   - Number.of.accessions.in.long.term.storage.(-18-20.C).and.source (chr)
 #'   - Number.of.accessions.included.in.MLS.(from.GLIS) (num)
+#'   - Number.of.accessions.included.in.MLS.(from.genebank.collections.databases) (num)
 #'
 #' @return Named list of tibbles (one per crop) with formatted columns
 #'
@@ -84,7 +86,8 @@ generate_table2 <- function(institution_accessions_summary) {
       df <- df %>%
         rename(
           storage_source_raw = `Number.of.accessions.in.long.term.storage.(-18-20.C).and.source`,
-          mls_glis_raw       = `Number.of.accessions.included.in.MLS.(from.GLIS)`
+          mls_glis_raw       = `Number.of.accessions.included.in.MLS.(from.GLIS)`,
+          mls_genebank_raw   = `Number.of.accessions.included.in.MLS.(from.genebank.collections.databases)`
         ) %>%
         arrange(desc(institution_accessions_count)) %>%
         mutate(
@@ -100,7 +103,8 @@ generate_table2 <- function(institution_accessions_summary) {
           `Percent of total` = sprintf("%.2f%%", institution_accessions_perc),
           `Cumulative percent` = sprintf("%.2f%%", cumulative_raw),
           `Number of accessions in long term storage (-18-20 C) and source` = storage_source_raw,
-          `Number of accessions included in MLS (from GLIS)` = mls_glis_raw
+          `Number of accessions included in MLS (from GLIS)` = mls_glis_raw,
+          `Number of accessions included in MLS (from genebank collections databases)` = mls_genebank_raw
         )
       
       remaining_df <- df %>% slice(-(1:20))
@@ -108,7 +112,6 @@ generate_table2 <- function(institution_accessions_summary) {
       if (nrow(remaining_df) > 0) {
         # Sum numeric part of storage for "other institutions"
         total_storage_other <- sum(extract_storage_count(remaining_df$storage_source_raw), na.rm = TRUE)
-        # Always display as "{number} (storage=13)", with comma if needed
         storage_other_display <- if (total_storage_other > 0) {
           num_str <- format(total_storage_other, big.mark = ",", scientific = FALSE, trim = TRUE)
           paste0(num_str, " (storage=13)")
@@ -121,7 +124,8 @@ generate_table2 <- function(institution_accessions_summary) {
           `Percent of total` = sprintf("%.2f%%", sum(remaining_df$institution_accessions_perc, na.rm = TRUE)),
           `Cumulative percent` = "100.00%",
           `Number of accessions in long term storage (-18-20 C) and source` = storage_other_display,
-          `Number of accessions included in MLS (from GLIS)` = sum(as.numeric(remaining_df$mls_glis_raw), na.rm = TRUE)
+          `Number of accessions included in MLS (from GLIS)` = sum(as.numeric(remaining_df$mls_glis_raw), na.rm = TRUE),
+          `Number of accessions included in MLS (from genebank collections databases)` = sum(as.numeric(remaining_df$mls_genebank_raw), na.rm = TRUE)
         )
         
         top_df <- bind_rows(top_df, other_row)
@@ -133,7 +137,8 @@ generate_table2 <- function(institution_accessions_summary) {
           across(
             c(
               `Number of accessions`,
-              `Number of accessions included in MLS (from GLIS)`
+              `Number of accessions included in MLS (from GLIS)`,
+              `Number of accessions included in MLS (from genebank collections databases)`
             ),
             format_int
           ),
