@@ -301,7 +301,7 @@ GLIS_MLS_count <- GLIS_dataset %>%
   group_by(Crop_strategy) %>% 
   summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
 
-# 14. Top institutions holding crop germplasm a. count and b. percent, c. # of accessions in long term storage, and d. # of accessions included in MLS (from GLIS)
+# 14. Top institutions holding crop germplasm: a. count and b. percent, c. number of accessions in long term storage, d. number of accessions included in MLS (from GLIS), and e. number of accessions included in MLS (from genebank collections databases)
 # a. Count of top institutions holding crop germplasm and b. percent
 institution_accessions_summary <- combined_allcrops %>%
   filter(!is.na(INSTCODE)) %>%
@@ -329,31 +329,41 @@ institution_accessions_summary <- institution_accessions_summary %>%
 # c. Number of accessions in long term storage (-18-20 C)
 long_term_storage <- combined_allcrops %>%
   filter(str_detect(as.character(STORAGE), "\\b13\\b")) %>%
-  group_by(Crop_strategy, INSTCODE) %>%           #by crop & institute
+  group_by(Crop_strategy, INSTCODE) %>%
   summarise(long_term_storage_count = n(), .groups = "drop")
 
 # d. Number of accessions included in MLS (from GLIS)
 GLIS_MLS_count_by_inst <- GLIS_dataset %>%
-  group_by(Crop_strategy, INSTCODE) %>%          #by crop & institute
+  group_by(Crop_strategy, INSTCODE) %>%
   summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
 
-# add metrics c & d to metric 14 table
+# e. Number of accessions included in MLS (from genebank collections databases)
+# (Assumes MLSSTAT is the correct field in combined_allcrops for genebank databases)
+MLS_count_genebank_by_inst <- combined_allcrops %>%
+  filter(!is.na(INSTCODE)) %>%
+  group_by(Crop_strategy, INSTCODE) %>%
+  summarise(MLS_included_genebank = sum(MLSSTAT == TRUE, na.rm = TRUE), .groups = "drop")
+
+# add metrics c, d, and e to metric 14 table
 institution_accessions_summary <- institution_accessions_summary %>%
   left_join(long_term_storage,        by = c("Crop_strategy","INSTCODE")) %>%
   left_join(GLIS_MLS_count_by_inst,   by = c("Crop_strategy","INSTCODE")) %>%
+  left_join(MLS_count_genebank_by_inst, by = c("Crop_strategy","INSTCODE")) %>%
   mutate(
     # fill NAs
-    long_term_storage_count = replace_na(long_term_storage_count, 0),
-    MLS_notified             = replace_na(MLS_notified, 0),
-    # create the two new display columns
+    long_term_storage_count      = replace_na(long_term_storage_count, 0),
+    MLS_notified                = replace_na(MLS_notified, 0),
+    MLS_included_genebank       = replace_na(MLS_included_genebank, 0),
+    # create the three display columns
     `Number of accessions in long term storage (-18-20 C) and source` =
       if_else(
         long_term_storage_count > 0,
         paste0(long_term_storage_count, " (storage=13)"),
         "" ),
     `Number of accessions included in MLS (from GLIS)` =
-      MLS_notified
-  )
+      MLS_notified,
+    `Number of accessions included in MLS (from genebank collections databases)` =
+      MLS_included_genebank)
 
 # 15. Number of unique taxa listed in BGCI data metric (BGCI dataset)
 BGCI_taxa_count <- BGCI_allcrops %>%
