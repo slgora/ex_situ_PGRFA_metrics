@@ -1,46 +1,30 @@
 # -------------------------------------------------------------------------------------------
 #' Generate Table 2: Top 20 Institutional Accession Tables by Crop Strategy
 #'
-#' Produces a named list of tibbles, one per Crop_strategy, showing:
-#'   • Top 20 institutions by accession count
-#'   • One summary row aggregating all remaining institutions
-#'   • Cumulative percentage of accessions for each row
+#' For vegetative crops (Aroids, Breadfruit, Cassava, Strawberry, Sweetpotato), replaces
+#' the long-term storage column with "Number of accessions conserved in vitro or in cryo storage"
+#' using the count_with_30_or_40 column from storage_30_or_40_metric_byinst.
 #'
-#' Each tibble includes the following columns:
-#'   - Institution Code
-#'   - Institution Name
-#'   - Number of accessions
-#'   - Percent of total (formatted to two decimals with “%” suffix)
-#'   - Cumulative percent (formatted to two decimals with “%” suffix)
-#'   - Number of accessions in long term storage (-18–20 C) and source
-#'   - Number of accessions included in MLS (from GLIS)
-#'   - Number of accessions included in MLS (from genebank collections databases)
+#' Data prep (joining and column selection) is performed inside the function.
 #'
-#' Adds comma separators for any count > 10,000.
-#'
-#' @param institution_accessions_summary Data frame with at least these columns:
-#'   - Crop_strategy (chr)
-#'   - INSTCODE (chr)
-#'   - Institute_name (chr)
-#'   - institution_accessions_count (num)
-#'   - total_accessions (num)
-#'   - institution_accessions_perc (num)
-#'   - Number.of.accessions.in.long.term.storage.(-18-20.C).and.source (chr)
-#'   - Number.of.accessions.included.in.MLS.(from.GLIS) (num)
-#'   - Number.of.accessions.included.in.MLS.(from.genebank.collections.databases) (num)
+#' @param institution_accessions_summary Data frame with institutional metrics (by crop/institution)
+#' @param storage_30_or_40_metric_byinst Data frame with count_with_30_or_40 by crop/institution
 #'
 #' @return Named list of tibbles (one per crop) with formatted columns
 #'
-#' @import dplyr purrr
+#' @import dplyr purrr tidyr
 #' @export
 # -------------------------------------------------------------------------------------------
-generate_table2 <- function(institution_accessions_summary) {
+generate_table2 <- function(institution_accessions_summary, storage_30_or_40_metric_byinst) {
   library(dplyr)
   library(purrr)
+  library(tidyr)
+  
+  vegetative_crops <- c("Aroids", "Breadfruit", "Cassava", "Strawberry", "Sweetpotato")
   
   # Helper: Format integers with commas if > 10,000
   format_int <- function(x) {
-    num <- as.numeric(x)
+    num <- suppressWarnings(as.numeric(x))
     out <- as.character(num)
     out[is.na(num)] <- NA_character_
     big <- !is.na(num) & num > 1e4
@@ -78,14 +62,42 @@ generate_table2 <- function(institution_accessions_summary) {
     num
   }
   
-  institution_accessions_summary %>%
+  # Join summary with storage_30_or_40 by crop/institution
+  df <- institution_accessions_summary %>%
+    left_join(
+      storage_30_or_40_metric_byinst %>% 
+        select(Crop_strategy, INSTCODE, count_with_30_or_40),
+      by = c("Crop_strategy", "INSTCODE")
+    )
+  
+  # Main split and formatting
+  df %>%
     arrange(Crop_strategy, desc(institution_accessions_count)) %>%
     group_split(Crop_strategy) %>%
     set_names(map_chr(., ~ unique(.x$Crop_strategy))) %>%
     map(function(df) {
+      crop <- unique(df$Crop_strategy)
+      is_veg <- crop %in% vegetative_crops
+      
+      # ---- Column setup: choose which storage column to use and what label ----
+      if (is_veg) {
+        storage_col <- "count_with_30_or_40"
+        storage_label <- "Number of accessions conserved in vitro or in cryo storage"
+        storage_for_other <- function(x) sum(as.numeric(x), na.rm = TRUE)
+        storage_format <- function(x) format_int(x)
+      } else {
+        storage_col <- "Number.of.accessions.in.long.term.storage.(-18-20.C).and.source"
+        storage_label <- "Number of accessions in long term storage (-18-20 C) and source"
+        storage_for_other <- function(x) {
+          total <- sum(extract_storage_count(x), na.rm = TRUE)
+          if (total > 0) paste0(format(total, big.mark = ",", scientific = FALSE, trim = TRUE), " (storage=13)")
+          else NA_character_
+        }
+        storage_format <- function(x) format_storage_string(x)
+      }
+      
       df <- df %>%
         rename(
-          storage_source_raw = `Number.of.accessions.in.long.term.storage.(-18-20.C).and.source`,
           mls_glis_raw       = `Number.of.accessions.included.in.MLS.(from.GLIS)`,
           mls_genebank_raw   = `Number.of.accessions.included.in.MLS.(from.genebank.collections.databases)`
         ) %>%
@@ -100,9 +112,9 @@ generate_table2 <- function(institution_accessions_summary) {
           `Institution Code` = INSTCODE,
           `Institution Name` = Institute_name,
           `Number of accessions` = institution_accessions_count,
-          `Percent of total` = sprintf("%.2f%%", institution_accessions_perc),
-          `Cumulative percent` = sprintf("%.2f%%", cumulative_raw),
-          `Number of accessions in long term storage (-18-20 C) and source` = storage_source_raw,
+          `Percent of total` = institution_accessions_perc,
+          `Cumulative percent` = cumulative_raw,
+          !!storage_label := .data[[storage_col]],
           `Number of accessions included in MLS (from GLIS)` = mls_glis_raw,
           `Number of accessions included in MLS (from genebank collections databases)` = mls_genebank_raw
         )
@@ -110,40 +122,31 @@ generate_table2 <- function(institution_accessions_summary) {
       remaining_df <- df %>% slice(-(1:20))
       
       if (nrow(remaining_df) > 0) {
-        # Sum numeric part of storage for "other institutions"
-        total_storage_other <- sum(extract_storage_count(remaining_df$storage_source_raw), na.rm = TRUE)
-        storage_other_display <- if (total_storage_other > 0) {
-          num_str <- format(total_storage_other, big.mark = ",", scientific = FALSE, trim = TRUE)
-          paste0(num_str, " (storage=13)")
-        } else NA_character_
-        
+        storage_other_val <- storage_for_other(remaining_df[[storage_col]])
         other_row <- tibble(
           `Institution Code` = NA_character_,
           `Institution Name` = paste0("Other institutions (n = ", nrow(remaining_df), ")"),
           `Number of accessions` = sum(remaining_df$institution_accessions_count, na.rm = TRUE),
-          `Percent of total` = sprintf("%.2f%%", sum(remaining_df$institution_accessions_perc, na.rm = TRUE)),
-          `Cumulative percent` = "100.00%",
-          `Number of accessions in long term storage (-18-20 C) and source` = storage_other_display,
+          `Percent of total` = sum(remaining_df$institution_accessions_perc, na.rm = TRUE),
+          `Cumulative percent` = 100,
+          !!storage_label := storage_other_val,
           `Number of accessions included in MLS (from GLIS)` = sum(as.numeric(remaining_df$mls_glis_raw), na.rm = TRUE),
           `Number of accessions included in MLS (from genebank collections databases)` = sum(as.numeric(remaining_df$mls_genebank_raw), na.rm = TRUE)
         )
-        
         top_df <- bind_rows(top_df, other_row)
       }
       
-      # Format necessary columns
-      top_df %>%
+      # Format columns after binding
+      top_df <- top_df %>%
         mutate(
-          across(
-            c(
-              `Number of accessions`,
-              `Number of accessions included in MLS (from GLIS)`,
-              `Number of accessions included in MLS (from genebank collections databases)`
-            ),
-            format_int
-          ),
-          `Number of accessions in long term storage (-18-20 C) and source` =
-            format_storage_string(`Number of accessions in long term storage (-18-20 C) and source`)
+          `Number of accessions` = format_int(`Number of accessions`),
+          `Percent of total` = sprintf("%.2f%%", as.numeric(`Percent of total`)),
+          `Cumulative percent` = sprintf("%.2f%%", as.numeric(`Cumulative percent`)),
+          `Number of accessions included in MLS (from GLIS)` = format_int(`Number of accessions included in MLS (from GLIS)`),
+          `Number of accessions included in MLS (from genebank collections databases)` = format_int(`Number of accessions included in MLS (from genebank collections databases)`),
+          !!storage_label := storage_format(.data[[storage_label]])
         )
+      
+      top_df
     })
 }
