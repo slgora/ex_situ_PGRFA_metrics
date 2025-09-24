@@ -15,8 +15,8 @@ library(dplyr)
 ####################################################################################################
 ########### Read in all database data for all crops ################################################
 BGCI_new15crops <- read_csv("../../GCCSmetricsII/Data/BGCIPlantSearch_data/BGCI_new15crops_unformatted.csv")
-WIEWS_new15crops <- read_csv("../../GCCS metrics project shared folder/GCCSmetricsII/Data/FAO_WIEWS/Passport_data/all_crops_aggregated/WIEWS_new15crops.csv")
-Genesys_new15crops <- read_csv("../../GCCS metrics project shared folder/GCCSmetricsII/Data/Genesys/Data_aggregated_all_selected_GCCS/Genesys_new15crops_unformatted.csv")
+WIEWS_new15crops <- read_csv("../../GCCSmetricsII/Data/FAO_WIEWS/Passport_data/all_crops_aggregated/WIEWS_new15crops.csv")
+Genesys_new15crops <- read_csv("../../GCCSmetricsII/Data/Genesys/Data_aggregated_all_selected_GCCS/Genesys_new15crops_unformatted.csv")
 
 ##### read file with country codes, I added na.strings to resolve the problem with NA for Namibia becoming a NaN value
 geo_names <- read_csv("../../GCCSmetricsII/Data_processing/Support_files/Geographical/geo_names.csv", na = c("", "-"))
@@ -38,7 +38,6 @@ data_source <- read_excel("../../GCCSmetricsII/Data_processing/Support_files/Sou
 
 ####################################################################################################
 ########## Change field names to follow MCPD standard see https://www.fao.org/plant-treaty/tools/toolbox-for-sustainable-use/details/en/c/1367915/ ############################################
-
 
 ############### BGCI Plant Search: Data Read in and Cleaning ####################
 # PG notes BGCI country code is country of Botanical Garden not origin country of the plant (it may be the same ? but is it a. valid assumption)
@@ -207,7 +206,6 @@ Genesys_new15crops$DECLONGITUDE_origin <- as.character(Genesys_new15crops$DECLON
 WIEWS_new15crops$DECLONGITUDE_origin  <- as.character(WIEWS_new15crops$DECLONGITUDE_origin)
 Genesys_new15crops$DECLATITUDE_origin <- as.character(Genesys_new15crops$DECLATITUDE_origin)
 WIEWS_new15crops$DECLATITUDE_origin  <- as.character(WIEWS_new15crops$DECLATITUDE_origin)
-
 
 Genesys_new15crops$COLLSRC <- as.character(Genesys_new15crops$COLLSRC)
 WIEWS_new15crops$COLLSRC  <- as.character(WIEWS_new15crops$COLLSRC)
