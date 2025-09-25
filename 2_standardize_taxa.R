@@ -1,11 +1,11 @@
-### 
+###
 
 library(tidyr)
 library(httr)
 library(jsonlite)
 
-# read dataset 
-df = read.csv("../../Data_processing/1_merge_data/DATE_OF_RUN/gen_wiews_df.csv", header = TRUE )
+# read dataset
+df = read.csv("../../GCCSmetricsII/Data_processing/1_merge_data/2025_09_24/gen_wiews_new15_df.csv", header = TRUE )
 
 ####################
 # load functions
@@ -42,8 +42,8 @@ taxa_standardized_df_GRIN <- cbind(taxa_standardized_df_GRIN, data_source = "GRI
 
 # Join results from GRIN with results from WFO
 taxa_standardized_df <- taxa_standardized_df_GRIN %>%
-  full_join(taxa_standardized_df_WFO, by = c("input_name" = "input_name")) 
+  full_join(taxa_standardized_df_WFO, by = c("input_name" = "input_name"))
 
 # save table with results from both WFO and GRIN
 df_save_results <- apply(taxa_standardized_df,2,as.character)
-write.csv(df_save_results, '../../Data_processing/2_standardize_taxa/standardized_taxaDATE.csv', row.names = FALSE)
+write.csv(df_save_results, '../../GCCSmetricsII/Data_processing/2_standardize_taxa/2025_09_24/gen_wiews_new15crops_standardized_taxa2025_09_24.csv', row.names = FALSE)
