@@ -379,14 +379,14 @@ source("Functions/Process_char_eval.R")
 # call location of folders with char and eval datasets extracted from Genesys
 char_eval_summary <- summarize_char_eval("../../GCCSmetricsI/Data/Genesys/Characterization_and_evaluation_datasets")
 
-# --------- ADDED METRIC: Percent of Landraces and CWRs without Origin Country ---------
+# 23. Percent of Landraces and CWRs without country of origin
 source("Functions/Calculate_perc_no_origin_cty.R")
-# Calculate for Landraces (SAMPSTAT == 300)
+# a. Calculate for Landraces (SAMPSTAT == 300)
 landrace_no_origin <- calculate_perc_no_origin_cty(
   combined_allcrops,
   "SAMPSTAT == 300",
   "Landrace")
-# Calculate for CWR (SAMPSTAT >= 100 & SAMPSTAT < 200)
+# b. Calculate for CWR (SAMPSTAT >= 100 & SAMPSTAT < 200)
 cwr_no_origin <- calculate_perc_no_origin_cty(
   combined_allcrops,
   "SAMPSTAT >= 100 & SAMPSTAT < 200",
@@ -394,8 +394,8 @@ cwr_no_origin <- calculate_perc_no_origin_cty(
 # Combine both metrics
 no_origin_summary <- bind_rows(landrace_no_origin, cwr_no_origin)
 
-# --------- ADDED METRIC: Entries with STORAGE containing at least one of "30" or "40" ---------
-#### Calculate storage 30 or 40 metric by crop
+# 24. Count of STORAGE containing at least one of "30" or "40"
+#### a. Calculate storage 30 or 40 metric by crop
 storage_30_or_40_metric_bycrop <- combined_allcrops %>%
   mutate(
     STORAGE = as.character(STORAGE),
@@ -406,7 +406,7 @@ storage_30_or_40_metric_bycrop <- combined_allcrops %>%
     total_records = n(),
     perc_with_30_or_40 = round(100 * count_with_30_or_40 / total_records, 2))
 
-#### Calculate storage 30 or 40 metric for all institutions (raw, unlimited table)
+#### b. Calculate storage 30 or 40 metric for all institutions
 storage_30_or_40_metric_byinst <- combined_allcrops %>%
   mutate(
     STORAGE = as.character(STORAGE),
