@@ -14,12 +14,12 @@ percent_summary <- function(df, group_col, count_expr, total_col, percent_col) {
 }
 
 # --------- DATA IMPORT ---------
-combined_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_18/combined_df.csv") 
-SGSV_allcrops <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/SGSV_processed.csv")
-BGCI_allcrops <- read_csv("../../Data_processing//3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/BGCI_processed.csv") # Note: Add BGCI_allcrops import if used, check if need to add Crop_strategy here
-GLIS_dataset  <- read_csv("../../Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/GLIS_processed.csv") # glis_data_processed is the data after adding the cropstrategy variable
-croplist <- read_excel("../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx")
-institute_names_no_syn <- read_excel("../../Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_organizations_PG.xlsx")
+combined_allcrops <- read_csv("../../GCCSmetricsI/Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_08_22/combined_df.csv")
+SGSV_allcrops <- read_csv("../../GCCSmetricsI/Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/SGSV_processed.csv")
+BGCI_allcrops <- read_csv("../../GCCSmetricsI/Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/BGCI_processed.csv")
+GLIS_dataset <- read_csv("../../GCCSmetricsI/Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/GLIS_processed.csv")
+croplist <- read_excel("../../GCCSmetricsI/Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx")
+institute_names_no_syn <- read_excel("../../GCCSmetricsI/Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_organizations_PG.xlsx")
 
 # --------- METRICS CALCULATIONS ---------
 
@@ -56,7 +56,7 @@ unique_taxa <- combined_allcrops %>%
   group_by(Crop_strategy) %>%
   summarise( unique_taxa = list(unique(Standardized_taxa)),
              unique_taxa_count = n_distinct(Standardized_taxa),
-    .groups = "drop")
+             .groups = "drop")
 
 # 5. Number of countries where germplasm collected (excluding certain SAMPSTAT)
 country_count <- combined_allcrops %>%
@@ -80,7 +80,7 @@ diversity_regions_metric <- combined_allcrops %>%
   group_by(Crop_strategy) %>%
   summarise(
     isindiversityregions_count = sum(fromPrimary_diversity_region, na.rm = TRUE) +
-                                 sum(fromSecondary_diversity_region, na.rm = TRUE),
+      sum(fromSecondary_diversity_region, na.rm = TRUE),
     total_accessions = n(),
     isindiversityregions_perc = round(100 * isindiversityregions_count / total_accessions, 2),
     .groups = "drop"
@@ -193,45 +193,6 @@ storage_term_summary <- storage_long %>%
       TRUE ~ NA_character_
     )
   ) %>%
-  filter(!is.na(seed_storage_category)) %>%  # Remove NA categories
-  left_join(accession_base, by = c("Accession_ID", "Crop_strategy")) %>%
-  group_by(Crop_strategy) %>%
-  summarise(
-    total_records = n(),
-    seed_count = sum(!is.na(seed_storage_category)),
-    longterm_storage_count = sum(seed_storage_category == "long_term", na.rm = TRUE),
-    medterm_storage_count  = sum(seed_storage_category == "medium_term", na.rm = TRUE),
-    shortterm_storage_count = sum(seed_storage_category == "short_term", na.rm = TRUE),
-    not_specified_seed_storage_count = sum(seed_storage_category == "not_specified", na.rm = TRUE)
-  ) %>%
-  mutate(
-    seed_perc = round(100 * seed_count / total_records, 2),
-    longterm_storage_perc = round(100 * longterm_storage_count / total_records, 2),
-    medterm_storage_perc = round(100 * medterm_storage_count / total_records, 2),
-    shortterm_storage_perc = round(100 * shortterm_storage_count / total_records, 2),
-    not_specified_seed_storage_perc = round(100 * not_specified_seed_storage_count / total_records, 2)
-  )
-
-# Seed storage term summary
-storage_term_summary <- storage_long %>%
-  filter(STORAGE %in% storage_types$seed) %>%
-  group_by(Accession_ID, Crop_strategy) %>%
-  summarise(
-    has_10 = any(STORAGE == "10"),
-    has_11 = any(STORAGE == "11"),
-    has_12 = any(STORAGE == "12"),
-    has_13 = any(STORAGE == "13"),
-    .groups = "drop"
-  ) %>%
-  mutate(
-    seed_storage_category = case_when(
-      has_13 ~ "long_term",
-      has_12 ~ "medium_term",
-      has_11 ~ "short_term",
-      has_10 & !has_11 & !has_12 & !has_13 ~ "not_specified",
-      TRUE ~ NA_character_
-    )
-  ) %>%
   left_join(accession_base, by = c("Accession_ID", "Crop_strategy")) %>%
   group_by(Crop_strategy) %>%
   summarise(
@@ -251,7 +212,7 @@ storage_term_summary <- storage_long %>%
   )
 
 # 10. Safety duplication percentage of accessions duplicated out of the country in other genebanks (excluding SGSV) calculated only using Genesys data. 
-source("Functions/SD_duplicates_out_country.R") # source function
+source("Functions/SD_duplicates_out_country.R")
 
 genesys <- combined_allcrops %>%
   filter(data_source == "Genesys") %>%
@@ -301,8 +262,7 @@ GLIS_MLS_count <- GLIS_dataset %>%
   group_by(Crop_strategy) %>% 
   summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
 
-# 14. Top institutions holding crop germplasm a. count and b. percent, c. # of accessions in long term storage, and d. # of accessions included in MLS (from GLIS)
-# a. Count of top institutions holding crop germplasm and b. percent
+# 14. Top institutions holding crop germplasm: a. count and b. percent, c. number of accessions in long term storage, d. number of accessions included in MLS (from GLIS), and e. number of accessions included in MLS (from genebank collections databases)
 institution_accessions_summary <- combined_allcrops %>%
   filter(!is.na(INSTCODE)) %>%
   group_by(Crop_strategy, INSTCODE) %>%
@@ -329,31 +289,40 @@ institution_accessions_summary <- institution_accessions_summary %>%
 # c. Number of accessions in long term storage (-18-20 C)
 long_term_storage <- combined_allcrops %>%
   filter(str_detect(as.character(STORAGE), "\\b13\\b")) %>%
-  group_by(Crop_strategy, INSTCODE) %>%           #by crop & institute
+  group_by(Crop_strategy, INSTCODE) %>%
   summarise(long_term_storage_count = n(), .groups = "drop")
 
 # d. Number of accessions included in MLS (from GLIS)
 GLIS_MLS_count_by_inst <- GLIS_dataset %>%
-  group_by(Crop_strategy, INSTCODE) %>%          #by crop & institute
+  group_by(Crop_strategy, INSTCODE) %>%
   summarise(MLS_notified = sum(MLSSTAT, na.rm = TRUE), .groups = "drop")
 
-# add metrics c & d to metric 14 table
+# e. Number of accessions included in MLS (from genebank collections databases)
+MLS_count_genebank_by_inst <- combined_allcrops %>%
+  filter(!is.na(INSTCODE)) %>%
+  group_by(Crop_strategy, INSTCODE) %>%
+  summarise(MLS_included_genebank = sum(MLSSTAT == TRUE, na.rm = TRUE), .groups = "drop")
+
+# add metrics c, d, and e to metric 14 table
 institution_accessions_summary <- institution_accessions_summary %>%
   left_join(long_term_storage,        by = c("Crop_strategy","INSTCODE")) %>%
   left_join(GLIS_MLS_count_by_inst,   by = c("Crop_strategy","INSTCODE")) %>%
+  left_join(MLS_count_genebank_by_inst, by = c("Crop_strategy","INSTCODE")) %>%
   mutate(
     # fill NAs
-    long_term_storage_count = replace_na(long_term_storage_count, 0),
-    MLS_notified             = replace_na(MLS_notified, 0),
-    # create the two new display columns
+    long_term_storage_count      = replace_na(long_term_storage_count, 0),
+    MLS_notified                = replace_na(MLS_notified, 0),
+    MLS_included_genebank       = replace_na(MLS_included_genebank, 0),
+    # create the three display columns
     `Number of accessions in long term storage (-18-20 C) and source` =
       if_else(
         long_term_storage_count > 0,
         paste0(long_term_storage_count, " (storage=13)"),
         "" ),
     `Number of accessions included in MLS (from GLIS)` =
-      MLS_notified
-  )
+      MLS_notified,
+    `Number of accessions included in MLS (from genebank collections databases)` =
+      MLS_included_genebank)
 
 # 15. Number of unique taxa listed in BGCI data metric (BGCI dataset)
 BGCI_taxa_count <- BGCI_allcrops %>%
@@ -368,8 +337,7 @@ BGCI_inst_count <- BGCI_allcrops %>%
   count(Crop_strategy, name = "unique_inst_count")
 
 # 17. Regeneration metrics (based on WIEWS indicator file)
-# read in processed WIEWS indicator file, metrics already extracted
-WIEWS_regeneration_summary <- read_csv("../../Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv")
+WIEWS_regeneration_summary <- read_csv("../../GCCSmetricsI/Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv")
 
 # 18. PDCI metric
 # Source and Run function to calculate PDCI
@@ -385,7 +353,9 @@ pdci_summary <- df %>%
     median_PDCI = median(PDCI, na.rm = TRUE) #median PDCI
   )
 
-# 19.- 20. PTFTW Metrics; Note implemented in individual script 5_PTFTW_processing_and_metrics.R
+# 19.- 20. PTFTW Metrics and Transfer metrics: Note implemented in individual script 5_PTFTW_processing_and_metrics.R
+PTFTW_metrics <- read_excel("../../GCCSmetricsI/Data_processing/5_PTFTW_processing_and_metrics/2025_07_24/PTFTW_metrics.xlsx")
+transfer_metrics <- read_excel("../../GCCSmetricsI/Data_processing/5_PTFTW_processing_and_metrics/2025_09_15/transfers_metrics_2015_2021.xlsx")
 
 # 21. Count of records in GBIF
 source("Functions/Call_gbif_API.R")  # Import function get_gbif_count
@@ -407,13 +377,53 @@ gbif_count_summary <- croplist %>%
 # 22. Characterization and Evaluation datasets
 source("Functions/Process_char_eval.R")
 # call location of folders with char and eval datasets extracted from Genesys
-char_eval_summary <- summarize_char_eval('../../Data/Genesys/Characterization_and_evaluation_datasets')
+char_eval_summary <- summarize_char_eval("../../GCCSmetricsI/Data/Genesys/Characterization_and_evaluation_datasets")
 
+# --------- ADDED METRIC: Percent of Landraces and CWRs without Origin Country ---------
+source("Functions/Calculate_perc_no_origin_cty.R")
+# Calculate for Landraces (SAMPSTAT == 300)
+landrace_no_origin <- calculate_perc_no_origin_cty(
+  combined_allcrops,
+  "SAMPSTAT == 300",
+  "Landrace")
+# Calculate for CWR (SAMPSTAT >= 100 & SAMPSTAT < 200)
+cwr_no_origin <- calculate_perc_no_origin_cty(
+  combined_allcrops,
+  "SAMPSTAT >= 100 & SAMPSTAT < 200",
+  "CWR")
+# Combine both metrics
+no_origin_summary <- bind_rows(landrace_no_origin, cwr_no_origin)
+
+# --------- ADDED METRIC: Entries with STORAGE containing at least one of "30" or "40" ---------
+#### Calculate storage 30 or 40 metric by crop
+storage_30_or_40_metric_bycrop <- combined_allcrops %>%
+  mutate(
+    STORAGE = as.character(STORAGE),
+    has_30_or_40 = str_detect(STORAGE, "\\b30\\b") | str_detect(STORAGE, "\\b40\\b")) %>%
+  group_by(Crop_strategy) %>%
+  summarise(
+    count_with_30_or_40 = sum(has_30_or_40, na.rm = TRUE),
+    total_records = n(),
+    perc_with_30_or_40 = round(100 * count_with_30_or_40 / total_records, 2))
+
+#### Calculate storage 30 or 40 metric for all institutions (raw, unlimited table)
+storage_30_or_40_metric_byinst <- combined_allcrops %>%
+  mutate(
+    STORAGE = as.character(STORAGE),
+    has_30_or_40 = str_detect(STORAGE, "\\b30\\b") | str_detect(STORAGE, "\\b40\\b") ) %>%
+  group_by(Crop_strategy, INSTCODE) %>%
+  summarise(
+    count_with_30_or_40 = sum(has_30_or_40, na.rm = TRUE),
+    total_records = n(),
+    .groups = "drop" ) %>%
+  arrange(Crop_strategy, desc(total_records)) %>%
+  group_by(Crop_strategy) %>%
+  mutate(rank = row_number()) %>%
+  ungroup()
 
 # --------- COMPILE ALL METRICS INTO ONE LIST ---------
 library(openxlsx)
 
-# Collect all metrics into a list for tables
 metrics_list <- list(
   accession_by_crop_strategy       = accession_by_crop_strategy,
   accession_by_source              = accession_by_source,
@@ -439,16 +449,19 @@ metrics_list <- list(
   SGSV_dupl_metric                 = SGSV_dupl_metric,
   GLIS_dois_count                  = GLIS_dois_count,
   GLIS_MLS_count                   = GLIS_MLS_count,
-  institution_accessions_summary  = institution_accessions_summary,
+  institution_accessions_summary   = institution_accessions_summary,
   BGCI_taxa_count                  = BGCI_taxa_count,
   BGCI_inst_count                  = BGCI_inst_count,
   WIEWS_regeneration_summary       = WIEWS_regeneration_summary,
   pdci_summary                     = pdci_summary,
   gbif_count_summary               = gbif_count_summary,
-  char_eval_summary                = char_eval_summary
+  char_eval_summary                = char_eval_summary,
+  no_origin_summary                = no_origin_summary,
+  storage_30_or_40_metric_bycrop   = storage_30_or_40_metric_bycrop,
+  storage_30_or_40_metric_byinst   = storage_30_or_40_metric_byinst
 )
-# Save all metrics to excel file with each sheet as different metric
-write.xlsx(metrics_list, file = "../../Data_processing/4_Estimate_metrics/2025_07_25/all_metrics_summary.xlsx")
+# Write to Excel
+write.xlsx(metrics_list, file = "../../GCCSmetricsI/Data_processing/4_estimate_metrics/2025_09_24/all_metrics_summary.xlsx")
 
 
 # --------- Export Taxa  ---------
@@ -464,6 +477,47 @@ taxa_by_crop <- split(taxa_counts, taxa_counts$Crop_strategy)
 names(taxa_by_crop) <- substr(names(taxa_by_crop), 1, 31)
 
 # Write to Excel
-write.xlsx(taxa_by_crop, "../../Data_processing/4_estimate_metrics/2025_07_17/accessions_per_taxa.xlsx")
+write.xlsx(taxa_by_crop, file = "../../GCCS metrics project shared folder/GCCSmetricsI/Data_processing/4_estimate_metrics/2025_09_24/gen_wiews_accessions_per_taxa_bycrop.xlsx")
+
+
+
+############ Compile All Metrics Into One Metric Summary Table ############
+library(tibble)
+# add PTFTW metrics and transfer to the combined datasheet
+metrics_list <- c(metrics_list, list(
+  PTFTW_metrics = PTFTW_metrics,
+  transfer_metrics = transfer_metrics))
+
+# Convert the matrix to a tibble
+sd_outcountry_metric_by_crop <- as_tibble(sd_outcountry_metric_by_crop)
+metrics_list$sd_outcountry_metric_by_crop <- sd_outcountry_metric_by_crop
+# Remove the 'unique_taxa' column from the unique_taxa data frame
+unique_taxa <- unique_taxa %>% select(-unique_taxa)
+metrics_list$unique_taxa <- unique_taxa
+
+# metrics that can't be combined into one sheet (not unique by Crop_strategy)
+metrics_list <- metrics_list[!names(metrics_list) %in% c(
+  "accession_by_source", "accessions_by_org_type", "mls_by_orgtype",
+  "institution_accessions_summary","storage_30_or_40_metric_byinst",
+  "no_origin_summary")]
+
+# Combine all metrics into one data frame by Crop_strategy
+combined_metrics_df <- metrics_list %>% reduce(full_join, by = "Crop_strategy")
+# clean up columns, delete the totals except total_GBIF_count
+combined_metrics_df <- combined_metrics_df %>%
+  select(-which(str_detect(names(.), "total") & names(.) != "total_GBIF_count"))
+
+# Reconstruct the excluded metrics as separate sheets
+extra_sheets <- list(
+  Combined_Metrics = combined_metrics_df,
+  Accession_by_Source = accession_by_source,
+  Accessions_by_Org_Type = accessions_by_org_type,
+  MLS_by_OrgType = mls_by_orgtype,
+  Institution_Accessions_Summary = institution_accessions_summary,
+  Storage_30_Or_40_ByInst = storage_30_or_40_metric_byinst,
+  No_Origin_Summary = no_origin_summary)
+# save to excel
+write.xlsx(extra_sheets, "../../GCCSmetricsI/Data_processing/4_estimate_metrics/2025_09_24/all_metrics_combined_df.xlsx")
+
 
 ############ End of Script ############
