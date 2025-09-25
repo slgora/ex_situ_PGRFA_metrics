@@ -13,11 +13,10 @@ Only GLIS data downloaded through API.
 3)Post taxa standardization processing of datasets
 
 4)Computing the metrics
-This work is currently on-going.
 
 5)Processing Plants That Feed the World data and computing relevant metrics
 
-6)Produce tables
+6)Produce tables.
 Code for tables goes here
 
 
