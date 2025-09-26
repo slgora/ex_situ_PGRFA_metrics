@@ -3,17 +3,7 @@
 #' This function generates a formatted summary table (Table 5) for each crop strategy,
 #' using storage type, regeneration status, and safety duplication metrics defined in a guide.
 #' It extracts both Number and Percentage values for each metric, applies consistent formatting,
-#' and ensures the following:
-#'
-#' 1. The first letter of each metric is capitalized, with exceptions for "Svalbard" and "DNA".
-#' 2. Any rows with blank or NA metrics are removed.
-#' 3. For specific metrics (e.g., "regenerated 2012-2014", "in need of regeneration 2012-2014", "without budget for regeneration 2012-2014"),
-#'    the Percentage field is blank (""), not "—".
-#' 4. All missing or unavailable numeric values are displayed as a dash ("—").
-#' 5. Numbers greater than 10,000 are formatted with commas, smaller numbers have no comma and no decimals.
-#' 6. Percentages are formatted as "xx.xx%".
-#' 7. For the metric "Accessions in genebank collections safety duplicated in Svalbard", the Number column is "0"
-#'    and the Percentage column is "0.00%" for Aroids, Breadfruit, and Cassava (regardless of actual data).
+#' and enforces a custom row order and names as specified by the user.
 #'
 #' @param metrics_guide Data frame. A tidy guide file defining metric labels, roles, and variable names.
 #'   Must include columns for Table, Role, df name, var name, and display label.
@@ -31,7 +21,6 @@
 #' table5_by_crop <- generate_table5(PTFTW_metrics_guide, PTFTW_metric_dfs)
 #' print(table5_by_crop[["Barley"]])
 #'
-#' @author slgora
 #' @export
 generate_table5 <- function(metrics_guide, metric_dfs) {
   library(dplyr)
@@ -96,9 +85,30 @@ generate_table5 <- function(metrics_guide, metric_dfs) {
     "without budget for regeneration 2012-2014"
   )
   
-  # 6. Build output per crop
+  # 6. Custom row names and order for Table 5
+  desired_metric_order <- c(
+    "Number of accessions held in seed storage in genebank collections",
+    "Number of accessions held in short-term seed storage in genebank collections",
+    "Number of accessions held in medium-term seed storage in genebank collections",
+    "Number of accessions held in long-term seed storage in genebank collections",
+    "Number of accessions held in seed storage of undefined type in genebank collections",
+    "Number of accessions held in field storage in genebank collections",
+    "Number of accessions held in in-vitro storage in genebank collections",
+    "Number of accessions held in cryo storage in genebank collections",
+    "Number of accessions held as DNA in genebank collections",
+    "Number of accessions held in other storage in genebank collections",
+    "Number of accessions not marked with a storage type in genebank collections",
+    "Number of accessions in genebank collections regenerated 2012-2014",
+    "Number of accessions in genebank collections in need of regeneration 2012-2014",
+    "Number of accessions in genebank collections in need of regeneration without budget for regeneration 2012-2014",
+    "Number of accessions safety duplicated out of the country in genebank collections",
+    "Number of accessions in genebank collections safety duplicated in Svalbard"
+  )
+  
+  # 7. Build output per crop
   crop_tables <- set_names(all_crops) %>%
     map(function(crop) {
+      # Calculate the Number and Percentage columns in the order of guide_wide
       tbl <- guide_wide %>%
         mutate(
           Number = pmap_chr(
@@ -121,29 +131,32 @@ generate_table5 <- function(metrics_guide, metric_dfs) {
               format_percent(val)
             }
           ),
-          # Capitalize the first letter of the metric
-          Metric = stringr::str_to_sentence(str_trim(metric_stub))
+          metric_name_number = paste0("Number of ", str_trim(metric_stub))
         ) %>%
-        # Manual capitalization exceptions
-        mutate(
-          Metric = str_replace_all(Metric, "svalbard", "Svalbard"),
-          Metric = str_replace_all(Metric, "\\bdna\\b", "DNA")
-        ) %>%
-        # Remove rows where Metric is NA or blank
-        filter(!is.na(Metric), Metric != "" & Metric != "Na") %>%
+        # Remove rows where metric_name_number is blank/NA
+        filter(!is.na(metric_name_number), metric_name_number != "" & metric_name_number != "Na") %>%
         # Set Percentage to "" for specific metrics
         mutate(
           Percentage = ifelse(
-            (stringr::str_detect(tolower(Metric), paste(blank_percent_patterns, collapse = "|"))) & Percentage == "—",
+            (stringr::str_detect(tolower(metric_name_number), paste(blank_percent_patterns, collapse = "|"))) & Percentage == "—",
             "",
             Percentage
           )
         ) %>%
-        select(Metric, Number, Percentage)
+        # Select using custom Metric names and order
+        select(Metric = metric_name_number, Number, Percentage)
+      
+      # Force table to have exactly the desired rows, in order, even if some are missing in underlying data
+      tbl <- tibble(Metric = desired_metric_order) %>%
+        left_join(tbl, by = "Metric") %>%
+        mutate(
+          Number = ifelse(is.na(Number), "—", Number),
+          Percentage = ifelse(is.na(Percentage), "—", Percentage)
+        )
       
       # ---- Svalbard override for Aroids, Breadfruit, Cassava ----
       if (crop %in% c("Aroids", "Breadfruit", "Cassava")) {
-        idx <- which(tbl$Metric == "Accessions in genebank collections safety duplicated in Svalbard")
+        idx <- which(tbl$Metric == "Number of accessions in genebank collections safety duplicated in Svalbard")
         if (length(idx) > 0) {
           tbl$Number[idx] <- "0"
           tbl$Percentage[idx] <- "0.00%"
