@@ -105,11 +105,13 @@ mls_by_orgtype <- combined_allcrops %>%
   summarise(
     count_includedmls = sum(MLSSTAT == TRUE, na.rm = TRUE),
     count_notincludedmls = sum(MLSSTAT == FALSE, na.rm = TRUE),
+    count_noMLSinformation = sum(is.na(MLSSTAT)),
     .groups = "drop"
   ) %>%
   mutate(
     percent_includedmls = round(100 * count_includedmls / total_crop_records, 2),
-    percent_notincludedmls = round(100 * count_notincludedmls / total_crop_records, 2)
+    percent_notincludedmls = round(100 * count_notincludedmls / total_crop_records, 2),
+    percent_noMLSinformation = round(100 * count_noMLSinformation / total_crop_records, 2)
   )
 
 # 8. Accessions in Annex I
