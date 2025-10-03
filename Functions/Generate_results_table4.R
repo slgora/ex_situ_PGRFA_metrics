@@ -1,13 +1,13 @@
 #' Generate Table 4: Crop‐Specific Metrics Summary
 #'
-#' Constructs Table 4 for each crop strategy, summarizing eight key metrics across:
+#' Constructs Table 4 for each crop strategy, summarizing key metrics across:
 #' - Genebank holdings (international and national)
 #' - Annex I inclusion
 #' - GLIS DOI and MLS notifications
-#' - MLS status in international and national collections
+#' - MLS status in international and national collections, including missing MLS info
 #'
-#' The function dynamically maps metric roles and sources using a guide table,
-#' applies conditional filters (e.g., `A15_collection`), and aggregates values where needed.
+#' The function uses a mapping guide to dynamically link metrics, applies conditional filters
+#' (e.g., `A15_collection`), and aggregates values where needed.
 #' Percentages are recalculated from totals when required, and all outputs are formatted for reporting:
 #' - Numbers are comma-formatted if >10,000
 #' - Percentages are rounded to two decimal places with a "%" symbol
@@ -25,8 +25,8 @@
 #'   - `annex1_perc`: annex1_perc
 #'   - `GLIS_dois_count`: dois
 #'   - `GLIS_MLS_count`: MLS_notified
-#'   - `mls_by_orgtype`: count_includedmls, count_notincludedmls,
-#'     percent_includedmls, percent_notincludedmls, total_crop_records, A15_collection
+#'   - `mls_by_orgtype`: count_includedmls, count_notincludedmls, count_noMLSinformation,
+#'     percent_includedmls, percent_notincludedmls, percent_noMLSinformation, total_crop_records, A15_collection
 #'
 #' @return A named list of tibbles, one per crop strategy, each with columns:
 #'   - Metric
@@ -37,7 +37,6 @@
 #'
 #' @examples
 #' table4_results <- generate_table4(metrics_guide = guide_df, metric_dfs = list_of_metric_dfs)
-
 generate_table4 <- function(metrics_guide, metric_dfs) {
   library(dplyr); library(purrr); library(stringr); library(tidyr)
   
@@ -48,9 +47,7 @@ generate_table4 <- function(metrics_guide, metric_dfs) {
     transmute(
       raw_metric = `Metric Name in Results Table (or summaries text)`,
       Role       = `Metric Role`,
-      Metric     = if_else(Role == "Percentage",
-                           str_replace(raw_metric, "^Percent of", "Number of"),
-                           raw_metric)
+      Metric     = if_else(Role == "Percentage", str_replace(raw_metric, "^Percent of", "Number of"), raw_metric)
     ) %>%
     mutate(
       df_name = case_when(
@@ -63,7 +60,8 @@ generate_table4 <- function(metrics_guide, metric_dfs) {
         Metric %in% c(
           "Number of accessions included in the Multilateral System (MLS) (genebank collections databases)",
           "Number of accessions included in the Multilateral System (MLS) that are in international collections (genebank collections databases)",
-          "Number of accessions not included in the Multilateral System (MLS) (genebank collections databases)"
+          "Number of accessions not included in the Multilateral System (MLS) (genebank collections databases)",
+          "Number of accessions without information regarding inclusion in the Multilateral System (MLS) (genebank collections databases)"
         ) ~ "mls_by_orgtype",
         TRUE ~ NA_character_
       ),
@@ -82,14 +80,14 @@ generate_table4 <- function(metrics_guide, metric_dfs) {
         Metric == "Number of accessions included in the Multilateral System (MLS) that are in international collections (genebank collections databases)" & Role == "Percentage" ~ "percent_includedmls",
         Metric == "Number of accessions not included in the Multilateral System (MLS) (genebank collections databases)" & Role == "Number"     ~ "count_notincludedmls",
         Metric == "Number of accessions not included in the Multilateral System (MLS) (genebank collections databases)" & Role == "Percentage" ~ "percent_notincludedmls",
+        Metric == "Number of accessions without information regarding inclusion in the Multilateral System (MLS) (genebank collections databases)" & Role == "Number" ~ "count_noMLSinformation",
+        Metric == "Number of accessions without information regarding inclusion in the Multilateral System (MLS) (genebank collections databases)" & Role == "Percentage" ~ "percent_noMLSinformation",
         TRUE ~ NA_character_
       ),
       filter_expr = case_when(
         Metric == "Number of accessions in genebank collections in international institutions" ~ "A15_collection == TRUE",
         Metric == "Number of accessions in genebank collections in national or other institutions" ~ "A15_collection == FALSE",
         Metric == "Number of accessions included in the Multilateral System (MLS) that are in international collections (genebank collections databases)" ~ "A15_collection == TRUE",
-        # FIX: remove filter for "not included in MLS" to allow full crop-wide aggregation
-        Metric == "Number of accessions not included in the Multilateral System (MLS) (genebank collections databases)" ~ NA_character_,
         TRUE ~ NA_character_
       )
     ) %>%
@@ -110,29 +108,25 @@ generate_table4 <- function(metrics_guide, metric_dfs) {
           dfc <- df %>% filter(.data[[crop_column]] == crop)
           if (!is.na(filt)) dfc <- dfc %>% filter(eval(parse(text = filt)))
           
-          # Fix: aggregate counts and recalculate percentages for MLS metrics
-          v <- if (df_nm == "mls_by_orgtype" &&
-                   var_nm == "count_includedmls") {
-            sum(dfc[["count_includedmls"]], na.rm = TRUE)
-          } else if (df_nm == "mls_by_orgtype" &&
-                     var_nm == "percent_includedmls") {
-            total <- unique(dfc$total_crop_records)
-            count <- sum(dfc[["count_includedmls"]], na.rm = TRUE)
-            if (length(total) == 1 && total > 0) round(100 * count / total, 2) else NA
-          } else if (df_nm == "mls_by_orgtype" &&
-                     var_nm == "count_notincludedmls") {
-            sum(dfc[["count_notincludedmls"]], na.rm = TRUE)
-          } else if (df_nm == "mls_by_orgtype" &&
-                     var_nm == "percent_notincludedmls") {
-            total <- unique(dfc$total_crop_records)
-            count <- sum(dfc[["count_notincludedmls"]], na.rm = TRUE)
-            if (length(total) == 1 && total > 0) round(100 * count / total, 2) else NA
+          v <- if (df_nm == "mls_by_orgtype" && var_nm == "count_includedmls") {
+            sum(dfc$count_includedmls, na.rm = TRUE)
+          } else if (df_nm == "mls_by_orgtype" && var_nm == "percent_includedmls") {
+            sum(dfc$count_includedmls, na.rm = TRUE) / sum(dfc$total_crop_records, na.rm = TRUE) * 100
+          } else if (df_nm == "mls_by_orgtype" && var_nm == "count_notincludedmls") {
+            sum(dfc$count_notincludedmls, na.rm = TRUE)
+          } else if (df_nm == "mls_by_orgtype" && var_nm == "percent_notincludedmls") {
+            sum(dfc$count_notincludedmls, na.rm = TRUE) / sum(dfc$total_crop_records, na.rm = TRUE) * 100
+          } else if (df_nm == "mls_by_orgtype" && var_nm == "count_noMLSinformation") {
+            vals <- dfc$count_noMLSinformation
+            if (length(vals) > 1) sum(vals, na.rm = TRUE) else vals[1]
+          } else if (df_nm == "mls_by_orgtype" && var_nm == "percent_noMLSinformation") {
+            vals <- dfc$percent_noMLSinformation
+            if (length(vals) > 1) sum(vals, na.rm = TRUE) else vals[1]
           } else {
             dfc[[var_nm]][1]
           }
           
-          if (is.na(v)) return("")
-          
+          if (is.na(v) || is.null(v)) return("")
           if (role == "Percentage") {
             sprintf("%.2f%%", v)
           } else {
@@ -159,7 +153,8 @@ generate_table4 <- function(metrics_guide, metric_dfs) {
         "Number of accessions included in the Multilateral System (MLS) (Plant Treaty GLIS 2025)",
         "Number of accessions included in the Multilateral System (MLS) (genebank collections databases)",
         "Number of accessions included in the Multilateral System (MLS) that are in international collections (genebank collections databases)",
-        "Number of accessions not included in the Multilateral System (MLS) (genebank collections databases)"
+        "Number of accessions not included in the Multilateral System (MLS) (genebank collections databases)",
+        "Number of accessions without information regarding inclusion in the Multilateral System (MLS) (genebank collections databases)"
       ), Metric))
     
     return(tbl)
