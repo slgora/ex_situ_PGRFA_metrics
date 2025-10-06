@@ -16,12 +16,12 @@ generate_si_table2 <- function(accessions_per_taxa) {
   library(dplyr)
   library(purrr)
   
-  # Helper for formatting counts with commas
+  # Helper for formatting counts with commas if >= 1,000
   format_int <- function(x) {
     num <- suppressWarnings(as.numeric(x))
     out <- as.character(num)
     out[is.na(num)] <- NA_character_
-    big <- !is.na(num) & num > 1e4
+    big <- !is.na(num) & num >= 1e3
     out[big] <- format(
       num[big],
       big.mark    = ",",
