@@ -12,8 +12,8 @@
 #' @return A named list of data frames, one per crop. Each data frame contains:
 #'   \itemize{
 #'     \item Metric (character)
-#'     \item Number (character; numbers formatted with commas for values >10,000, or "—" if missing)
-#'     \item Percentage (character; formatted as "xx.xx%", "—" if missing, or "" for specific metrics)
+#'     \item Number (character; numbers formatted with commas for values ≥1,000, or "—" if missing)
+#'     \item Percentage (character; formatted as "xx.x%", "—" if missing, or "" for specific metrics)
 #'   }
 #'
 #' @examples
@@ -64,8 +64,8 @@ generate_table5 <- function(metrics_guide, metric_dfs) {
     if (is.null(val) || is.na(val)) return("—")
     numval <- suppressWarnings(as.numeric(val))
     if (is.na(numval)) return("—")
-    # Only add comma if number >= 10000 (10,000)
-    if (abs(numval) >= 10000) {
+    # Add comma if number ≥ 1,000
+    if (abs(numval) >= 1000) {
       return(format(numval, big.mark = ",", scientific = FALSE, trim = TRUE))
     } else {
       return(as.character(round(numval, 0)))
@@ -75,7 +75,7 @@ generate_table5 <- function(metrics_guide, metric_dfs) {
     if (is.null(val) || is.na(val)) return("—")
     numval <- suppressWarnings(as.numeric(val))
     if (is.na(numval)) return("—")
-    paste0(format(round(numval, 2), nsmall = 2), "%")
+    sprintf("%.1f%%", numval)
   }
   
   # 5. Metrics that should have blank Percentage fields (adjust patterns as needed)
@@ -159,7 +159,7 @@ generate_table5 <- function(metrics_guide, metric_dfs) {
         idx <- which(tbl$Metric == "Number of accessions in genebank collections safety duplicated in Svalbard")
         if (length(idx) > 0) {
           tbl$Number[idx] <- "0"
-          tbl$Percentage[idx] <- "0.00%"
+          tbl$Percentage[idx] <- "0.0%"
         }
       }
       tbl
