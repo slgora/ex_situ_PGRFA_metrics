@@ -20,8 +20,8 @@
 #' @return A named list of data frames, one per crop strategy. Each data frame contains:
 #'   \describe{
 #'     \item{\code{Metric}}{The reporting label for each metric, in standardized order.}
-#'     \item{\code{Number}}{Formatted numeric value (with commas if >10,000, or blank if NA).}
-#'     \item{\code{Percentage}}{Formatted percentage value with \code{"%"} symbol, or blank if NA.}
+#'     \item{\code{Number}}{Formatted numeric value (with commas if >1,000, or blank if NA).}
+#'     \item{\code{Percentage}}{Formatted percentage value with \code{"%"} symbol, rounded to 1 decimal, or blank if NA.}
 #'   }
 #'
 #' @export
@@ -116,13 +116,13 @@ generate_table3 <- function(tbl_number, metrics_guide, all_metrics) {
   format_number <- function(x) {
     if (is.na(x)) ""      # blank for NA
     else if (x == 0) "0"
-    else if (x > 1e4) format(x, big.mark = ",", scientific = FALSE)
+    else if (x >= 1e3) format(x, big.mark = ",", scientific = FALSE)
     else as.character(x)
   }
   
   format_percent <- function(x) {
     if (is.na(x)) ""      # blank for NA
-    else sprintf("%.2f%%", x)
+    else sprintf("%.1f%%", as.numeric(x))
   }
   
   # Capitalization for CWR only
