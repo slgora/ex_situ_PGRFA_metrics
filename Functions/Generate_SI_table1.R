@@ -9,6 +9,8 @@
 #' For non-vegetative crops, storage columns show only the count (no "(storage=13)" suffix),
 #' and the column header does not include "and source".
 #'
+#' Numbers are formatted with commas if >=1,000; percentages are rounded to 1 decimal place.
+#'
 #' @param institution_accessions_summary Data frame with institutional metrics (by crop/institution)
 #' @param storage_30_or_40_metric_byinst Data frame with count_with_30_or_40 by crop/institution
 #'
@@ -24,12 +26,12 @@ generate_si_table1 <- function(institution_accessions_summary, storage_30_or_40_
   
   vegetative_crops <- c("Aroids", "Breadfruit", "Cassava", "Strawberry", "Sweetpotato")
   
-  # Helper: Format integers with commas if > 10,000
+  # Helper: Format integers with commas if >= 1,000
   format_int <- function(x) {
     num <- suppressWarnings(as.numeric(x))
     out <- as.character(num)
     out[is.na(num)] <- NA_character_
-    big <- !is.na(num) & num > 1e4
+    big <- !is.na(num) & num >= 1e3
     out[big] <- format(
       num[big],
       big.mark    = ",",
@@ -39,7 +41,7 @@ generate_si_table1 <- function(institution_accessions_summary, storage_30_or_40_
     out
   }
   
-  # Helper: Format storage strings, adding comma to leading number if >10,000, and remove (storage=13)
+  # Helper: Format storage strings, adding comma to leading number if >=1,000, and remove (storage=13)
   format_storage_string <- function(x) {
     sapply(x, function(val) {
       if (is.na(val) || val == "") return(NA_character_)
@@ -50,7 +52,7 @@ generate_si_table1 <- function(institution_accessions_summary, storage_30_or_40_
       if (length(regmatch) != 3) return(val) # No match, return original
       num <- suppressWarnings(as.numeric(gsub(",", "", regmatch[2])))
       rest <- regmatch[3]
-      if (!is.na(num) & num > 1e4) {
+      if (!is.na(num) & num >= 1e3) {
         num_str <- format(num, big.mark = ",", scientific = FALSE, trim = TRUE)
         paste0(num_str, rest)
       } else {
@@ -114,8 +116,8 @@ generate_si_table1 <- function(institution_accessions_summary, storage_30_or_40_
       all_df <- all_df %>%
         mutate(
           `Number of accessions` = format_int(`Number of accessions`),
-          `Percent of total` = sprintf("%.2f%%", as.numeric(`Percent of total`)),
-          `Cumulative percent` = sprintf("%.2f%%", as.numeric(`Cumulative percent`)),
+          `Percent of total` = sprintf("%.1f%%", as.numeric(`Percent of total`)),
+          `Cumulative percent` = sprintf("%.1f%%", as.numeric(`Cumulative percent`)),
           `Number of accessions included in MLS (from GLIS)` = format_int(`Number of accessions included in MLS (from GLIS)`),
           `Number of accessions included in MLS (from genebank collections databases)` = format_int(`Number of accessions included in MLS (from genebank collections databases)`),
           !!storage_label := storage_format(.data[[storage_label]])
