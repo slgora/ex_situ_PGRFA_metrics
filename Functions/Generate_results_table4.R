@@ -9,8 +9,8 @@
 #' The function uses a mapping guide to dynamically link metrics, applies conditional filters
 #' (e.g., `A15_collection`), and aggregates values where needed.
 #' Percentages are recalculated from totals when required, and all outputs are formatted for reporting:
-#' - Numbers are comma-formatted if >10,000
-#' - Percentages are rounded to two decimal places with a "%" symbol
+#' - Numbers are comma-formatted if >=1,000
+#' - Percentages are rounded to one decimal place with a "%" symbol
 #'
 #' @param metrics_guide A data frame containing metadata for metric mapping.
 #'   Must include columns:
@@ -34,9 +34,6 @@
 #'   - Percentage (character, formatted with %)
 #'
 #' @export
-#'
-#' @examples
-#' table4_results <- generate_table4(metrics_guide = guide_df, metric_dfs = list_of_metric_dfs)
 generate_table4 <- function(metrics_guide, metric_dfs) {
   library(dplyr); library(purrr); library(stringr); library(tidyr)
   
@@ -128,22 +125,20 @@ generate_table4 <- function(metrics_guide, metric_dfs) {
           
           if (is.na(v) || is.null(v)) return("")
           if (role == "Percentage") {
-            sprintf("%.2f%%", v)
+            sprintf("%.1f%%", as.numeric(v)) # <-- one decimal
           } else {
-            formatC(v, format = "f", digits = 0)
+            vnum <- suppressWarnings(as.numeric(v))
+            if (!is.na(vnum) && vnum >= 1000) {
+              format(vnum, big.mark = ",", scientific = FALSE)
+            } else {
+              as.character(vnum)
+            }
           }
         }
       )) %>% select(Metric, Role, Value)
     
     tbl <- vals %>%
       pivot_wider(names_from = Role, values_from = Value, values_fill = "") %>%
-      mutate(
-        Number_raw = suppressWarnings(as.numeric(Number)),
-        Number = ifelse(Number_raw > 10000,
-                        format(Number_raw, big.mark = ",", scientific = FALSE),
-                        as.character(Number_raw)),
-        Percentage = coalesce(Percentage, "")
-      ) %>%
       select(Metric, Number, Percentage) %>%
       slice(match(c(
         "Number of accessions in genebank collections in international institutions",
