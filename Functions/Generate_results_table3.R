@@ -105,7 +105,7 @@ generate_table3 <- function(tbl_number, metrics_guide, all_metrics) {
     "Number of accessions in genebank collections from the primary and secondary region(s) of diversity",
     "Percent of accessions in genebank collections from the primary and secondary region(s) of diversity",
     "Number of taxa in botanic garden collections",
-    "Number of botanic institutions holding botanic garden collections"
+    "Number of botanic gardens holding collections of crop or its wild relatives"
   )
   
   guide_wide <- guide_wide %>%
