@@ -227,8 +227,10 @@ all_glis_data <- do.call("rbind", li)
 all_glis_data$MLSSTAT = NA
 all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(1, 11, 12, 13, 14, 15), TRUE, all_glis_data$MLSSTAT)
 all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(0), FALSE, all_glis_data$MLSSTAT)
+# drop rows where INSTCODE is null
+all_glis_data <- all_glis_data[!is.na(all_glis_data$INSTCODE), ]                               
 # save results
-write.csv(all_glis_data, '../../Data_processing/1_merge_data/2025_07_07/GLIS_processed.csv', row.names = FALSE)
+write.csv(all_glis_data, '../../Data_processing/1_merge_data/2025_10_06/GLIS_processed.csv', row.names = FALSE)
 
 ################# SGSV data ########################################################################## 
 source("Functions/Load_SGSV_data.R")

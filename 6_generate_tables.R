@@ -21,6 +21,8 @@ source("Functions/Generate_results_table4.R")
 source("Functions/Generate_results_table5.R")
 source("Functions/Generate_results_table6.R")
 source("Functions/Generate_results_table7.R")
+source("Functions/Generate_SI_table1.R")
+source("Functions/Generate_SI_table2.R")
 
 # note: Create a folder for date of run to export results tables 
 
@@ -124,3 +126,29 @@ metric_dfs <- list(
 table7_by_crop <- generate_table7(metrics_guide, metric_dfs)
 # Export all crop tables into one Excel file with each crop as a tab
 write_xlsx(table7_by_crop, path = "../../GCCS metrics project shared folder/Data_processing/6_generate_tables/2025_07_24/Table7_all_crops.xlsx")
+
+  
+# ---------- SI Table 1 ------------
+# Run function to generate SI table 1
+SI_table1_by_crop <- generate_si_table1(
+  institution_accessions_summary = all_metrics$institution_accessions_summary,
+  storage_30_or_40_metric_byinst = all_metrics$storage_30_or_40_metric_byinst)
+# Export all crop tables into one Excel file with each crop as a tab
+write_xlsx(SI_table1_by_crop, path = "../../GCCSmetricsI/Data_processing/6_generate_tables/2025_10_03/SI_Table1_all_crops.xlsx")
+
+
+# ---------- SI Table 2 ------------
+# Load metrics for SI Table 2
+excel_path <- "../../GCCSmetricsI/Data_processing/4_estimate_metrics/2025_09_24/accessions_per_taxa.xlsx"
+sheet_names <- excel_sheets(excel_path)
+accessions_per_taxa <- lapply(sheet_names, function(sht) {
+  read_excel(excel_path, sheet = sht) %>%
+    mutate(Crop_strategy = sht)    # add a column for crop strategy
+}) %>%
+  bind_rows()
+# Run function to generate SI table 2
+SI_table2_by_crop <- generate_si_table2(accessions_per_taxa)
+# Export all crop tables into one Excel file with each crop as a tab
+write_xlsx(SI_table2_by_crop, path = "../../GCCSmetricsI/Data_processing/6_generate_tables/2025_10_03/SI_Table2_all_crops.xlsx")
+
+######## END SCRIPT #########

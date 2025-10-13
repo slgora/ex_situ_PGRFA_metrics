@@ -8,7 +8,7 @@
 #' @details
 #' The function produces, for each crop in the data, a table with the following columns:
 #'   - Metric
-#'   - Value (formatted with two decimal places, commas for thousands)
+#'   - Global Value (see special formatting rules below)
 #'   - Number of countries where significant contributor
 #'   - Evenness of contribution across world regions
 #'   - Estimated international interdependence
@@ -22,11 +22,14 @@
 #'       "Import quantity worldwide (tonnes)",
 #'       "Import value worldwide (current thousand USD)"
 #'     are set to dashes ("—"), regardless of actual data.
+#'   - For the "Global Value" column: 
+#'       * Values < 999: two decimals.
+#'       * Values ≥ 999: truncate (no decimals), comma as thousands separator.
 #'
 #' @return A named list of data.frames, one per crop, with formatted metrics.
 #'
 #' @examples
-#' table1_by_crop <- get_table1_all_crops_formatted(PTFTW_metrics)
+#' table1_by_crop <- generate_table1(PTFTW_metrics)
 # ------------------------------------------------------------------------------
 generate_table1 <- function(df) {
   metric_names <- c(
@@ -107,16 +110,31 @@ generate_table1 <- function(df) {
     "Import value worldwide (current thousand USD)"
   )
   
+  # Custom formatter for Global Value column
+  format_global_value <- function(x) {
+    if (is.na(x) || x == "" || is.null(x)) return("—")
+    x_num <- suppressWarnings(as.numeric(x))
+    if (is.na(x_num)) return("—")
+    if (abs(x_num) < 999) {
+      formatted <- formatC(x_num, format = "f", digits = 2)
+    } else {
+      x_trunc <- trunc(x_num)
+      formatted <- formatC(x_trunc, format = "d", big.mark = ",")
+    }
+    return(formatted)
+  }
+  
+  safe_extract_and_format <- function(row, cols, formatter) {
+    sapply(cols, function(col) formatter(if (is.na(col) || !(col %in% names(row))) NA else row[[col]]))
+  }
+  
+  # For the other columns, keep the old logic (always two decimals or dash)
   format_number <- function(x) {
     if (is.na(x) || x == "" || is.null(x)) return("—")
     x_num <- suppressWarnings(as.numeric(x))
     if (is.na(x_num)) return("—")
     formatted <- formatC(x_num, format = "f", digits = 2, big.mark = ifelse(abs(x_num) >= 10000, ",", ""))
     return(formatted)
-  }
-  
-  safe_extract_and_format <- function(row, cols) {
-    sapply(cols, function(col) format_number(if (is.na(col) || !(col %in% names(row))) NA else row[[col]]))
   }
   
   all_crops <- unique(df$Crop_strategy)
@@ -126,10 +144,10 @@ generate_table1 <- function(df) {
     row <- df[df$Crop_strategy == crop, ]
     tab <- data.frame(
       Metric = metric_names,
-      Value = safe_extract_and_format(row, metric_cols),
-      `Number of countries where significant contributor` = safe_extract_and_format(row, num_countries_cols),
-      `Evenness of contribution across world regions` = safe_extract_and_format(row, evenness_cols),
-      `Estimated international interdependence` = safe_extract_and_format(row, interdependence_cols),
+      `Global Value` = safe_extract_and_format(row, metric_cols, format_global_value),
+      `Number of countries where significant contributor` = safe_extract_and_format(row, num_countries_cols, format_number),
+      `Evenness of contribution across world regions` = safe_extract_and_format(row, evenness_cols, format_number),
+      `Estimated international interdependence` = safe_extract_and_format(row, interdependence_cols, format_number),
       stringsAsFactors = FALSE,
       check.names = FALSE
     )
