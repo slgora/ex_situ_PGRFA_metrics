@@ -223,6 +223,9 @@ for (i in filenames) {
 #merge all the extracted dataframes in one single dataframe
 all_glis_data <- do.call("rbind", li)
 
+# drop all historical records from GLIS data 
+all_glis_data <- all_glis_data[!(all_glis_data$HISTORICAL == "y"), ]
+
 #generate MLSSTAT variable, used later to compute metrics on # of accessions included in the MLS
 all_glis_data$MLSSTAT = NA
 all_glis_data$MLSSTAT <- ifelse(all_glis_data$MLS %in% c(1, 11, 12, 13, 14, 15), TRUE, all_glis_data$MLSSTAT)
