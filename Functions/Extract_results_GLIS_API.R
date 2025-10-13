@@ -40,7 +40,8 @@ extract_result_GLIS <- function(results_API_call) {
       DECLATITUDE  = safeget(i, "A08"),
       DECLONGITUDE = safeget(i, "A09"),
       MLS          = safeget(i, "R07", "code"),
-      date_DOI     = safeget(i, "info", "doiregistered")
+      date_DOI     = safeget(i, "info", "doiregistered"),
+      HISTORICAL   = safeget(i, "R08")
     )
   }
   
@@ -50,7 +51,7 @@ extract_result_GLIS <- function(results_API_call) {
   # Set column names
   colnames(df) <- c('DOI', 'ACCENUMB', 'INSTCODE', 'GENUS', 'SPECIES', 
                     'SPAUTH', 'SUBTAXA', 'STAUTH', 'SAMPSTAT', 'ORIGCTY',
-                    'DECLATITUDE', 'DECLONGITUDE', 'MLS', 'date_DOI')
+                    'DECLATITUDE', 'DECLONGITUDE', 'MLS', 'date_DOI', 'HISTORICAL')
   
   # Convert MLS column to integer type if possible
   df$MLS <- as.integer(as.character(df$MLS))
