@@ -206,23 +206,32 @@ gen_wiews_df <-gen_wiews_df %>% filter(!grepl("Pisum", fullTaxa))
 gen_wiews_df$STORAGE <- as.character(gen_wiews_df$STORAGE)
 write.csv(gen_wiews_df, '../../Data_processing/1_merge_data/2025_07_19/gen_wiews_df.csv', row.names = FALSE)
 ################## GLIS data ########################################################################
-##### read all JSON files downloaded from GLIS and extract data 
-# create a list of file paths (each one is a Json file downloaded from GLIS)
-install.packages("jsonlite")
-library("jsonlite")
-source("Functions/Extract_results_GLIS_API.R") # added 30May 2025 corrected                              
-filenames <- list.files("../../Data/Plant_Treaty/GLIS/", pattern="*.json", full.names=TRUE)
+# GLIS data received from Plant Treaty
+all_glis_data <- read_tsv("../../Data/Plant_Treaty/GLIS/glis_data_16_oct_2025.csv")
 
-# Read all the downloaded GLIS json file and merge in one single dataframe
-li = list()
-for (i in filenames) {
-  json_data <- read_json(i)
-  r = extract_result_GLIS(json_data)
-  li[[i]] = r
-}
-#merge all the extracted dataframes in one single dataframe
-all_glis_data <- do.call("rbind", li)
+#rename all columns according to MCPD naming style, and select columns that are needed
+all_glis_data <- all_glis_data %>%
+transmute(
+DOI = doi,
+ACCENUMB = holdsid,
+INSTCODE = holdwiews,
+GENUS = genus,
+SPECIES = species,
+SPAUTH = spauth,
+SUBTAXA = subtaxa,
+STAUTH = stauth,
+SAMPSTAT = biostatus,
+ORIGCTY = holdcountry,
+DECLATITUDE = colllat,
+DECLONGITUDE = colllon,
+MLS = as.numeric(ifelse(mlsstatus %in% c("", "(null)", NA), NA, mlsstatus)),
+date = date,
+HISTORICAL = historical
+)
 
+# Remove duplicate records in all_glis_data based on DOI, keeping only the first occurrence of each DOI
+all_glis_data <- all_glis_data[!duplicated(all_glis_data$DOI), ]
+                               
 # drop all historical records from GLIS data 
 all_glis_data <- all_glis_data[!(all_glis_data$HISTORICAL == "y"), ]
 
