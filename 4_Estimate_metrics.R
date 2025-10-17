@@ -71,7 +71,8 @@ primary_region_metric <- combined_allcrops %>%
   group_by(Crop_strategy, primaryregions_total_records) %>%
   summarise(
     count = sum(fromPrimary_diversity_region, na.rm = TRUE),
-    .groups = "drop") %>%
+    .groups = "drop"
+  ) %>%
   mutate(isinprimaryregion_perc = round((count / primaryregions_total_records) * 100, 2))
 
 # 6.c and 6.d Diversity_regions_metric (primary + secondary regions)
