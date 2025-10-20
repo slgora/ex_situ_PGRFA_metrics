@@ -60,7 +60,8 @@ unique_taxa <- combined_allcrops %>%
 
 # 5. Number of countries where germplasm collected (excluding certain SAMPSTAT)
 country_count <- combined_allcrops %>%
-  filter(!(SAMPSTAT %in% c(400:499, 500, 600))) %>%
+  filter(!is.na(SAMPSTAT) & !(between(SAMPSTAT, 400, 499) | SAMPSTAT %in% c(500, 600))) %>% #excludes rows with SAMPSTAT=NA, or in 400–499, 500, or 600
+  filter(!is.na(ORIGCTY), ORIGCTY != "") %>% #drop missing/blank countries so they aren't counted
   group_by(Crop_strategy) %>%
   summarise(unique_countrycount = n_distinct(ORIGCTY), .groups = "drop")
 
