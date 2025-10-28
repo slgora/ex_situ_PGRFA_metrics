@@ -17,7 +17,7 @@ percent_summary <- function(df, group_col, count_expr, total_col, percent_col) {
 combined_allcrops <- read_csv("../../GCCSmetricsI/Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_08_22/combined_df.csv")
 SGSV_allcrops <- read_csv("../../GCCSmetricsI/Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/SGSV_processed.csv")
 BGCI_allcrops <- read_csv("../../GCCSmetricsI/Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/BGCI_processed.csv")
-GLIS_dataset <- read_csv("../../GCCSmetricsI/Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_07_07/GLIS_processed.csv")
+GLIS_dataset <- read_csv("../../GCCSmetricsI/Data_processing/3_post_taxa_standardization_processing/Resulting_datasets/2025_10_17/GLIS_processed.csv")
 croplist <- read_excel("../../GCCSmetricsI/Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx")
 institute_names_no_syn <- read_excel("../../GCCSmetricsI/Data_processing/Support_files/FAO_WIEWS/FAO_WIEWS_organizations_PG.xlsx")
 
@@ -60,31 +60,33 @@ unique_taxa <- combined_allcrops %>%
 
 # 5. Number of countries where germplasm collected (excluding certain SAMPSTAT)
 country_count <- combined_allcrops %>%
-  filter(!(SAMPSTAT %in% c(400:499, 500, 600))) %>%
+  filter(!is.na(SAMPSTAT) & !(between(SAMPSTAT, 400, 499) | SAMPSTAT %in% c(500, 600))) %>% #excludes rows with SAMPSTAT=NA, or in 400–499, 500, or 600
+  filter(!is.na(ORIGCTY), ORIGCTY != "") %>% #drop missing/blank countries so they aren't counted
   group_by(Crop_strategy) %>%
   summarise(unique_countrycount = n_distinct(ORIGCTY), .groups = "drop")
 
 # 6.a and 6.b Accessions from primary & secondary regions of diversity
 primary_region_metric <- combined_allcrops %>%
+  add_count(Crop_strategy, name = "primaryregions_total_records") %>%
   filter(SAMPSTAT <= 399 | SAMPSTAT == 999 | is.na(SAMPSTAT)) %>%
-  percent_summary(
-    Crop_strategy,
-    sum(fromPrimary_diversity_region, na.rm = TRUE),
-    primaryregions_total_records,
-    isinprimaryregion_perc
-  )
+  group_by(Crop_strategy, primaryregions_total_records) %>%
+  summarise(
+    count = sum(fromPrimary_diversity_region, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(isinprimaryregion_perc = round((count / primaryregions_total_records) * 100, 2))
 
 # 6.c and 6.d Diversity_regions_metric (primary + secondary regions)
 diversity_regions_metric <- combined_allcrops %>%
+  add_count(Crop_strategy, name = "total_accessions") %>%
   filter(SAMPSTAT <= 399 | SAMPSTAT == 999 | is.na(SAMPSTAT)) %>%
   group_by(Crop_strategy) %>%
   summarise(
     isindiversityregions_count = sum(fromPrimary_diversity_region, na.rm = TRUE) +
       sum(fromSecondary_diversity_region, na.rm = TRUE),
-    total_accessions = n(),
+    total_accessions = first(total_accessions),
     isindiversityregions_perc = round(100 * isindiversityregions_count / total_accessions, 2),
-    .groups = "drop"
-  )
+    .groups = "drop")
 
 # 7. accessions by org type,  and MLS accessions for organization type (A15 collection versus non-A15)
 combined_allcrops <- combined_allcrops %>% 
