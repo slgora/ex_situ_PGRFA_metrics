@@ -4,10 +4,11 @@ library(readr)
 library(readxl)
 library(writexl)
 
-#' Process PTFTW indicator metrics for our crops
+#' Process PTFTW indicator metrics for selected crops
 #'
 #' Aggregates digital, trade, food supply, and research indicators for selected crops.
 #' Metrics include sum, average, and max values, grouped by Crop_strategy.
+#' Two distribution metrics are summed then divided by 5.5 (years)
 #'
 #' @param indicator_file Path to PTFTW indicator CSV
 #' @param croplist Path to croplist Excel file
@@ -97,13 +98,23 @@ process_PTFTW_metrics <- function(indicator_file, croplist, out_path = NULL) {
     "crop_use-faostat_count_countries-count_countries_trade-import_value_tonnes"
   )
   
+  # Columns to sum then divide by 5.5
+  special_div5_cols <- c(
+    "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_accessions",
+    "demand-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews-genebank_distributions_fao_wiews_samples"
+  )
+  
   # Summarise safely and rename final output column
   PTFTW_metrics <- PTFTW_clean %>%
     group_by(cropstrategy) %>%
     summarise(
-      across(all_of(sum_cols), ~sum(.x, na.rm = TRUE)),
-      across(all_of(avg_cols), ~mean(.x, na.rm = TRUE)),
-      across(all_of(max_cols), ~if (all(is.na(.x))) NA else max(.x, na.rm = TRUE)),
+      # sum for normal sum columns (excluding the special ones)
+      across(any_of(setdiff(sum_cols, special_div5_cols)), ~sum(.x, na.rm = TRUE)),
+      # sum then divide by 5.5 for the two special metrics
+      across(any_of(special_div5_cols), ~sum(.x, na.rm = TRUE) / 5.5),
+      # averages and maxes as before
+      across(any_of(avg_cols), ~mean(.x, na.rm = TRUE)),
+      across(any_of(max_cols), ~if (all(is.na(.x))) NA else max(.x, na.rm = TRUE)),
       .groups = "drop"
     ) %>%
     mutate(across(everything(), ~ifelse(is.infinite(.x), NA, .x))) %>%
@@ -115,4 +126,3 @@ process_PTFTW_metrics <- function(indicator_file, croplist, out_path = NULL) {
   
   return(PTFTW_metrics)
 }
-
