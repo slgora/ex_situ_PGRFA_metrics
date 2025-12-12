@@ -98,9 +98,9 @@ generate_table5 <- function(metrics_guide, metric_dfs) {
     "Number of accessions held as DNA in genebank collections",
     "Number of accessions held in other storage in genebank collections",
     "Number of accessions not marked with a storage type in genebank collections",
-    "Number of accessions in genebank collections regenerated 2012-2014",
-    "Number of accessions in genebank collections in need of regeneration 2012-2014",
-    "Number of accessions in genebank collections in need of regeneration without budget for regeneration 2012-2014",
+    "Number of accessions in genebank collections regenerated 2014-2019",
+    "Number of accessions in genebank collections in need of regeneration 2014-2019",
+    "Number of accessions in genebank collections in need of regeneration without budget for regeneration 2014-2019",
     "Number of accessions safety duplicated out of the country in genebank collections",
     "Number of accessions in genebank collections safety duplicated in Svalbard"
   )
