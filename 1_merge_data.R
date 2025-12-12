@@ -284,9 +284,11 @@ write.csv(sgsv, '../../Data_processing/1_merge_data/2025_07_07/SGSV_processed.cs
 # read in FAO WIEWS indicator file and croplist_PG within function 
 source("Functions/Load_WIEWS_indicator_data.R") # source function
 WIEWS_indicator_proccessed <- process_wiews_indicator_data(
-  wiews_path = "../../Data/FAO_WIEWS/Indicator_22_data/FAO_WIEWS_Indicator22.xlsx",
-  croplist_path = "../../Data_processing/Support_files/GCCS_Selected_crops/croplist_PG.xlsx"
+  wiews_path = "../../GCCSmetricsI/Data/FAO_WIEWS/Indicator_22_data/Wiews_Indicator_1733321439198_regenerations2014-2019.xlsx",
+  croplist_path = "../../GCCSmetricsI/Data_processing/Support_files/GCCS_Selected_crops/CropList_final.xlsx"
 )
 # save results
-write.csv(WIEWS_indicator_proccessed, '../../Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv', row.names = FALSE)
+write.csv(WIEWS_indicator_proccessed, '../../Data_processing/1_merge_data/2025_12_02_FINAL/WIEWS_indicator_processed.csv', row.names = FALSE)
 
+                               
+###### END SCRIPT ######
