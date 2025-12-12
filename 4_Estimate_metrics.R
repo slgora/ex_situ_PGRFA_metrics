@@ -341,7 +341,7 @@ BGCI_inst_count <- BGCI_allcrops %>%
   count(Crop_strategy, name = "unique_inst_count")
 
 # 17. Regeneration metrics (based on WIEWS indicator file)
-WIEWS_regeneration_summary <- read_csv("../../GCCSmetricsI/Data_processing/1_merge_data/2025_07_08/WIEWS_indicator_processed.csv")
+WIEWS_regeneration_summary <- read_csv("../../GCCSmetricsI/Data_processing/1_merge_data/2025_12_02_FINAL/WIEWS_indicator_processed.csv")
 
 # 18. PDCI metric
 # Source and Run function to calculate PDCI
